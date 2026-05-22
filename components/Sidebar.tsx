@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderOpen, CalendarDays, Info, PenTool } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, CalendarDays, Info, PenTool, Settings } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const navItems = [
   { name: 'الرئيسية', href: '/', icon: LayoutDashboard },
   { name: 'إدارة المحتوى', href: '/content', icon: FolderOpen },
   { name: 'جدول النشر', href: '/schedule', icon: CalendarDays },
+  { name: 'الإعدادات', href: '/settings', icon: Settings },
   { name: 'حول المطور', href: '/dev-info', icon: Info },
 ];
 
@@ -51,7 +52,7 @@ export default function Sidebar() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around items-center h-16 px-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 flex justify-around items-center h-16 px-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
@@ -61,11 +62,11 @@ export default function Sidebar() {
               className={clsx(
                 'flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors',
                 isActive
-                  ? 'text-indigo-600'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'text-indigo-600 dark:text-indigo-400'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
               )}
             >
-              <item.icon className={clsx("w-5 h-5", isActive && "fill-indigo-50")} />
+              <item.icon className={clsx("w-5 h-5", isActive && "fill-indigo-50 dark:fill-indigo-950/20")} />
               <span className="text-[10px] font-medium">{item.name}</span>
             </Link>
           );

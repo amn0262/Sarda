@@ -35,9 +35,24 @@ export interface Story {
   updatedAt: number;
 }
 
+export interface Profile {
+  fullName: string;
+  bio: string;
+  jobTitle: string;
+  facebook: string;
+  twitter: string;
+  instagram: string;
+  linkedin: string;
+  youtube: string;
+  telegram: string;
+  website: string;
+}
+
 interface AppState {
   folders: Folder[];
   stories: Story[];
+  theme: 'light' | 'dark';
+  profile: Profile;
   addFolder: (name: string) => void;
   updateFolder: (id: string, name: string) => void;
   deleteFolder: (id: string) => void;
@@ -45,13 +60,30 @@ interface AppState {
   updateStory: (id: string, story: Partial<Omit<Story, 'id' | 'createdAt' | 'updatedAt'>>) => void;
   deleteStory: (id: string) => void;
   importData: (data: { folders: Folder[], stories: Story[] }) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+  updateProfile: (profile: Partial<Profile>) => void;
 }
+
+const defaultProfile: Profile = {
+  fullName: '',
+  bio: '',
+  jobTitle: '',
+  facebook: '',
+  twitter: '',
+  instagram: '',
+  linkedin: '',
+  youtube: '',
+  telegram: '',
+  website: '',
+};
 
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
       folders: [],
       stories: [],
+      theme: 'light',
+      profile: defaultProfile,
       addFolder: (name) => set((state) => ({
         folders: [...state.folders, { id: uuidv4(), name, createdAt: Date.now() }]
       })),
@@ -74,7 +106,11 @@ export const useStore = create<AppState>()(
       importData: (data) => set(() => ({
         folders: data.folders || [],
         stories: data.stories || []
-      }))
+      })),
+      setTheme: (theme) => set(() => ({ theme })),
+      updateProfile: (profileData) => set((state) => ({
+        profile: { ...(state.profile || defaultProfile), ...profileData }
+      })),
     }),
     {
       name: 'sarda-storage',
