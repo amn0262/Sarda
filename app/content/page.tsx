@@ -1,24 +1,28 @@
 'use client';
+import { t } from "@/lib/i18n";
 
-import { useState } from 'react';
-import { useStore } from '@/lib/store';
-import { FolderPlus, Folder as FolderIcon, MoreVertical, Trash2, Edit2, FileText, Plus, Calendar, Clock, Search, LayoutGrid, AlignJustify, Filter, Eye, EyeOff } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useStore, Story } from '@/lib/store';
+import { FolderPlus, Folder as FolderIcon, MoreVertical, Trash2, Edit2, FileText, Plus, Calendar, Clock, ArrowRight, FileDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
-import { format } from 'date-fns';
-import { ar } from 'date-fns/locale';
 
 export default function ContentManager() {
-  const { folders, stories, addFolder, deleteFolder, updateFolder, deleteStory } = useStore();
+  const { folders, stories, addFolder, deleteFolder, updateFolder, deleteStory, moveToTrash, language } = useStore();
+  
+  const activeFolders = folders.filter(f => !f.isDeleted);
+  const activeStories = stories.filter(s => !s.isDeleted);
+
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [isAddingFolder, setIsAddingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editFolderName, setEditFolderName] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'detailed' | 'compact'>('detailed');
-  const [showPreviewText, setShowPreviewText] = useState(true);
+  
+  // Filtering state
+  const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [itemToDelete, setItemToDelete] = useState<{id: string, type: 'story' | 'folder'} | null>(null);
 
   const handleAddFolder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,38 +42,108 @@ export default function ContentManager() {
   };
 
   const selectedFolder = folders.find(f => f.id === selectedFolderId);
-  const folderStories = stories
-    .filter(s => s.folderId === selectedFolderId)
-    .filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    .filter(s => statusFilter === 'all' || s.status === statusFilter);
+  const folderStoriesUnfiltered = activeStories.filter(s => s.folderId === selectedFolderId);
+
+  // Get available years and months from the unfiltered folder stories
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    folderStoriesUnfiltered.forEach(s => {
+      const date = s.targetDate ? new Date(s.targetDate) : new Date(s.updatedAt);
+      years.add(date.getFullYear().toString());
+    });
+    return Array.from(years).sort().reverse();
+  }, [folderStoriesUnfiltered]);
+
+  const availableMonths = useMemo(() => {
+    if (selectedYear === 'all') return [];
+    const months = new Set<string>();
+    folderStoriesUnfiltered.forEach(s => {
+      const date = s.targetDate ? new Date(s.targetDate) : new Date(s.updatedAt);
+      if (date.getFullYear().toString() === selectedYear) {
+        months.add(date.getMonth().toString());
+      }
+    });
+    return Array.from(months).sort((a, b) => parseInt(a) - parseInt(b));
+  }, [folderStoriesUnfiltered, selectedYear]);
+
+  const folderStories = useMemo(() => {
+    return folderStoriesUnfiltered.filter(s => {
+      if (selectedYear === 'all') return true;
+      const date = s.targetDate ? new Date(s.targetDate) : new Date(s.updatedAt);
+      if (date.getFullYear().toString() !== selectedYear) return false;
+      if (selectedMonth !== 'all' && date.getMonth().toString() !== selectedMonth) return false;
+      return true;
+    });
+  }, [folderStoriesUnfiltered, selectedYear, selectedMonth]);
+
+  const handleExportFolderWord = () => {
+    if (!selectedFolder) return;
+    
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40' lang='ar' dir='rtl'><head><meta charset='utf-8'><title>" + selectedFolder.name + "</title></head><body style='font-family: Arial, sans-serif; text-align: right; direction: rtl;'>";
+    const footer = "</body></html>";
+    
+    let content = `<h1 style="text-align: center; color: #333; margin-bottom: 40px; font-size: 32px;">مجلد: ${selectedFolder.name}</h1>`;
+    
+    folderStories.forEach((story, idx) => {
+      const formattedDate = story.targetDate ? new Date(story.targetDate).toLocaleDateString('ar', {
+        numberingSystem: 'latn',
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : 'غير محدد';
+      const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
+
+      content += `
+        <div style="page-break-before: ${idx > 0 ? 'always' : 'auto'}; border-bottom: 1px solid #ccc; padding-bottom: 20px; margin-bottom: 20px;">
+          <h2 style="font-size: 24px; color: #333;">${story.title || t('untitledStory', language)}</h2>
+          <p style="color: #666; font-size: 12px;">الحالة: ${statusText} | التاريخ: ${formattedDate}</p>
+        </div>
+        <div>
+          ${story.content}
+        </div>
+      `;
+    });
+
+    const sourceHTML = header + content + footer;
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const fileDownload = document.createElement("a");
+    document.body.appendChild(fileDownload);
+    fileDownload.href = source;
+    fileDownload.download = `مجلد_${selectedFolder.name}.doc`;
+    fileDownload.click();
+    document.body.removeChild(fileDownload);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-amber-100 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/40';
-      case 'ready': return 'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-900/40';
-      case 'published': return 'bg-blue-100 dark:bg-blue-950/20 text-blue-800 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/40';
-      default: return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-705';
+      case 'draft': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'ready': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'published': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'draft': return 'مسودة';
-      case 'ready': return 'جاهز للنشر';
-      case 'published': return 'منشور';
+      case 'draft': return t('draft', language);
+      case 'ready': return t('readyToPublish', language);
+      case 'published': return t('published', language);
       default: return status;
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-full transition-colors">
+    <div className="flex h-full w-full overflow-hidden">
       {/* Folders Sidebar */}
-      <div className={`w-full md:w-80 bg-white dark:bg-slate-900 border-b md:border-b-0 md:border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 ${selectedFolder ? 'hidden md:flex' : 'flex h-full'}`}>
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <h2 className="font-extrabold text-lg text-slate-800 dark:text-slate-100">المجلدات</h2>
+      <div className={`w-full md:w-80 bg-white border-l border-slate-200 flex flex-col h-full shrink-0 ${
+        selectedFolderId !== null ? 'hidden md:flex' : 'flex'
+      }`}>
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="font-bold text-lg text-slate-800">المجلدات</h2>
           <button
             onClick={() => setIsAddingFolder(true)}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+            className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
             title="مجلد جديد"
           >
             <FolderPlus className="w-5 h-5" />
@@ -84,31 +158,24 @@ export default function ContentManager() {
                 autoFocus
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
-                    setIsAddingFolder(false);
-                    setNewFolderName('');
-                  }
-                }}
-                placeholder="اسم المجلد... (اضغط Enter للحفظ)"
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                onBlur={() => setIsAddingFolder(false)}
+                placeholder="اسم المجلد..."
+                className="w-full px-3 py-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
               />
             </form>
           )}
 
-          {folders.length === 0 && !isAddingFolder && (
-            <div className="text-center text-slate-500 dark:text-slate-400 py-8 text-sm">
+          {activeFolders.length === 0 && !isAddingFolder && (
+            <div className="text-center text-slate-500 py-8 text-sm">
               لا توجد مجلدات. أضف مجلداً للبدء.
             </div>
           )}
 
-          {folders.map(folder => {
-            const storyCount = stories.filter(s => s.folderId === folder.id).length;
-            return (
+          {activeFolders.map(folder => (
             <div
               key={folder.id}
               className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${
-                selectedFolderId === folder.id ? 'bg-indigo-50/75 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-900/30' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 border border-transparent'
+                selectedFolderId === folder.id ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-slate-50 border border-transparent'
               }`}
               onClick={() => setSelectedFolderId(folder.id)}
             >
@@ -119,164 +186,126 @@ export default function ContentManager() {
                     autoFocus
                     value={editFolderName}
                     onChange={(e) => setEditFolderName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') {
-                        setEditingFolderId(null);
-                      }
-                    }}
-                    className="w-full px-2 py-1 bg-white dark:bg-slate-905 border border-indigo-300 dark:border-indigo-900 rounded focus:outline-none text-sm text-slate-800 dark:text-slate-200"
+                    onBlur={() => setEditingFolderId(null)}
+                    className="w-full px-2 py-1 border border-indigo-300 rounded focus:outline-none text-sm"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </form>
               ) : (
                 <div className="flex items-center gap-3 flex-1 overflow-hidden">
                   <FolderIcon className={`w-5 h-5 shrink-0 ${selectedFolderId === folder.id ? 'text-indigo-500' : 'text-slate-400'}`} />
-                  <span className={`truncate text-sm font-semibold ${selectedFolderId === folder.id ? 'text-indigo-900 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <span className={`truncate text-sm font-medium ${selectedFolderId === folder.id ? 'text-indigo-900' : 'text-slate-700'}`}>
                     {folder.name}
-                  </span>
-                  <span className={`text-xs px-2.5 py-0.5 rounded-full mr-auto font-medium ${selectedFolderId === folder.id ? 'bg-indigo-100/80 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
-                    {storyCount}
                   </span>
                 </div>
               )}
 
-              <div className="flex items-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity mr-2">
+              <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setEditFolderName(folder.name);
                     setEditingFolderId(folder.id);
                   }}
-                  className="p-1.5 text-slate-400 hover:text-indigo-650 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
-                  title="تعديل اسم المجلد"
+                  className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-md hover:bg-indigo-50"
                 >
-                  <Edit2 className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                  <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm('هل أنت متأكد من حذف هذا المجلد وجميع القصص بداخله؟')) {
-                      deleteFolder(folder.id);
-                      if (selectedFolderId === folder.id) setSelectedFolderId(null);
-                    }
+                    setItemToDelete({ id: folder.id, type: 'folder' });
                   }}
-                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
-                  title="حذف المجلد"
+                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-red-50"
                 >
-                  <Trash2 className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
-          )})}
+          ))}
         </div>
       </div>
 
       {/* Stories Area */}
-      <div className={`flex-1 bg-slate-50 dark:bg-slate-950/40 h-full overflow-y-auto ${!selectedFolder ? 'hidden md:block' : 'block'}`}>
+      <div className={`flex-1 bg-slate-50 h-full overflow-y-auto ${
+        selectedFolderId === null ? 'hidden md:block' : 'block'
+      }`}>
         {selectedFolder ? (
           <div className="p-4 md:p-8 max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <button 
-                    onClick={() => setSelectedFolderId(null)}
-                    className="md:hidden p-1 -mr-1 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                  </button>
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-slate-50">{selectedFolder.name}</h1>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{folderStories.length} قصة</p>
+                <button
+                  onClick={() => setSelectedFolderId(null)}
+                  className="md:hidden mb-3 flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm bg-indigo-50/60 px-3 py-1.5 rounded-lg transition-colors w-fit"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  الرجوع للمجلدات
+                </button>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">{selectedFolder.name}</h1>
+                <p className="text-slate-500 text-xs md:text-sm">{folderStories.length} قصة</p>
               </div>
-
-              {/* Action Toolbar */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                  
-                  {/* Search box */}
-                  <div className="relative flex-1 sm:flex-none sm:w-44 md:w-56">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="ابحث في القصص..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-3 pr-9 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-slate-800 dark:text-slate-100 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                    />
-                  </div>
-                  
-                  {/* Status selection */}
-                  <div className="relative flex-1 sm:flex-none">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                {/* Filters */}
+                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => {
+                      setSelectedYear(e.target.value);
+                      setSelectedMonth('all');
+                    }}
+                    className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:ring-0 cursor-pointer outline-none pl-6 pr-2 py-1.5"
+                  >
+                    <option value="all">كل السنوات</option>
+                    {availableYears.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                  {selectedYear !== 'all' && (
                     <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-xl pl-3 pr-9 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-slate-700 dark:text-slate-300"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:ring-0 cursor-pointer outline-none pl-6 pr-2 py-1.5 border-r border-slate-200"
                     >
-                      <option value="all">جميع الحالات</option>
-                      <option value="draft">مسودة</option>
-                      <option value="ready">جاهز للنشر</option>
-                      <option value="published">منشور</option>
+                      <option value="all">كل الأشهر</option>
+                      {availableMonths.map(month => (
+                        <option key={month} value={month}>{new Date(2000, parseInt(month), 1).toLocaleDateString('ar', { month: 'long' })}</option>
+                      ))}
                     </select>
-                    <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  </div>
-
-                  {/* View Modes & Text option toggles */}
-                  <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-xl p-1 shrink-0">
-                    
-                    {/* OPTION: Toggle Preview Story Text directly, satisfying User request */}
-                    <button
-                      onClick={() => setShowPreviewText(!showPreviewText)}
-                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${showPreviewText ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400'}`}
-                      title={showPreviewText ? "إخفاء معاينة نصوص القصص" : "عرض معاينة نصوص القصص"}
-                    >
-                      {showPreviewText ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
-
-                    <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-800 mx-1" />
-
-                    <button
-                      onClick={() => setViewMode('detailed')}
-                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${viewMode === 'detailed' ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-405'}`}
-                      title="عرض مفصل"
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('compact')}
-                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${viewMode === 'compact' ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-405'}`}
-                      title="عرض مدمج"
-                    >
-                      <AlignJustify className="w-4 h-4" />
-                    </button>
-                  </div>
+                  )}
                 </div>
 
+                <button
+                  onClick={handleExportFolderWord}
+                  className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-sm text-sm"
+                  title="تنزيل كامل المجلد كملف وورد"
+                >
+                  <FileDown className="w-4 h-4 text-blue-600" />
+                  <span className="hidden md:inline">تنزيل وورد</span>
+                </button>
                 <Link
                   href={`/editor/new?folderId=${selectedFolder.id}`}
-                  className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm w-full sm:w-auto shrink-0 text-xs sm:text-sm"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-sm text-sm self-start sm:self-auto"
                 >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Plus className="w-5 h-5" />
                   قصة جديدة
                 </Link>
               </div>
             </div>
 
             {folderStories.length === 0 ? (
-              <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 border-dashed">
-                <FileText className="w-12 h-12 text-slate-300 dark:text-slate-750 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-150 mb-2">لا توجد قصص هنا</h3>
-                <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">ابدأ بكتابة قصتك الأولى في هذا المجلد.</p>
+              <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 border-dashed">
+                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">لا توجد قصص هنا</h3>
+                <p className="text-slate-500 mb-6">ابدأ بكتابة قصتك الأولى في هذا المجلد.</p>
                 <Link
                   href={`/editor/new?folderId=${selectedFolder.id}`}
-                  className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                  className="inline-flex items-center gap-2 text-indigo-600 font-medium hover:text-indigo-700"
                 >
-                  <Plus className="w-5 h-5" />
-                  إنشاء قصة
-                </Link>
+                  <Plus className="w-5 h-5" />{t('createStory', language)}</Link>
               </div>
-            ) : viewMode === 'detailed' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <AnimatePresence mode="popLayout">
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence>
                   {folderStories.map((story) => (
                     <motion.div
                       key={story.id}
@@ -284,94 +313,46 @@ export default function ContentManager() {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow group relative flex flex-col min-h-[220px] max-h-[300px] overflow-hidden"
+                      className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow group relative flex flex-col h-64"
                     >
-                      <div className="flex justify-between items-start mb-3 shrink-0">
-                        <span className={`text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full border font-semibold ${getStatusColor(story.status)}`}>
+                      <div className="flex justify-between items-start mb-4">
+                        <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${getStatusColor(story.status)}`}>
                           {getStatusText(story.status)}
                         </span>
                         
                         <div className="flex items-center gap-1">
-                          <Link
-                            href={`/editor/${story.id}`}
-                            className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-650 dark:hover:text-indigo-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                            title="تعديل القصة"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Link>
                           <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (confirm('هل أنت متأكد من حذف هذه القصة؟')) {
-                                deleteStory(story.id);
-                              }
-                            }}
-                            className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                            title="حذف القصة"
+                            onClick={() => setItemToDelete({ id: story.id, type: 'story' })}
+                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                            title={t('moveToTrash', language)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
+                          <Link
+                            href={`/editor/${story.id}`}
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
+                            title={t('editStory', language)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Link>
                         </div>
                       </div>
                       
-                      <Link href={`/editor/${story.id}`} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2">
-                        <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
-                          {story.title || 'بدون عنوان'}
-                        </h3>
-                      </Link>
+                      <h3 className="text-xl font-bold text-slate-900 mb-2 line-clamp-2">
+                        {story.title || 'بدون عنوان'}
+                      </h3>
                       
-                      {/* CONDITIONAL RENDERING: preview text toggles based on showPreviewText selection */}
-                      {showPreviewText ? (
-                        <div className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-3 mb-auto leading-relaxed" dangerouslySetInnerHTML={{ __html: story.content || 'لا يوجد محتوى...' }} />
-                      ) : (
-                        <div className="mb-auto text-xs text-slate-400 dark:text-slate-500">تم إخفاء معاينة النص</div>
-                      )}
+                      <div className="text-slate-500 text-sm line-clamp-3 mb-auto" dangerouslySetInnerHTML={{ __html: story.content || 'لا يوجد محتوى...' }} />
                       
-                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 shrink-0">
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                         <div className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5" />
-                          <span>{story.targetDate ? format(new Date(story.targetDate), 'dd MMM yyyy', { locale: ar }) : 'غير محدد'}</span>
+                          <span>{story.targetDate ? new Date(story.targetDate).toLocaleDateString('ar', { numberingSystem: 'latn', day: 'numeric', month: 'short', year: 'numeric' }) : 'غير محدد'}</span>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <AnimatePresence mode="popLayout">
-                  {folderStories.map((story) => (
-                    <motion.div
-                      key={story.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-slate-700 transition-colors group flex items-center justify-between"
-                    >
-                      <Link href={`/editor/${story.id}`} className="flex-1 font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate text-sm">
-                        {story.title || 'بدون عنوان'}
-                      </Link>
-                      <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity mr-4 shrink-0">
-                        <Link
-                          href={`/editor/${story.id}`}
-                          className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-650 dark:hover:text-indigo-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                          title="تعديل القصة"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (confirm('هل أنت متأكد من حذف هذه القصة؟')) {
-                              deleteStory(story.id);
-                            }
-                          }}
-                          className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                          title="حذف القصة"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{story.publishTime || '--:--'}</span>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
@@ -380,12 +361,51 @@ export default function ContentManager() {
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 flex-col gap-4">
-            <FolderIcon className="w-16 h-16 text-slate-250 dark:text-slate-805" />
-            <p className="text-sm md:text-base">اختر مجلداً لاستعراض القصص والملفات</p>
+          <div className="flex items-center justify-center h-full text-slate-400 flex-col gap-4">
+            <FolderIcon className="w-16 h-16 text-slate-200" />
+            <p className="text-lg">اختر مجلداً لاستعراض القصص</p>
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {itemToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+            >
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{t('confirmTrashTitle', language)}</h3>
+                <p className="text-sm text-slate-500 mb-6">{t('confirmTrashSub', language)}</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      moveToTrash(itemToDelete.id, itemToDelete.type);
+                      if (itemToDelete.type === 'folder' && selectedFolderId === itemToDelete.id) {
+                        setSelectedFolderId(null);
+                      }
+                      setItemToDelete(null);
+                    }}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
+                  >{t('moveToTrash', language)}</button>
+                  <button
+                    onClick={() => setItemToDelete(null)}
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
+                  >{t('cancel', language)}</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

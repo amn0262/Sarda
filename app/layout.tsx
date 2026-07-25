@@ -1,8 +1,8 @@
-import type {Metadata, Viewport} from 'next';
+import type {Metadata} from 'next';
 import { Tajawal } from 'next/font/google';
 import './globals.css'; // Global styles
 import Sidebar from '@/components/Sidebar';
-import ThemeInitializer from '@/components/ThemeInitializer';
+import ClientLayout from '@/components/ClientLayout';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
@@ -15,22 +15,16 @@ export const metadata: Metadata = {
   description: 'نظام متكامل لصناع المحتوى الصوتي والقصصي',
 };
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
-
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${tajawal.variable} font-sans bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased flex flex-col md:flex-row h-[100dvh] overflow-hidden`}>
-        <ThemeInitializer />
-        <Sidebar />
-        <main className="flex-1 h-full overflow-y-auto pb-16 md:pb-0">
-          {children}
-        </main>
+      <body suppressHydrationWarning className={`${tajawal.variable} font-sans bg-slate-50 text-slate-900 antialiased flex flex-col h-screen overflow-hidden`}>
+        <ClientLayout>
+          <main className="flex-1 h-0 min-h-0 overflow-y-auto">
+            {children}
+          </main>
+          <Sidebar />
+        </ClientLayout>
       </body>
     </html>
   );

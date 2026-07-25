@@ -4,74 +4,56 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, FolderOpen, CalendarDays, Info, PenTool, Settings } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useStore } from '@/lib/store';
 
 const navItems = [
-  { name: 'الرئيسية', href: '/', icon: LayoutDashboard },
-  { name: 'إدارة المحتوى', href: '/content', icon: FolderOpen },
-  { name: 'جدول النشر', href: '/schedule', icon: CalendarDays },
-  { name: 'الإعدادات', href: '/settings', icon: Settings },
-  { name: 'حول المطور', href: '/dev-info', icon: Info },
+  { name: { ar: 'الرئيسية', en: 'Dashboard' }, href: '/', icon: LayoutDashboard },
+  { name: { ar: 'إدارة المحتوى', en: 'Content' }, href: '/content', icon: FolderOpen },
+  { name: { ar: 'جدول النشر', en: 'Schedule' }, href: '/schedule', icon: CalendarDays },
+  { name: { ar: 'الإعدادات', en: 'Settings' }, href: '/settings', icon: Settings },
+  { name: { ar: 'حول المطور', en: 'About' }, href: '/dev-info', icon: Info },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { language } = useStore();
 
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex w-64 bg-slate-900 text-slate-100 h-screen flex-col border-l border-slate-800 shrink-0">
-        <div className="p-6 flex items-center gap-3 border-b border-slate-800">
-          <div className="bg-indigo-500 p-2 rounded-lg">
-            <PenTool className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">سـردة</h1>
+    <div className="w-full h-16 bg-slate-900 text-slate-100 border-t border-slate-800 shrink-0 z-40 flex items-center justify-between px-2 sm:px-4 md:px-8 shadow-xl">
+      {/* Brand logo */}
+      <div className="hidden lg:flex items-center gap-2 mr-2">
+        <div className="bg-indigo-500 p-1.5 rounded-lg">
+          <PenTool className="w-4 h-4 text-white" />
         </div>
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={clsx(
-                  'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
-                  isActive
-                    ? 'bg-indigo-500/10 text-indigo-400 font-medium'
-                    : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="p-4 text-xs text-slate-500 text-center border-t border-slate-800">
-          Sarda CMS v1.0
-        </div>
+        <span className="text-base font-bold tracking-tight">سـردة</span>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 flex justify-around items-center h-16 px-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      {/* Navigation Icons Row */}
+      <nav className="flex items-center justify-between sm:justify-center gap-1 sm:gap-2 md:gap-4 flex-1 lg:flex-initial">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
-              key={item.name}
+              key={item.href}
               href={item.href}
               className={clsx(
-                'flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors',
+                'flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-2 rounded-xl transition-all duration-200 text-xs font-medium',
                 isActive
-                  ? 'text-indigo-600 dark:text-indigo-400'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                  ? 'bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20'
+                  : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-transparent'
               )}
             >
-              <item.icon className={clsx("w-5 h-5", isActive && "fill-indigo-50 dark:fill-indigo-950/20")} />
-              <span className="text-[10px] font-medium">{item.name}</span>
+              <item.icon className="w-5 h-5 shrink-0" />
+              <span className="text-[10px] sm:text-[11px] md:text-sm whitespace-nowrap">{item.name[language]}</span>
             </Link>
           );
         })}
+      </nav>
+
+      {/* Version display */}
+      <div className="hidden lg:block text-[11px] text-slate-500 font-mono ml-2">
+        v1.0
       </div>
-    </>
+    </div>
   );
 }
