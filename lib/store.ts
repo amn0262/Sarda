@@ -7,6 +7,8 @@ export type StoryStatus = 'draft' | 'ready' | 'published';
 export interface Folder {
   id: string;
   name: string;
+  color?: string;
+  parentId?: string | null;
   createdAt: number;
   isDeleted?: boolean;
 }
@@ -29,8 +31,8 @@ interface AppState {
   stories: Story[];
   language: 'ar' | 'en';
   setLanguage: (lang: 'ar' | 'en') => void;
-  addFolder: (name: string) => void;
-  updateFolder: (id: string, name: string) => void;
+  addFolder: (name: string, color?: string, parentId?: string | null) => void;
+  updateFolder: (id: string, updates: Partial<Omit<Folder, 'id' | 'createdAt'>>) => void;
   deleteFolder: (id: string) => void;
   addStory: (story: Omit<Story, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateStory: (id: string, story: Partial<Omit<Story, 'id' | 'createdAt' | 'updatedAt'>>) => void;
@@ -42,6 +44,17 @@ interface AppState {
   importData: (data: { folders: Folder[], stories: Story[] }) => void;
 }
 
+// Helper to get all descendant folders
+const getDescendantFolders = (folders: Folder[], parentId: string): string[] => {
+  let descendants: string[] = [];
+  const children = folders.filter(f => f.parentId === parentId).map(f => f.id);
+  descendants = [...children];
+  children.forEach(childId => {
+    descendants = [...descendants, ...getDescendantFolders(folders, childId)];
+  });
+  return descendants;
+};
+
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
@@ -49,16 +62,20 @@ export const useStore = create<AppState>()(
       stories: [],
       language: 'ar',
       setLanguage: (lang) => set({ language: lang }),
-      addFolder: (name) => set((state) => ({
-        folders: [...state.folders, { id: uuidv4(), name, createdAt: Date.now() }]
+      addFolder: (name, color, parentId) => set((state) => ({
+        folders: [...state.folders, { id: uuidv4(), name, color, parentId, createdAt: Date.now() }]
       })),
-      updateFolder: (id, name) => set((state) => ({
-        folders: state.folders.map(f => f.id === id ? { ...f, name } : f)
+      updateFolder: (id, updates) => set((state) => ({
+        folders: state.folders.map(f => f.id === id ? { ...f, ...updates } : f)
       })),
-      deleteFolder: (id) => set((state) => ({
-        folders: state.folders.map(f => f.id === id ? { ...f, isDeleted: true } : f),
-        stories: state.stories.map(s => s.folderId === id ? { ...s, isDeleted: true } : s)
-      })),
+      deleteFolder: (id) => set((state) => {
+        const descendantIds = getDescendantFolders(state.folders, id);
+        const idsToUpdate = [id, ...descendantIds];
+        return {
+          folders: state.folders.map(f => idsToUpdate.includes(f.id) ? { ...f, isDeleted: true } : f),
+          stories: state.stories.map(s => idsToUpdate.includes(s.folderId) ? { ...s, isDeleted: true } : s)
+        };
+      }),
       addStory: (story) => set((state) => ({
         stories: [...state.stories, { ...story, id: uuidv4(), createdAt: Date.now(), updatedAt: Date.now() }]
       })),
@@ -70,9 +87,11 @@ export const useStore = create<AppState>()(
       })),
       moveToTrash: (id, type) => set((state) => {
         if (type === 'folder') {
+          const descendantIds = getDescendantFolders(state.folders, id);
+          const idsToUpdate = [id, ...descendantIds];
           return {
-            folders: state.folders.map(f => f.id === id ? { ...f, isDeleted: true } : f),
-            stories: state.stories.map(s => s.folderId === id ? { ...s, isDeleted: true } : s)
+            folders: state.folders.map(f => idsToUpdate.includes(f.id) ? { ...f, isDeleted: true } : f),
+            stories: state.stories.map(s => idsToUpdate.includes(s.folderId) ? { ...s, isDeleted: true } : s)
           };
         } else {
           return {
@@ -82,9 +101,11 @@ export const useStore = create<AppState>()(
       }),
       restoreFromTrash: (id, type) => set((state) => {
         if (type === 'folder') {
+          const descendantIds = getDescendantFolders(state.folders, id);
+          const idsToUpdate = [id, ...descendantIds];
           return {
-            folders: state.folders.map(f => f.id === id ? { ...f, isDeleted: false } : f),
-            stories: state.stories.map(s => s.folderId === id ? { ...s, isDeleted: false } : s)
+            folders: state.folders.map(f => idsToUpdate.includes(f.id) ? { ...f, isDeleted: false } : f),
+            stories: state.stories.map(s => idsToUpdate.includes(s.folderId) ? { ...s, isDeleted: false } : s)
           };
         } else {
           return {
@@ -94,9 +115,11 @@ export const useStore = create<AppState>()(
       }),
       permanentDelete: (id, type) => set((state) => {
         if (type === 'folder') {
+          const descendantIds = getDescendantFolders(state.folders, id);
+          const idsToDelete = [id, ...descendantIds];
           return {
-            folders: state.folders.filter(f => f.id !== id),
-            stories: state.stories.filter(s => s.folderId !== id)
+            folders: state.folders.filter(f => !idsToDelete.includes(f.id)),
+            stories: state.stories.filter(s => !idsToDelete.includes(s.folderId))
           };
         } else {
           return {

@@ -1,126 +1,137 @@
 'use client';
 import { t } from "@/lib/i18n";
-
 import { useState, useMemo } from 'react';
-import { useStore, Story } from '@/lib/store';
-import { FolderPlus, Folder as FolderIcon, MoreVertical, Trash2, Edit2, FileText, Plus, Calendar, Clock, ArrowRight, FileDown } from 'lucide-react';
+import { useStore, Story, Folder as FolderType } from '@/lib/store';
+import { FolderPlus, Folder as FolderIcon, Trash2, Edit2, FileText, Plus, Calendar, Clock, FileDown, ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 
+const COLORS = ['#6366f1', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'];
+
 export default function ContentManager() {
-  const { folders, stories, addFolder, deleteFolder, updateFolder, deleteStory, moveToTrash, language } = useStore();
+  const { folders, stories, addFolder, updateFolder, deleteStory, moveToTrash, language } = useStore();
   
-  const activeFolders = folders.filter(f => !f.isDeleted);
-  const activeStories = stories.filter(s => !s.isDeleted);
+  const activeFolders = useMemo(() => folders.filter(f => !f.isDeleted), [folders]);
+  const activeStories = useMemo(() => stories.filter(s => !s.isDeleted), [stories]);
 
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [isAddingFolder, setIsAddingFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
-  const [editFolderName, setEditFolderName] = useState('');
   
-  // Filtering state
+  // Folder Modal State
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [folderForm, setFolderForm] = useState({ name: '', color: COLORS[0], parentId: '' });
+
+  // Filtering & Search state
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  
   const [itemToDelete, setItemToDelete] = useState<{id: string, type: 'story' | 'folder'} | null>(null);
 
-  const handleAddFolder = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newFolderName.trim()) {
-      addFolder(newFolderName.trim());
-      setNewFolderName('');
-      setIsAddingFolder(false);
-    }
+  const openAddFolder = (parentId?: string) => {
+    setEditingFolderId(null);
+    setFolderForm({ name: '', color: COLORS[0], parentId: parentId || (selectedFolderId || '') });
+    setIsFolderModalOpen(true);
   };
 
-  const handleUpdateFolder = (e: React.FormEvent, id: string) => {
-    e.preventDefault();
-    if (editFolderName.trim()) {
-      updateFolder(id, editFolderName.trim());
-      setEditingFolderId(null);
-    }
+  const openEditFolder = (folder: FolderType) => {
+    setEditingFolderId(folder.id);
+    setFolderForm({ name: folder.name, color: folder.color || COLORS[0], parentId: folder.parentId || '' });
+    setIsFolderModalOpen(true);
   };
 
-  const selectedFolder = folders.find(f => f.id === selectedFolderId);
-  const folderStoriesUnfiltered = activeStories.filter(s => s.folderId === selectedFolderId);
-
-  // Get available years and months from the unfiltered folder stories
-  const availableYears = useMemo(() => {
-    const years = new Set<string>();
-    folderStoriesUnfiltered.forEach(s => {
-      const date = s.targetDate ? new Date(s.targetDate) : new Date(s.updatedAt);
-      years.add(date.getFullYear().toString());
-    });
-    return Array.from(years).sort().reverse();
-  }, [folderStoriesUnfiltered]);
-
-  const availableMonths = useMemo(() => {
-    if (selectedYear === 'all') return [];
-    const months = new Set<string>();
-    folderStoriesUnfiltered.forEach(s => {
-      const date = s.targetDate ? new Date(s.targetDate) : new Date(s.updatedAt);
-      if (date.getFullYear().toString() === selectedYear) {
-        months.add(date.getMonth().toString());
+  const handleSaveFolder = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (folderForm.name.trim()) {
+      if (editingFolderId) {
+        updateFolder(editingFolderId, { 
+          name: folderForm.name.trim(), 
+          color: folderForm.color,
+          parentId: folderForm.parentId || null
+        });
+      } else {
+        addFolder(folderForm.name.trim(), folderForm.color, folderForm.parentId || null);
       }
-    });
-    return Array.from(months).sort((a, b) => parseInt(a) - parseInt(b));
-  }, [folderStoriesUnfiltered, selectedYear]);
+      setIsFolderModalOpen(false);
+    }
+  };
+
+  const selectedFolder = activeFolders.find(f => f.id === selectedFolderId);
+
+  // Subfolders of the selected folder
+  const currentSubFolders = activeFolders.filter(f => f.parentId === (selectedFolderId || null));
+  // Root folders for the sidebar
+  const rootFolders = activeFolders.filter(f => !f.parentId);
+
+  // Get breadcrumbs
+  const breadcrumbs = useMemo(() => {
+    const crumbs: FolderType[] = [];
+    let currentId = selectedFolderId;
+    while (currentId) {
+      const f = activeFolders.find(x => x.id === currentId);
+      if (f) {
+        crumbs.unshift(f);
+        currentId = f.parentId || null;
+      } else {
+        break;
+      }
+    }
+    return crumbs;
+  }, [selectedFolderId, activeFolders]);
 
   const folderStories = useMemo(() => {
-    return folderStoriesUnfiltered.filter(s => {
-      if (selectedYear === 'all') return true;
-      const date = s.targetDate ? new Date(s.targetDate) : new Date(s.updatedAt);
-      if (date.getFullYear().toString() !== selectedYear) return false;
-      if (selectedMonth !== 'all' && date.getMonth().toString() !== selectedMonth) return false;
-      return true;
-    });
-  }, [folderStoriesUnfiltered, selectedYear, selectedMonth]);
-
-  const handleExportFolderWord = () => {
-    if (!selectedFolder) return;
+    if (!selectedFolderId) return [];
     
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40' lang='ar' dir='rtl'><head><meta charset='utf-8'><title>" + selectedFolder.name + "</title></head><body style='font-family: Arial, sans-serif; text-align: right; direction: rtl;'>";
-    const footer = "</body></html>";
-    
-    let content = `<h1 style="text-align: center; color: #333; margin-bottom: 40px; font-size: 32px;">مجلد: ${selectedFolder.name}</h1>`;
-    
-    folderStories.forEach((story, idx) => {
-      const formattedDate = story.targetDate ? new Date(story.targetDate).toLocaleDateString('ar', {
-        numberingSystem: 'latn',
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }) : 'غير محدد';
-      const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
+    let filtered = activeStories.filter(s => s.folderId === selectedFolderId);
 
-      content += `
-        <div style="page-break-before: ${idx > 0 ? 'always' : 'auto'}; border-bottom: 1px solid #ccc; padding-bottom: 20px; margin-bottom: 20px;">
-          <h2 style="font-size: 24px; color: #333;">${story.title || t('untitledStory', language)}</h2>
-          <p style="color: #666; font-size: 12px;">الحالة: ${statusText} | التاريخ: ${formattedDate}</p>
-        </div>
-        <div>
-          ${story.content}
-        </div>
-      `;
-    });
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(s => 
+        (s.title && s.title.toLowerCase().includes(q)) || 
+        (s.content && s.content.toLowerCase().includes(q))
+      );
+    }
+    
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(s => s.status === selectedStatus);
+    }
+    
+    if (selectedYear !== 'all') {
+      filtered = filtered.filter(s => new Date(s.createdAt).getFullYear().toString() === selectedYear);
+    }
+    
+    if (selectedMonth !== 'all' && selectedYear !== 'all') {
+      filtered = filtered.filter(s => new Date(s.createdAt).getMonth().toString() === selectedMonth);
+    }
+    
+    return filtered.sort((a, b) => b.updatedAt - a.updatedAt);
+  }, [activeStories, selectedFolderId, searchQuery, selectedYear, selectedMonth, selectedStatus]);
 
-    const sourceHTML = header + content + footer;
-    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
-    const fileDownload = document.createElement("a");
-    document.body.appendChild(fileDownload);
-    fileDownload.href = source;
-    fileDownload.download = `مجلد_${selectedFolder.name}.doc`;
-    fileDownload.click();
-    document.body.removeChild(fileDownload);
-  };
+  const availableYears = useMemo(() => {
+    if (!selectedFolderId) return [];
+    const storiesInFolder = activeStories.filter(s => s.folderId === selectedFolderId);
+    const years = new Set(storiesInFolder.map(s => new Date(s.createdAt).getFullYear()));
+    return Array.from(years).sort((a, b) => b - a);
+  }, [activeStories, selectedFolderId]);
+
+  const availableMonths = useMemo(() => {
+    if (!selectedFolderId || selectedYear === 'all') return [];
+    const storiesInFolder = activeStories.filter(s => s.folderId === selectedFolderId);
+    const months = new Set(
+      storiesInFolder
+        .filter(s => new Date(s.createdAt).getFullYear().toString() === selectedYear)
+        .map(s => new Date(s.createdAt).getMonth())
+    );
+    return Array.from(months).sort((a, b) => b - a);
+  }, [activeStories, selectedFolderId, selectedYear]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'ready': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'published': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-slate-100 text-slate-800 border-slate-200';
+      case 'draft': return 'text-amber-700 bg-amber-50 border-amber-200';
+      case 'ready': return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+      case 'published': return 'text-blue-700 bg-blue-50 border-blue-200';
+      default: return 'text-slate-700 bg-slate-50 border-slate-200';
     }
   };
 
@@ -133,178 +144,333 @@ export default function ContentManager() {
     }
   };
 
+  const handleExportFolderWord = () => {
+    if (!selectedFolder || folderStories.length === 0) return;
+    
+    let content = `
+      <html lang="${language}" dir="${language === 'ar' ? 'rtl' : 'ltr'}">
+        <head>
+          <meta charset="utf-8">
+          <title>${selectedFolder.name}</title>
+        </head>
+        <body style="font-family: Arial, sans-serif;">
+          <h1 style="text-align: center; margin-bottom: 30px;">${selectedFolder.name}</h1>
+    `;
+
+    folderStories.forEach((story, idx) => {
+      const formattedDate = story.targetDate ? new Date(story.targetDate).toLocaleDateString(language, {
+        numberingSystem: 'latn',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : (language === 'ar' ? 'غير محدد' : 'Not specified');
+
+      const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
+
+      content += `
+        <div style="page-break-before: ${idx > 0 ? 'always' : 'auto'}; border-bottom: 1px solid #ccc; padding-bottom: 20px; margin-bottom: 20px;">
+          <h2>${story.title || t('untitledStory', language)}</h2>
+          <div style="color: #666; font-size: 12px; margin-bottom: 20px;">
+            <p><strong>${t('publishStatusLabel', language)}:</strong> ${statusText}</p>
+            <p><strong>${t('publishDateLabel', language)}:</strong> ${formattedDate}</p>
+          </div>
+          <div style="line-height: 1.6;">
+            ${story.content || ''}
+          </div>
+        </div>
+      `;
+    });
+
+    content += `
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedFolder.name}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const ChevronIcon = language === 'ar' ? ChevronLeft : ChevronRight;
+
   return (
-    <div className="flex h-full w-full overflow-hidden">
-      {/* Folders Sidebar */}
-      <div className={`w-full md:w-80 bg-white border-l border-slate-200 flex flex-col h-full shrink-0 ${
-        selectedFolderId !== null ? 'hidden md:flex' : 'flex'
-      }`}>
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="font-bold text-lg text-slate-800">المجلدات</h2>
-          <button
-            onClick={() => setIsAddingFolder(true)}
-            className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
-            title="مجلد جديد"
-          >
-            <FolderPlus className="w-5 h-5" />
-          </button>
+    <div className="flex flex-col md:flex-row h-[calc(100vh-73px)]">
+      {/* Sidebar - Folders */}
+      <div className="w-full md:w-80 border-b md:border-b-0 md:border-l border-slate-200 bg-slate-50/50 flex flex-col h-1/3 md:h-full shrink-0">
+        <div className="p-4 border-b border-slate-200 bg-white">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-bold text-slate-900">{t('contentManager', language)}</h2>
+            <button
+              onClick={() => openAddFolder()}
+              className="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold"
+              title={t('createFolder', language)}
+            >
+              <FolderPlus className="w-4 h-4" />
+              <span>{t('createFolder', language)}</span>
+            </button>
+          </div>
+          <p className="text-xs text-slate-500">{t('addFolderStart', language)}</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {isAddingFolder && (
-            <form onSubmit={handleAddFolder} className="mb-4">
-              <input
-                type="text"
-                autoFocus
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                onBlur={() => setIsAddingFolder(false)}
-                placeholder="اسم المجلد..."
-                className="w-full px-3 py-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              />
-            </form>
-          )}
-
-          {activeFolders.length === 0 && !isAddingFolder && (
-            <div className="text-center text-slate-500 py-8 text-sm">
-              لا توجد مجلدات. أضف مجلداً للبدء.
+          {rootFolders.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <FolderIcon className="w-12 h-12 mx-auto mb-2 opacity-20" />
+              <p className="text-sm">{t('noFolders', language)}</p>
             </div>
+          ) : (
+            rootFolders.map((folder) => {
+              const count = activeStories.filter(s => s.folderId === folder.id).length;
+              const hasSub = activeFolders.some(f => f.parentId === folder.id);
+              return (
+                <button
+                  key={folder.id}
+                  onClick={() => setSelectedFolderId(folder.id)}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
+                    selectedFolderId === folder.id
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'bg-white text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 shadow-sm'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FolderIcon className="w-5 h-5 shrink-0" style={{ color: selectedFolderId === folder.id ? '#fff' : (folder.color || COLORS[0]) }} />
+                    <span className="font-medium text-sm truncate text-right">{folder.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                      selectedFolderId === folder.id ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {count} {t('storiesText', language)}
+                    </span>
+                    {hasSub && <ChevronIcon className="w-4 h-4 opacity-70" />}
+                  </div>
+                </button>
+              );
+            })
           )}
-
-          {activeFolders.map(folder => (
-            <div
-              key={folder.id}
-              className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${
-                selectedFolderId === folder.id ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-slate-50 border border-transparent'
-              }`}
-              onClick={() => setSelectedFolderId(folder.id)}
-            >
-              {editingFolderId === folder.id ? (
-                <form onSubmit={(e) => handleUpdateFolder(e, folder.id)} className="flex-1 mr-2">
-                  <input
-                    type="text"
-                    autoFocus
-                    value={editFolderName}
-                    onChange={(e) => setEditFolderName(e.target.value)}
-                    onBlur={() => setEditingFolderId(null)}
-                    className="w-full px-2 py-1 border border-indigo-300 rounded focus:outline-none text-sm"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </form>
-              ) : (
-                <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                  <FolderIcon className={`w-5 h-5 shrink-0 ${selectedFolderId === folder.id ? 'text-indigo-500' : 'text-slate-400'}`} />
-                  <span className={`truncate text-sm font-medium ${selectedFolderId === folder.id ? 'text-indigo-900' : 'text-slate-700'}`}>
-                    {folder.name}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditFolderName(folder.name);
-                    setEditingFolderId(folder.id);
-                  }}
-                  className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-md hover:bg-indigo-50"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setItemToDelete({ id: folder.id, type: 'folder' });
-                  }}
-                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-red-50"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* Stories Area */}
-      <div className={`flex-1 bg-slate-50 h-full overflow-y-auto ${
-        selectedFolderId === null ? 'hidden md:block' : 'block'
-      }`}>
-        {selectedFolder ? (
-          <div className="p-4 md:p-8 max-w-5xl mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
-                <button
-                  onClick={() => setSelectedFolderId(null)}
-                  className="md:hidden mb-3 flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm bg-indigo-50/60 px-3 py-1.5 rounded-lg transition-colors w-fit"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  الرجوع للمجلدات
+      {/* Main Content Area */}
+      <div className="flex-1 bg-slate-50 overflow-y-auto">
+        {selectedFolderId && selectedFolder ? (
+          <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+            
+            {/* Header & Breadcrumbs */}
+            <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200">
+              <div className="flex items-center gap-2 text-xs md:text-sm text-slate-500 mb-4 overflow-x-auto pb-2">
+                <button onClick={() => setSelectedFolderId(null)} className="hover:text-indigo-600 whitespace-nowrap">
+                  {t('foldersAndQuickAccess', language)}
                 </button>
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">{selectedFolder.name}</h1>
-                <p className="text-slate-500 text-xs md:text-sm">{folderStories.length} قصة</p>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                {/* Filters */}
-                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => {
-                      setSelectedYear(e.target.value);
-                      setSelectedMonth('all');
-                    }}
-                    className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:ring-0 cursor-pointer outline-none pl-6 pr-2 py-1.5"
-                  >
-                    <option value="all">كل السنوات</option>
-                    {availableYears.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
-                  {selectedYear !== 'all' && (
-                    <select
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(e.target.value)}
-                      className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:ring-0 cursor-pointer outline-none pl-6 pr-2 py-1.5 border-r border-slate-200"
+                {breadcrumbs.map((crumb, idx) => (
+                  <div key={crumb.id} className="flex items-center gap-2 whitespace-nowrap">
+                    <ChevronIcon className="w-4 h-4" />
+                    <button 
+                      onClick={() => setSelectedFolderId(crumb.id)}
+                      className={`hover:text-indigo-600 flex items-center gap-1.5 ${idx === breadcrumbs.length - 1 ? 'font-bold text-slate-900' : ''}`}
                     >
-                      <option value="all">كل الأشهر</option>
-                      {availableMonths.map(month => (
-                        <option key={month} value={month}>{new Date(2000, parseInt(month), 1).toLocaleDateString('ar', { month: 'long' })}</option>
-                      ))}
-                    </select>
-                  )}
+                      <FolderIcon className="w-4 h-4" style={{ color: crumb.color || COLORS[0] }} />
+                      {crumb.name}
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 rounded-2xl shrink-0" style={{ backgroundColor: `${selectedFolder.color || COLORS[0]}15`, color: selectedFolder.color || COLORS[0] }}>
+                    <FolderIcon className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl md:text-2xl font-bold text-slate-900">{selectedFolder.name}</h1>
+                    <p className="text-slate-500 text-xs md:text-sm mt-1">
+                      {folderStories.length} {t('storiesText', language)} • {currentSubFolders.length} {t('subFolders', language)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Create Subfolder Action */}
+                  <button
+                    onClick={() => openAddFolder(selectedFolder.id)}
+                    className="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl font-medium text-xs md:text-sm transition-colors flex items-center gap-1.5"
+                  >
+                    <FolderPlus className="w-4 h-4" />
+                    <span>{t('createSubFolder', language)}</span>
+                  </button>
+
+                  <button
+                    onClick={() => openEditFolder(selectedFolder)}
+                    className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200"
+                    title={t('editFolder', language)}
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setItemToDelete({ id: selectedFolder.id, type: 'folder' })}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-red-100"
+                    title={t('moveToTrash', language)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Subfolders Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-700">{t('subFolders', language)}</h3>
+                <button
+                  onClick={() => openAddFolder(selectedFolder.id)}
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t('createSubFolder', language)}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {/* Add Subfolder Card */}
+                <button
+                  onClick={() => openAddFolder(selectedFolder.id)}
+                  className="p-4 rounded-xl border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/30 hover:bg-indigo-50/60 transition-all flex flex-col items-center justify-center gap-2 text-indigo-600 min-h-[90px]"
+                >
+                  <FolderPlus className="w-5 h-5" />
+                  <span className="text-xs font-bold">{t('createSubFolder', language)}</span>
+                </button>
+
+                {currentSubFolders.map(sub => {
+                  const count = activeStories.filter(s => s.folderId === sub.id).length;
+                  return (
+                    <button
+                      key={sub.id}
+                      onClick={() => setSelectedFolderId(sub.id)}
+                      className="bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all text-right flex flex-col items-start gap-3 min-h-[90px]"
+                    >
+                      <div className="w-full flex items-center justify-between">
+                        <FolderIcon className="w-5 h-5" style={{ color: sub.color || COLORS[0] }} />
+                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{count}</span>
+                      </div>
+                      <span className="font-bold text-sm text-slate-800 line-clamp-1">{sub.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Enhanced Toolbar for Stories */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
+              
+              {/* Left Side: Search + Filters */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 min-w-0">
+                {/* Search Bar */}
+                <div className="relative flex-1 min-w-[180px]">
+                  <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t('searchStoriesPlaceholder', language)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
                 </div>
 
+                {/* Filters Dropdown Group */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 shrink-0">
+                  <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200">
+                    <Filter className="w-3.5 h-3.5 text-slate-400 mx-1 shrink-0" />
+                    
+                    {/* Status Filter */}
+                    <select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none px-2 py-1 cursor-pointer"
+                    >
+                      <option value="all">{t('allStatuses', language)}</option>
+                      <option value="draft">{t('draft', language)}</option>
+                      <option value="ready">{t('readyToPublish', language)}</option>
+                      <option value="published">{t('published', language)}</option>
+                    </select>
+
+                    <div className="h-4 w-[1px] bg-slate-200" />
+
+                    {/* Year Filter */}
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => {
+                        setSelectedYear(e.target.value);
+                        setSelectedMonth('all');
+                      }}
+                      className="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none px-2 py-1 cursor-pointer"
+                    >
+                      <option value="all">{t('allYears', language)}</option>
+                      {availableYears.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+
+                    {/* Month Filter */}
+                    {selectedYear !== 'all' && (
+                      <>
+                        <div className="h-4 w-[1px] bg-slate-200" />
+                        <select
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(e.target.value)}
+                          className="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none px-2 py-1 cursor-pointer"
+                        >
+                          <option value="all">{t('allMonths', language)}</option>
+                          {availableMonths.map(month => (
+                            <option key={month} value={month}>{new Date(2000, month, 1).toLocaleDateString(language, { month: 'long' })}</option>
+                          ))}
+                        </select>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side Actions */}
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={handleExportFolderWord}
-                  className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-sm text-sm"
-                  title="تنزيل كامل المجلد كملف وورد"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl font-medium flex items-center justify-center gap-1.5 transition-colors text-xs"
+                  title={t('downloadWord', language)}
                 >
-                  <FileDown className="w-4 h-4 text-blue-600" />
-                  <span className="hidden md:inline">تنزيل وورد</span>
+                  <FileDown className="w-4 h-4 text-indigo-600" />
+                  <span>{t('downloadWord', language)}</span>
                 </button>
                 <Link
                   href={`/editor/new?folderId=${selectedFolder.id}`}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-sm text-sm self-start sm:self-auto"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-colors text-xs shadow-sm"
                 >
-                  <Plus className="w-5 h-5" />
-                  قصة جديدة
+                  <Plus className="w-4 h-4" />
+                  <span>{t('createStory', language)}</span>
                 </Link>
               </div>
             </div>
 
+            {/* Stories Grid */}
             {folderStories.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 border-dashed">
+              <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 border-dashed">
                 <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 mb-2">لا توجد قصص هنا</h3>
-                <p className="text-slate-500 mb-6">ابدأ بكتابة قصتك الأولى في هذا المجلد.</p>
+                <h3 className="text-lg font-medium text-slate-900 mb-2">{t('noStoriesHere', language)}</h3>
+                <p className="text-slate-500 mb-6 text-sm">{t('startWritingInFolder', language)}</p>
                 <Link
                   href={`/editor/new?folderId=${selectedFolder.id}`}
-                  className="inline-flex items-center gap-2 text-indigo-600 font-medium hover:text-indigo-700"
+                  className="inline-flex items-center gap-2 text-indigo-600 font-medium hover:text-indigo-700 text-sm"
                 >
-                  <Plus className="w-5 h-5" />{t('createStory', language)}</Link>
+                  <Plus className="w-4 h-4" />{t('createStory', language)}
+                </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <AnimatePresence>
                   {folderStories.map((story) => (
                     <motion.div
@@ -313,44 +479,46 @@ export default function ContentManager() {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow group relative flex flex-col h-64"
+                      className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all group relative flex flex-col justify-between"
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${getStatusColor(story.status)}`}>
-                          {getStatusText(story.status)}
-                        </span>
-                        
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => setItemToDelete({ id: story.id, type: 'story' })}
-                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                            title={t('moveToTrash', language)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                          <Link
-                            href={`/editor/${story.id}`}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
-                            title={t('editStory', language)}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Link>
+                      <div>
+                        <div className="flex justify-between items-start mb-3">
+                          <span className={`text-[10px] px-2.5 py-1 rounded-full border font-bold ${getStatusColor(story.status)}`}>
+                            {getStatusText(story.status)}
+                          </span>
+                          
+                          <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setItemToDelete({ id: story.id, type: 'story' })}
+                              className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                              title={t('moveToTrash', language)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <Link
+                              href={`/editor/${story.id}`}
+                              className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
+                              title={t('editStory', language)}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Link>
+                          </div>
                         </div>
+                        
+                        <h3 className="text-base font-bold text-slate-900 mb-2 line-clamp-2">
+                          {story.title || t('untitledStory', language)}
+                        </h3>
+                        
+                        <div className="text-slate-500 text-xs line-clamp-2 mb-4" dangerouslySetInnerHTML={{ __html: story.content || t('noContentYet', language) }} />
                       </div>
                       
-                      <h3 className="text-xl font-bold text-slate-900 mb-2 line-clamp-2">
-                        {story.title || 'بدون عنوان'}
-                      </h3>
-                      
-                      <div className="text-slate-500 text-sm line-clamp-3 mb-auto" dangerouslySetInnerHTML={{ __html: story.content || 'لا يوجد محتوى...' }} />
-                      
-                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-medium text-slate-400">
                         <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>{story.targetDate ? new Date(story.targetDate).toLocaleDateString('ar', { numberingSystem: 'latn', day: 'numeric', month: 'short', year: 'numeric' }) : 'غير محدد'}</span>
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{story.targetDate ? new Date(story.targetDate).toLocaleDateString(language, { numberingSystem: 'latn', day: 'numeric', month: 'short', year: 'numeric' }) : '---'}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5" />
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
                           <span>{story.publishTime || '--:--'}</span>
                         </div>
                       </div>
@@ -361,20 +529,21 @@ export default function ContentManager() {
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-400 flex-col gap-4">
+          <div className="flex items-center justify-center h-full text-slate-400 flex-col gap-4 p-8">
             <FolderIcon className="w-16 h-16 text-slate-200" />
-            <p className="text-lg">اختر مجلداً لاستعراض القصص</p>
+            <p className="text-base md:text-lg text-center">{t('selectFolderToView', language)}</p>
           </div>
         )}
       </div>
 
+      {/* Trash Confirmation Modal */}
       <AnimatePresence>
         {itemToDelete && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -402,6 +571,92 @@ export default function ContentManager() {
                   >{t('cancel', language)}</button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Folder Creation/Edit Modal */}
+      <AnimatePresence>
+        {isFolderModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+            >
+              <form onSubmit={handleSaveFolder} className="p-6">
+                <h3 className="text-xl font-bold text-slate-900 mb-4">
+                  {editingFolderId ? t('editFolder', language) : t('createFolder', language)}
+                </h3>
+                
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('folderName', language)}</label>
+                    <input
+                      type="text"
+                      autoFocus
+                      required
+                      value={folderForm.name}
+                      onChange={e => setFolderForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('folderColor', language)}</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {COLORS.map(color => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setFolderForm(prev => ({ ...prev, color }))}
+                          className={`w-8 h-8 rounded-full border-2 transition-transform ${folderForm.color === color ? 'border-slate-900 scale-110' : 'border-transparent hover:scale-105'}`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t('parentFolder', language)}</label>
+                    <select
+                      value={folderForm.parentId}
+                      onChange={e => setFolderForm(prev => ({ ...prev, parentId: e.target.value }))}
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-900"
+                    >
+                      <option value="">{t('none', language)}</option>
+                      {activeFolders
+                        .filter(f => f.id !== editingFolderId)
+                        .map(f => (
+                          <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors"
+                  >
+                    {t('save', language)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsFolderModalOpen(false)}
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium transition-colors"
+                  >
+                    {t('cancel', language)}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </motion.div>
         )}

@@ -28,7 +28,7 @@ export default function SettingsPage() {
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
     
     const dateStr = new Date().toISOString().split('T')[0];
-    const filename = `سردة_نسخة_احتياطية_${dateStr}.json`;
+    const filename = `sarda_backup_${dateStr}.json`;
     
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
@@ -47,12 +47,12 @@ export default function SettingsPage() {
         const json = JSON.parse(event.target?.result as string);
         if (json.folders && json.stories) {
           importData(json);
-          alert('تم استيراد البيانات والنسخة الاحتياطية بنجاح!');
+          alert(t('backupImportSuccess', language));
         } else {
-          alert('ملف النسخة الاحتياطية غير صالح. يجب أن يحتوي على المجلدات والقصص.');
+          alert(t('backupImportInvalid', language));
         }
       } catch (error) {
-        alert('حدث خطأ أثناء قراءة ملف النسخة الاحتياطية.');
+        alert(t('backupImportError', language));
       }
     };
     reader.readAsText(file);
@@ -62,10 +62,10 @@ export default function SettingsPage() {
     <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
-          {language === 'ar' ? 'الإعدادات' : 'Settings'}
+          {t('settingsTitle', language)}
         </h1>
         <p className="text-slate-500">
-          {language === 'ar' ? 'إدارة تفضيلات التطبيق وسلة المهملات' : 'Manage app preferences and trash'}
+          {t('settingsSub', language)}
         </p>
       </div>
 
@@ -78,25 +78,23 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                {language === 'ar' ? 'تفضيلات التطبيق' : 'App Preferences'}
+                {t('appPreferences', language)}
               </h2>
               <p className="text-sm text-slate-500">
-                {language === 'ar' ? 'تخصيص لغة الواجهة (العربية أو الإنجليزية)' : 'Customize interface language (Arabic or English)'}
+                {t('appPreferencesSub', language)}
               </p>
             </div>
           </div>
           <div className="p-6">
             <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
               <span className="font-medium text-slate-900">
-                {language === 'ar' ? 'لغة التطبيق' : 'App Language'}
+                {t('appLanguage', language)}
               </span>
               <div className="flex items-center gap-2 bg-slate-200/50 p-1 rounded-lg">
                 <button
                   onClick={() => setLanguage('ar')}
                   className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${language === 'ar' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  العربية
-                </button>
+                >{t('arabic', language)}</button>
                 <button
                   onClick={() => setLanguage('en')}
                   className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${language === 'en' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
@@ -116,10 +114,10 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                {language === 'ar' ? 'إدارة البيانات والمزامنة' : 'Data & Sync Management'}
+                {t('dataSync', language)}
               </h2>
               <p className="text-sm text-slate-500">
-                {language === 'ar' ? 'تصدير بياناتك احتياطياً أو استعادتها' : 'Backup and restore your data'}
+                {t('dataSyncSub', language)}
               </p>
             </div>
           </div>
@@ -131,10 +129,10 @@ export default function SettingsPage() {
               <Download className="w-8 h-8 text-slate-400 group-hover:text-indigo-500 transition-colors" />
               <div className="text-center">
                 <span className="text-sm font-bold block mb-1">
-                  {language === 'ar' ? 'تصدير النسخة الاحتياطية' : 'Export Backup'}
+                  {t('exportBackup', language)}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">
-                  {language === 'ar' ? 'حفظ جميع قصصك ومجلداتك كملف محلي' : 'Save all stories and folders locally'}
+                  {t('exportBackupSub', language)}
                 </span>
               </div>
             </button>
@@ -146,10 +144,10 @@ export default function SettingsPage() {
               <Upload className="w-8 h-8 text-slate-400 group-hover:text-emerald-500 transition-colors" />
               <div className="text-center">
                 <span className="text-sm font-bold block mb-1">
-                  {language === 'ar' ? 'استيراد النسخة الاحتياطية' : 'Import Backup'}
+                  {t('importBackup', language)}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">
-                  {language === 'ar' ? 'استعادة البيانات من ملف سابق' : 'Restore data from a backup file'}
+                  {t('importBackupSub', language)}
                 </span>
               </div>
             </button>
@@ -173,10 +171,10 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                {language === 'ar' ? 'سلة المهملات' : 'Trash'}
+                {t('trash', language)}
               </h2>
               <p className="text-sm text-slate-500">
-                {language === 'ar' ? 'الملفات والمجلدات المحذوفة مؤقتاً' : 'Temporarily deleted files and folders'}
+                {t('trashSub', language)}
               </p>
             </div>
           </div>

@@ -91,20 +91,20 @@ export default function Dashboard() {
     const iframeDoc = iframe.contentWindow?.document || iframe.contentDocument;
     if (!iframeDoc) return;
     
-    const formattedDate = story.targetDate ? new Date(story.targetDate).toLocaleDateString('ar', {
+    const formattedDate = story.targetDate ? new Date(story.targetDate).toLocaleDateString(language === 'ar' ? 'ar' : 'en', {
       numberingSystem: 'latn',
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    }) : 'غير محدد';
+    }) : t('notSpecified', language);
 
     const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
     
     iframeDoc.write(`
       <html lang="ar" dir="rtl">
         <head>
-          <title>${story.title || 'قصة بدون عنوان'}</title>
+          <title>${story.title || t('untitledStory', language)}</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
             
@@ -219,14 +219,14 @@ export default function Dashboard() {
         <body class="text-right">
           <div class="doc-header">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="logo">سـردة - Sarda CMS</div>
+              <div class="logo">Sarda CMS</div>
               <div class="header-badge status-${story.status}">${statusText}</div>
             </div>
-            <h1 class="doc-title">${story.title || 'قصة بدون عنوان'}</h1>
+            <h1 class="doc-title">${story.title || t('untitledStory', language)}</h1>
             <div class="metadata-grid">
-              <div class="metadata-item"><strong>المجلد:</strong> ${folderName}</div>
-              <div class="metadata-item"><strong>تاريخ النشر:</strong> ${formattedDate}</div>
-              <div class="metadata-item"><strong>وقت النشر:</strong> ${story.publishTime || 'غير حدد'}</div>
+              <div class="metadata-item"><strong>${t('folderLabel', language)}:</strong> ${folderName}</div>
+              <div class="metadata-item"><strong>${t('publishDateLabel', language)}:</strong> ${formattedDate}</div>
+              <div class="metadata-item"><strong>${t('publishTimeLabel', language)}:</strong> ${story.publishTime || t('notSpecified', language)}</div>
             </div>
           </div>
           
@@ -235,7 +235,7 @@ export default function Dashboard() {
           </div>
           
           <div class="footer">
-            تم التصدير بواسطة سـردة لمحتوى القصص والصوتيات © ${new Date().getFullYear()}
+            ${t('exportedBySarda', language)} © ${new Date().getFullYear()}
           </div>
           
           <script>
@@ -288,11 +288,11 @@ export default function Dashboard() {
           <div className="space-y-3">
             <div className="hidden md:inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-full text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span>نظام إدارة المحتوى الصوتي والقصصي المتكامل</span>
+              <span>{t('systemBadge', language)}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight">مرحباً بك في سـردة 👋</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight">{t('welcomeSarda', language)}</h1>
             <p className="text-slate-300 max-w-2xl text-sm md:text-base leading-relaxed hidden md:block">
-              مركز التحكم الكامل لكتابة قصصك، وتنسيق مدوناتك، وتنظيم حلقات البودكاست وتصديرها كملفات PDF منسقة جاهزة للنشر والتوزيع.
+              {t('systemDesc', language)}
             </p>
           </div>
           
@@ -350,9 +350,9 @@ export default function Dashboard() {
           <div className="mt-4">
             <span className="text-3xl font-extrabold text-slate-900">{totalStories}</span>
             <div className="gap-2 text-[10px] text-slate-400 mt-1 hidden md:flex">
-              <span className="text-emerald-600">{publishedStories} منشور</span>
+              <span className="text-emerald-600">{publishedStories} {t('published', language)}</span>
               <span>•</span>
-              <span className="text-amber-600">{draftStories} مسودة</span>
+              <span className="text-amber-600">{draftStories} {t('draft', language)}</span>
             </div>
           </div>
         </motion.div>
@@ -402,8 +402,8 @@ export default function Dashboard() {
         {/* Quick Actions Panel */}
         <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100 flex flex-col justify-between space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 mb-1">التحكم السريع</h2>
-            <p className="text-xs text-slate-500 hidden md:block">إجراءات تنظيمية سريعة لإنشاء وإدارة البنية الأساسية.</p>
+            <h2 className="text-lg font-bold text-slate-900 mb-1">{t('quickControl', language)}</h2>
+            <p className="text-xs text-slate-500 hidden md:block">{t('quickControlSub', language)}</p>
           </div>
 
           <div className="space-y-3">
@@ -413,7 +413,7 @@ export default function Dashboard() {
                 <input
                   type="text"
                   autoFocus
-                  placeholder="اسم المجلد الجديد..."
+                  placeholder="{t('newFolderNamePlaceholder', language)}"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
                   className="flex-1 px-3 py-2 border border-indigo-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50"
@@ -421,9 +421,7 @@ export default function Dashboard() {
                 <button
                   type="submit"
                   className="bg-indigo-600 text-white px-3 py-2 rounded-xl text-xs font-semibold hover:bg-indigo-700"
-                >
-                  إضافة
-                </button>
+                >{t('add', language)}</button>
                 <button
                   type="button"
                   onClick={() => setIsCreatingFolder(false)}
@@ -437,7 +435,7 @@ export default function Dashboard() {
               >
                 <span className="flex items-center gap-2">
                   <FolderIcon className="w-4 h-4" />
-                  إنشاء مجلد تنظيم جديد
+                  {t('createNewFolder', language)}
                 </span>
                 <Plus className="w-4 h-4" />
               </button>
@@ -450,7 +448,7 @@ export default function Dashboard() {
             >
               <span className="flex items-center gap-2">
                 <FileSpreadsheet className="w-4 h-4 text-slate-500" />
-                استعراض كامل الملفات
+                {t('browseAllFiles', language)}
               </span>
               <ArrowLeft className="w-4 h-4" />
             </Link>
@@ -460,14 +458,14 @@ export default function Dashboard() {
         {/* Upcoming Scheduled Story Spotlight */}
         <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100 flex flex-col justify-between space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 mb-1">خطة النشر القريبة</h2>
-            <p className="text-xs text-slate-500">النصوص المجدول نشرها قريباً بحسب المخطط الزمني.</p>
+            <h2 className="text-lg font-bold text-slate-900 mb-1">{t('upcomingPublishPlan', language)}</h2>
+            <p className="text-xs text-slate-500">{t('upcomingPublishPlanSub', language)}</p>
           </div>
 
           <div className="space-y-2">
             {scheduledStories.length === 0 ? (
               <div className="py-4 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">
-                لا توجد منشورات مجدولة قريباً.
+                {t('noUpcomingPosts', language)}
               </div>
             ) : (
               scheduledStories.map(story => (
@@ -478,10 +476,10 @@ export default function Dashboard() {
                 >
                   <div className="flex items-center gap-2 overflow-hidden">
                     <Calendar className="w-4 h-4 text-indigo-500 shrink-0" />
-                    <span className="text-xs font-medium text-slate-700 truncate">{story.title || 'قصة بدون عنوان'}</span>
+                    <span className="text-xs font-medium text-slate-700 truncate">{story.title || t('untitledStory', language)}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold">
-                    <span>{new Date(story.targetDate).toLocaleDateString('ar', { numberingSystem: 'latn', day: 'numeric', month: 'short' })}</span>
+                    <span>{new Date(story.targetDate).toLocaleDateString(language === 'ar' ? 'ar' : 'en', { numberingSystem: 'latn', day: 'numeric', month: 'short' })}</span>
                     {story.publishTime && <span>({story.publishTime})</span>}
                   </div>
                 </Link>
@@ -499,7 +497,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl p-8 border border-slate-200 border-dashed text-center">
             <FolderIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-base font-bold text-slate-800 mb-1">{t('noFoldersYet', language)}</h3>
-            <p className="text-xs text-slate-500 mb-4">أنشئ مجلدك الأول للبدء في كتابة وتخزين قصصك بطريقة مرتبة.</p>
+            <p className="text-xs text-slate-500 mb-4">{t('createFirstFolderSub', language)}</p>
             <button
               onClick={() => setIsCreatingFolder(true)}
               className="inline-flex items-center gap-1 text-sm text-indigo-600 font-bold hover:text-indigo-700"
@@ -521,7 +519,7 @@ export default function Dashboard() {
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-bold text-slate-800 text-sm truncate">{folder.name}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">{folderStoriesCount} قصة مسجلة</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{folderStoriesCount} {t('savedStory', language)}</p>
                     </div>
                   </Link>
 
@@ -574,18 +572,14 @@ export default function Dashboard() {
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-900 line-clamp-1">{story.title || t('untitled', language)}</h3>
-                    <div 
-                      className="text-xs text-slate-500 line-clamp-2 mt-1 hidden md:block" 
-                      dangerouslySetInnerHTML={{ __html: story.content || t('noContentYet', language) }}
-                    />
+                    <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-1">{story.title || t('untitled', language)}</h3>
                   </div>
 
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-400">
                     <div className="flex items-center gap-3">
-                      <span>{wordCount} كلمة</span>
+                      <span>{wordCount} {t('words', language)}</span>
                       <span>•</span>
-                      <span>تحديث: {new Date(story.updatedAt).toLocaleDateString('ar', { numberingSystem: 'latn', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      <span>{t('updated', language)} {new Date(story.updatedAt).toLocaleDateString(language === 'ar' ? 'ar' : 'en', { numberingSystem: 'latn', day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     </div>
 
                     {/* Action Hub */}

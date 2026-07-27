@@ -33,7 +33,7 @@ export default function SchedulePlanner() {
   };
 
   const getFolderName = (folderId: string) => {
-    return activeFolders.find(f => f.id === folderId)?.name || 'مجلد محذوف';
+    return activeFolders.find(f => f.id === folderId)?.name || t('deletedFolder', language);
   };
 
   return (
@@ -41,21 +41,19 @@ export default function SchedulePlanner() {
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">{t('scheduleTitle', language)}</h1>
         <p className="text-slate-600">
-          تتبع خطة النشر الخاصة بك. يتم عرض النصوص مرتبة زمنياً من الأقدم للأحدث.
+          {t('scheduleTrackerDesc', language)}
         </p>
       </div>
 
       {scheduledStories.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 border-dashed">
           <CalendarIcon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-slate-900 mb-2">لا توجد نصوص مجدولة</h3>
-          <p className="text-slate-500 mb-6">قم بتحديد &quot;تاريخ النشر المستهدف&quot; لقصصك لتظهر هنا.</p>
+          <h3 className="text-lg font-medium text-slate-900 mb-2">{t('noScheduledTexts', language)}</h3>
+          <p className="text-slate-500 mb-6">{t('setTargetDateSub', language)}</p>
           <Link
             href="/content"
             className="inline-flex items-center gap-2 text-indigo-600 font-medium hover:text-indigo-700"
-          >
-            الذهاب لإدارة المحتوى
-          </Link>
+          >{t('goToContentManager', language)}</Link>
         </div>
       ) : (
         <div className="relative border-r-2 border-slate-200 pr-8 space-y-8">

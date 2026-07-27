@@ -22,7 +22,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         onClick={() => editor.chain().focus().toggleBold().run()}
         disabled={!editor.can().chain().focus().toggleBold().run()}
         className={`p-2 rounded hover:bg-slate-200 ${editor.isActive('bold') ? 'bg-slate-200 text-indigo-600' : 'text-slate-600'}`}
-        title="عريض"
+        title={t('boldText', language)}
       >
         <Bold className="w-4 h-4" />
       </button>
@@ -38,21 +38,21 @@ const MenuBar = ({ editor }: { editor: any }) => {
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         className={`p-2 rounded hover:bg-slate-200 ${editor.isActive('heading', { level: 1 }) ? 'bg-slate-200 text-indigo-600' : 'text-slate-600'}`}
-        title="عنوان 1"
+        title={t('heading1', language)}
       >
         <Heading1 className="w-4 h-4" />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         className={`p-2 rounded hover:bg-slate-200 ${editor.isActive('heading', { level: 2 }) ? 'bg-slate-200 text-indigo-600' : 'text-slate-600'}`}
-        title="عنوان 2"
+        title={t('heading2', language)}
       >
         <Heading2 className="w-4 h-4" />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         className={`p-2 rounded hover:bg-slate-200 ${editor.isActive('heading', { level: 3 }) ? 'bg-slate-200 text-indigo-600' : 'text-slate-600'}`}
-        title="عنوان 3"
+        title={t('heading3', language)}
       >
         <Heading3 className="w-4 h-4" />
       </button>
@@ -60,14 +60,14 @@ const MenuBar = ({ editor }: { editor: any }) => {
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         className={`p-2 rounded hover:bg-slate-200 ${editor.isActive('bulletList') ? 'bg-slate-200 text-indigo-600' : 'text-slate-600'}`}
-        title="قائمة منقطة"
+        title={t('bulletList', language)}
       >
         <List className="w-4 h-4" />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
         className={`p-2 rounded hover:bg-slate-200 ${editor.isActive('orderedList') ? 'bg-slate-200 text-indigo-600' : 'text-slate-600'}`}
-        title="قائمة مرقمة"
+        title={t('numberedList', language)}
       >
         <ListOrdered className="w-4 h-4" />
       </button>
@@ -83,7 +83,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
           }
         }}
         className="p-2 rounded hover:bg-slate-200 text-indigo-600 bg-slate-100 border border-slate-200 transition-colors flex items-center gap-1"
-        title="تغيير المحاذاة (يمين / وسط / يسار)"
+        title={t('alignment', language)}
       >
         {editor.isActive({ textAlign: 'left' }) ? (
           <AlignLeft className="w-4 h-4 text-slate-700" />
@@ -173,7 +173,7 @@ export default function EditorPage() {
 
   const handleSave = () => {
     if (!folderId) {
-      alert('الرجاء اختيار مجلد أولاً');
+      alert(t('chooseFolderFirst', language));
       return;
     }
 
@@ -210,7 +210,7 @@ export default function EditorPage() {
     if (!editor) return;
 
     const contentHtml = editor.getHTML();
-    const folderName = folders.find(f => f.id === folderId)?.name || 'غير مصنف';
+    const folderName = folders.find(f => f.id === folderId)?.name || t('uncategorized', language);
     
     // Create an iframe to print the content
     const iframe = document.createElement('iframe');
@@ -231,14 +231,14 @@ export default function EditorPage() {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    }) : 'غير محدد';
+    }) : t('notSpecified', language);
 
     const statusText = status === 'published' ? t('published', language) : status === 'ready' ? t('readyToPublish', language) : t('draft', language);
     
     iframeDoc.write(`
       <html lang="ar" dir="rtl">
         <head>
-          <title>${title || 'قصة بدون عنوان'}</title>
+          <title>${title || t('untitledStory', language)}</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
             
@@ -355,13 +355,13 @@ export default function EditorPage() {
         <body class="text-right">
           <div class="doc-header">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="logo">سـردة - Sarda CMS</div>
+              <div class="logo">Sarda CMS</div>
               <div class="header-badge status-${status}">${statusText}</div>
             </div>
-            <h1 class="doc-title">${title || 'قصة بدون عنوان'}</h1>
+            <h1 class="doc-title">${title || t('untitledStory', language)}</h1>
             <div class="metadata-grid">
-              <div class="metadata-item"><strong>المجلد:</strong> ${folderName}</div>
-              <div class="metadata-item"><strong>تاريخ النشر:</strong> ${formattedDate}</div>
+              <div class="metadata-item"><strong>${t('folderLabel', language)}:</strong> ${folderName}</div>
+              <div class="metadata-item"><strong>${t('publishDateLabel', language)}:</strong> ${formattedDate}</div>
             </div>
           </div>
           
@@ -370,7 +370,7 @@ export default function EditorPage() {
           </div>
           
           <div class="footer">
-            تم التصدير بواسطة سـردة لمحتوى القصص والصوتيات © ${new Date().getFullYear()}
+            ${t('exportedBySarda', language)} © ${new Date().getFullYear()}
           </div>
           
           <script>
@@ -392,7 +392,7 @@ export default function EditorPage() {
   const handleExportWord = () => {
     if (!editor) return;
     const contentHtml = editor.getHTML();
-    const folderName = folders.find(f => f.id === folderId)?.name || 'غير مصنف';
+    const folderName = folders.find(f => f.id === folderId)?.name || t('uncategorized', language);
     
     const formattedDate = targetDate ? new Date(targetDate).toLocaleDateString('ar', {
       numberingSystem: 'latn',
@@ -400,17 +400,17 @@ export default function EditorPage() {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    }) : 'غير محدد';
+    }) : t('notSpecified', language);
 
     const statusText = status === 'published' ? t('published', language) : status === 'ready' ? t('readyToPublish', language) : t('draft', language);
 
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40' lang='ar' dir='rtl'><head><meta charset='utf-8'><title>" + (title || 'قصة') + "</title></head><body style='font-family: Arial, sans-serif; text-align: right; direction: rtl;'>";
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40' lang='ar' dir='rtl'><head><meta charset='utf-8'><title>" + (title || t('story', language)) + "</title></head><body style='font-family: Arial, sans-serif; text-align: right; direction: rtl;'>";
     const footer = "</body></html>";
     
     const content = `
       <div style="border-bottom: 1px solid #ccc; padding-bottom: 20px; margin-bottom: 20px;">
-        <h1 style="font-size: 24px; color: #333;">${title || 'قصة بدون عنوان'}</h1>
-        <p style="color: #666; font-size: 12px;">المجلد: ${folderName} | الحالة: ${statusText} | التاريخ: ${formattedDate}</p>
+        <h1 style="font-size: 24px; color: #333;">${title || t('untitledStory', language)}</h1>
+        <p style="color: #666; font-size: 12px;">${t('folderLabel', language)}: ${folderName} | ${t('publishStatusLabel', language)}: ${statusText} | ${t('publishDateLabel', language)}: ${formattedDate}</p>
       </div>
       <div>
         ${contentHtml}
@@ -422,7 +422,7 @@ export default function EditorPage() {
     const fileDownload = document.createElement("a");
     document.body.appendChild(fileDownload);
     fileDownload.href = source;
-    fileDownload.download = `${title || 'قصة'}.doc`;
+    fileDownload.download = `${title || t('story', language)}.doc`;
     fileDownload.click();
     document.body.removeChild(fileDownload);
   };
@@ -434,8 +434,8 @@ export default function EditorPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">يوجد تغييرات غير محفوظة</h3>
-              <p className="text-sm text-slate-500 mb-6">هل تريد حفظ التغييرات قبل المغادرة؟</p>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('unsavedChangesTitle', language)}</h3>
+              <p className="text-sm text-slate-500 mb-6">{t('unsavedChangesSub', language)}</p>
               
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
@@ -445,15 +445,11 @@ export default function EditorPage() {
                 <button
                   onClick={() => router.push('/content')}
                   className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
-                >
-                  تجاهل
-                </button>
+                >{t('discard', language)}</button>
                 <button
                   onClick={() => setShowUnsavedModal(false)}
                   className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
-                >
-                  إلغاء
-                </button>
+                >{t('cancel', language)}</button>
               </div>
             </div>
           </div>
@@ -470,14 +466,14 @@ export default function EditorPage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="عنوان القصة..."
+            placeholder="{t('storyTitlePlaceholder', language)}"
             className="text-base md:text-xl font-bold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-slate-300 w-full"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2 md:gap-3 justify-start xl:justify-end w-full xl:w-auto">
           {/* Status (نوع المستند) */}
           <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
-            <span className="text-[10px] text-slate-400 px-1 font-semibold whitespace-nowrap">الحالة:</span>
+            <span className="text-[10px] text-slate-400 px-1 font-semibold whitespace-nowrap">{t('statusLabel', language)}:</span>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as StoryStatus)}
@@ -491,13 +487,13 @@ export default function EditorPage() {
 
           {/* Folder (المجلد) */}
           <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
-            <span className="text-[10px] text-slate-400 px-1 font-semibold whitespace-nowrap">المجلد:</span>
+            <span className="text-[10px] text-slate-400 px-1 font-semibold whitespace-nowrap">{t('folderLabel', language)}:</span>
             <select
               value={folderId}
               onChange={(e) => setFolderId(e.target.value)}
               className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:ring-0 cursor-pointer outline-none max-w-[100px] truncate"
             >
-              <option value="" disabled>اختر...</option>
+              <option value="" disabled>{t('choosePlaceholder', language)}</option>
               {folders.map(f => (
                 <option key={f.id} value={f.id}>{f.name}</option>
               ))}
@@ -506,7 +502,7 @@ export default function EditorPage() {
 
           {/* Target Date (تاريخ النشر) */}
           <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
-            <span className="text-[10px] text-slate-400 px-1 font-semibold whitespace-nowrap">التاريخ:</span>
+            <span className="text-[10px] text-slate-400 px-1 font-semibold whitespace-nowrap">{t('dateLabel', language)}:</span>
             <input
               type="date"
               value={targetDate}
@@ -519,7 +515,7 @@ export default function EditorPage() {
             <button
               onClick={handleExportWord}
               className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 transition-colors shadow-sm text-xs"
-              title="تحميل كملف Word"
+              title={t('downloadWord', language)}
             >
               <FileText className="w-4 h-4 text-blue-600" />
               <span className="hidden sm:inline">Word</span>
@@ -527,7 +523,7 @@ export default function EditorPage() {
             <button
               onClick={handleExportPDF}
               className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 transition-colors shadow-sm text-xs"
-              title="تحميل كملف PDF"
+              title={t('downloadPdf', language)}
             >
               <FileDown className="w-4 h-4 text-indigo-600" />
               <span className="hidden sm:inline">PDF</span>
@@ -536,9 +532,7 @@ export default function EditorPage() {
               onClick={handleSave}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 transition-colors shadow-sm text-xs"
             >
-              <Save className="w-4 h-4" />
-              حفظ
-            </button>
+              <Save className="w-4 h-4" />{t('save', language)}</button>
           </div>
         </div>
       </header>

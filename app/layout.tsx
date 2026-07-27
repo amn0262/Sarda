@@ -11,8 +11,8 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: 'سـردة - Sarda CMS',
-  description: 'نظام متكامل لصناع المحتوى الصوتي والقصصي',
+  title: 'Sarda CMS',
+  description: 'Integrated system for audio and story content creators',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
