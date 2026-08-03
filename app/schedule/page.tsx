@@ -206,135 +206,135 @@ export default function SchedulePlanner() {
   const locale = language === 'ar' ? ar : enUS;
 
   return (
-    <div className="p-3 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 bg-slate-50 min-h-screen">
+    <div className="p-3 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 bg-slate-50 min-h-screen w-full overflow-x-hidden">
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600 shrink-0">
+            <div className="bg-indigo-50 p-1.5 sm:p-2 rounded-xl text-indigo-600 shrink-0">
               <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight">{t('scheduleTitle', language)}</h1>
+            <h1 className="text-base sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight truncate">{t('scheduleTitle', language)}</h1>
           </div>
-          <p className="text-slate-500 text-xs sm:text-sm font-medium">
+          <p className="text-slate-500 text-xs sm:text-sm font-medium leading-relaxed">
             {t('scheduleTrackerDesc', language)}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-0 border-slate-100">
           <button
             onClick={handleExportScheduleWord}
-            className="flex-1 sm:flex-initial justify-center px-3.5 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 touch-manipulation min-h-[42px] sm:min-h-0"
+            className="flex-1 sm:flex-initial justify-center px-3 sm:px-3.5 py-2 sm:py-2 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 touch-manipulation min-h-[40px] sm:min-h-0"
           >
-            <FileDown className="w-4 h-4 text-indigo-600" />
-            <span>{t('exportSchedule', language)}</span>
+            <FileDown className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span className="truncate">{t('exportSchedule', language)}</span>
           </button>
 
           <Link
             href="/editor/new"
-            className="flex-1 sm:flex-initial justify-center px-3.5 py-2.5 sm:py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs touch-manipulation min-h-[42px] sm:min-h-0"
+            className="flex-1 sm:flex-initial justify-center px-3 sm:px-3.5 py-2 sm:py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs touch-manipulation min-h-[40px] sm:min-h-0"
           >
-            <Plus className="w-4 h-4" />
-            <span>{t('createNewStoryBtn', language)}</span>
+            <Plus className="w-4 h-4 shrink-0" />
+            <span className="truncate">{t('createNewStoryBtn', language)}</span>
           </Link>
         </div>
       </div>
 
       {/* KPI Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
-        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5 sm:gap-3">
-          <div className="p-2.5 sm:p-3 bg-indigo-50 text-indigo-600 rounded-xl sm:rounded-2xl shrink-0">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+        <div className="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="p-2 sm:p-3 bg-indigo-50 text-indigo-600 rounded-xl sm:rounded-2xl shrink-0">
             <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div className="min-w-0">
-            <div className="text-base sm:text-lg font-bold text-slate-900">{stats.total}</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{stats.total}</div>
             <div className="text-[10px] sm:text-[11px] text-slate-500 font-semibold truncate">{t('totalScheduled', language)}</div>
           </div>
         </div>
 
-        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5 sm:gap-3">
-          <div className="p-2.5 sm:p-3 bg-emerald-50 text-emerald-600 rounded-xl sm:rounded-2xl shrink-0">
+        <div className="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="p-2 sm:p-3 bg-emerald-50 text-emerald-600 rounded-xl sm:rounded-2xl shrink-0">
             <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div className="min-w-0">
-            <div className="text-base sm:text-lg font-bold text-slate-900">{stats.dueToday}</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{stats.dueToday}</div>
             <div className="text-[10px] sm:text-[11px] text-emerald-700 font-semibold truncate">{t('dueToday', language)}</div>
           </div>
         </div>
 
-        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5 sm:gap-3">
-          <div className="p-2.5 sm:p-3 bg-amber-50 text-amber-600 rounded-xl sm:rounded-2xl shrink-0">
+        <div className="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="p-2 sm:p-3 bg-amber-50 text-amber-600 rounded-xl sm:rounded-2xl shrink-0">
             <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div className="min-w-0">
-            <div className="text-base sm:text-lg font-bold text-slate-900">{stats.overdue}</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{stats.overdue}</div>
             <div className="text-[10px] sm:text-[11px] text-amber-700 font-semibold truncate">{t('overdue', language)}</div>
           </div>
         </div>
 
-        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5 sm:gap-3">
-          <div className="p-2.5 sm:p-3 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl shrink-0">
+        <div className="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="p-2 sm:p-3 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl shrink-0">
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div className="min-w-0">
-            <div className="text-base sm:text-lg font-bold text-slate-900">{stats.upcoming}</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{stats.upcoming}</div>
             <div className="text-[10px] sm:text-[11px] text-blue-700 font-semibold truncate">{t('upcoming', language)}</div>
           </div>
         </div>
       </div>
 
       {/* Control Bar: View Modes, Search, Sort & Filters */}
-      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3 lg:space-y-0 lg:flex lg:items-center lg:justify-between lg:gap-4">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3 lg:space-y-0 lg:flex lg:items-center lg:justify-between lg:gap-4 overflow-hidden">
         
-        {/* View Mode Switcher */}
-        <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold overflow-x-auto scrollbar-none w-full lg:w-auto">
+        {/* View Mode Switcher - Responsive Grid on Mobile */}
+        <div className="grid grid-cols-2 sm:flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold gap-1 w-full lg:w-auto">
           <button
             onClick={() => setViewMode('detailed')}
-            className={`py-2 px-3 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap flex-1 sm:flex-initial touch-manipulation min-h-[38px] sm:min-h-0 ${
+            className={`py-2 px-2.5 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap touch-manipulation min-h-[36px] sm:min-h-0 ${
               viewMode === 'detailed' ? 'bg-white text-indigo-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <CalendarDays className="w-3.5 h-3.5" />
-            <span>{t('viewDetailed', language)}</span>
+            <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{t('viewDetailed', language)}</span>
           </button>
 
           <button
             onClick={() => setViewMode('compact')}
-            className={`py-2 px-3 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap flex-1 sm:flex-initial touch-manipulation min-h-[38px] sm:min-h-0 ${
+            className={`py-2 px-2.5 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap touch-manipulation min-h-[36px] sm:min-h-0 ${
               viewMode === 'compact' ? 'bg-white text-indigo-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <LayoutList className="w-3.5 h-3.5" />
-            <span>{t('viewCompact', language)}</span>
+            <LayoutList className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{t('viewCompact', language)}</span>
           </button>
 
           <button
             onClick={() => setViewMode('calendar')}
-            className={`py-2 px-3 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap flex-1 sm:flex-initial touch-manipulation min-h-[38px] sm:min-h-0 ${
+            className={`py-2 px-2.5 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap touch-manipulation min-h-[36px] sm:min-h-0 ${
               viewMode === 'calendar' ? 'bg-white text-indigo-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <CalendarIcon className="w-3.5 h-3.5" />
-            <span>{t('viewCalendar', language)}</span>
+            <CalendarIcon className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{t('viewCalendar', language)}</span>
           </button>
 
           <button
             onClick={() => setViewMode('folder')}
-            className={`py-2 px-3 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap flex-1 sm:flex-initial touch-manipulation min-h-[38px] sm:min-h-0 ${
+            className={`py-2 px-2.5 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap touch-manipulation min-h-[36px] sm:min-h-0 ${
               viewMode === 'folder' ? 'bg-white text-indigo-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <FolderOpen className="w-3.5 h-3.5" />
-            <span>{t('viewByFolder', language)}</span>
+            <FolderOpen className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{t('viewByFolder', language)}</span>
           </button>
         </div>
 
         {/* Search & Filters */}
-        <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 text-xs w-full lg:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs w-full lg:w-auto">
           {/* Search */}
-          <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[160px]">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3 sm:top-2.5" />
+          <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[150px]">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-2.5" />
             <input
               type="text"
               value={searchQuery}
@@ -344,9 +344,9 @@ export default function SchedulePlanner() {
             />
           </div>
 
-          <div className="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             {/* Folder Filter */}
-            <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 min-h-[38px] sm:min-h-0">
+            <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 min-h-[38px] sm:min-h-0 w-full sm:w-auto">
               <Filter className="w-3.5 h-3.5 text-slate-400 mx-1 shrink-0" />
               <select
                 value={folderFilter}
@@ -364,7 +364,7 @@ export default function SchedulePlanner() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 font-semibold text-slate-700 rounded-xl px-2 py-2 sm:py-1.5 focus:outline-none cursor-pointer w-full text-xs min-h-[38px] sm:min-h-0"
+              className="bg-slate-50 border border-slate-200 font-semibold text-slate-700 rounded-xl px-2 py-2 sm:py-1.5 focus:outline-none cursor-pointer w-full sm:w-auto text-xs min-h-[38px] sm:min-h-0"
             >
               <option value="all">{t('allStatuses', language)}</option>
               <option value="draft">{t('draft', language)}</option>
@@ -374,7 +374,7 @@ export default function SchedulePlanner() {
             </select>
 
             {/* Sort By */}
-            <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 min-h-[38px] sm:min-h-0">
+            <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 min-h-[38px] sm:min-h-0 w-full sm:w-auto">
               <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 mx-1 shrink-0" />
               <select
                 value={sortBy}
@@ -409,7 +409,7 @@ export default function SchedulePlanner() {
         <>
           {/* MODE 1: DETAILED TIMELINE */}
           {viewMode === 'detailed' && (
-            <div className="relative border-r-2 border-indigo-100 pr-4 sm:pr-6 md:pr-8 space-y-4 sm:space-y-6">
+            <div className="relative border-r-2 border-indigo-100 mr-2 sm:mr-4 pr-3.5 sm:pr-6 md:pr-8 space-y-4 sm:space-y-6">
               {processedStories.map((story, index) => {
                 const date = parseISO(story.targetDate);
                 const isPast = isBefore(date, new Date()) && !isToday(date);
@@ -425,7 +425,7 @@ export default function SchedulePlanner() {
                     className="relative"
                   >
                     {/* Timeline Dot */}
-                    <div className={`absolute -right-[23px] sm:-right-[31px] md:-right-[39px] w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 rounded-full border-2 sm:border-4 border-white shadow-xs ${
+                    <div className={`absolute -right-[7px] sm:-right-[8px] md:-right-[10px] top-4 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 rounded-full border-2 sm:border-4 border-white shadow-xs z-10 ${
                       today ? 'bg-indigo-600 ring-2 sm:ring-4 ring-indigo-100' : isPast ? 'bg-slate-300' : 'bg-emerald-500'
                     }`} />
 
@@ -701,12 +701,13 @@ export default function SchedulePlanner() {
                 </div>
               </div>
 
-              {/* Responsive Grid with Horizontal Touch Scroll on small screens */}
-              <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-                <div className="min-w-[550px] sm:min-w-0 grid grid-cols-7 gap-1 md:gap-2 text-center text-xs">
+              {/* Responsive Calendar Grid */}
+              <div className="w-full overflow-x-auto">
+                <div className="w-full min-w-[320px] sm:min-w-0 grid grid-cols-7 gap-0.5 sm:gap-1.5 text-center text-xs">
                   {['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'].map((day, idx) => (
-                    <div key={idx} className="p-1.5 sm:p-2 font-bold text-slate-400 bg-slate-50 rounded-lg sm:rounded-xl text-[11px] sm:text-xs">
-                      {day}
+                    <div key={idx} className="p-1 sm:p-2 font-bold text-slate-400 bg-slate-50 rounded-md sm:rounded-xl text-[10px] sm:text-xs">
+                      <span className="sm:hidden">{['أح', 'إث', 'ثل', 'أر', 'خم', 'جم', 'سب'][idx]}</span>
+                      <span className="hidden sm:inline">{day}</span>
                     </div>
                   ))}
 
@@ -718,29 +719,29 @@ export default function SchedulePlanner() {
                     return (
                       <div
                         key={idx}
-                        className={`min-h-[70px] sm:min-h-[90px] p-1.5 sm:p-2 rounded-xl sm:rounded-2xl border transition-all text-right flex flex-col justify-between ${
+                        className={`min-h-[54px] sm:min-h-[90px] p-1 sm:p-2 rounded-lg sm:rounded-2xl border transition-all text-right flex flex-col justify-between ${
                           isCurrentToday 
                             ? 'bg-indigo-50/50 border-indigo-300 font-bold' 
                             : 'bg-white border-slate-100 hover:border-slate-200'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className={`text-[11px] sm:text-xs ${isCurrentToday ? 'text-indigo-600 font-extrabold' : 'text-slate-500'}`}>
+                          <span className={`text-[10px] sm:text-xs ${isCurrentToday ? 'text-indigo-600 font-extrabold' : 'text-slate-500'}`}>
                             {format(day, 'd')}
                           </span>
                           {postsOnDay.length > 0 && (
-                            <span className="text-[9px] sm:text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded-full font-bold">
+                            <span className="text-[8px] sm:text-[10px] bg-indigo-100 text-indigo-700 px-1 sm:px-1.5 py-0.2 rounded-full font-bold">
                               {postsOnDay.length}
                             </span>
                           )}
                         </div>
 
-                        <div className="space-y-1 mt-1">
+                        <div className="space-y-0.5 sm:space-y-1 mt-0.5 sm:mt-1 overflow-hidden">
                           {postsOnDay.map(post => (
                             <Link
                               key={post.id}
                               href={`/editor/${post.id}`}
-                              className="block text-[9px] sm:text-[10px] p-1 rounded-md sm:rounded-lg bg-indigo-600 text-white truncate font-medium hover:bg-indigo-700 active:bg-indigo-800"
+                              className="block text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded sm:rounded-lg bg-indigo-600 text-white truncate font-medium hover:bg-indigo-700 active:bg-indigo-800 leading-tight"
                               title={post.title}
                             >
                               {post.title || t('untitledStory', language)}
