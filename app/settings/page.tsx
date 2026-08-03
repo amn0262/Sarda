@@ -10,7 +10,7 @@ export default function SettingsPage() {
   const { folders, stories, restoreFromTrash, permanentDelete, emptyTrash, importData, language, setLanguage } = useStore();
   const [showConfirmEmpty, setShowConfirmEmpty] = useState(false);
   const [itemToPermanentDelete, setItemToPermanentDelete] = useState<{id: string, type: 'story' | 'folder'} | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<any>(null);
 
   const deletedFolders = folders.filter(f => f.isDeleted);
   const deletedStories = stories.filter(s => s.isDeleted);
@@ -37,7 +37,7 @@ export default function SettingsPage() {
   };
 
   // Full Backup Import handler
-  const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportBackup = (e: React.ChangeEvent<any>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 

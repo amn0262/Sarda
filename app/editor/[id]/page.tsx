@@ -7,7 +7,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
-import { Save, ArrowRight, Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, FileDown, FileText } from 'lucide-react';
+import { Save, ArrowRight, Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, FileDown, FileText, Star } from 'lucide-react';
 import Link from 'next/link';
 
 const MenuBar = ({ editor }: { editor: any }) => {
@@ -101,7 +101,7 @@ export default function EditorPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { stories, addStory, updateStory, folders, language } = useStore();
+  const { stories, addStory, updateStory, toggleFavorite, folders, language } = useStore();
   
   const id = params.id as string;
   const isNew = id === 'new';
@@ -149,6 +149,24 @@ export default function EditorPage() {
     },
     immediatelyRender: false,
   });
+
+  useEffect(() => {
+    if (isNew && searchParams.get('fromClipboard') === 'true' && editor) {
+      const text = localStorage.getItem('tempClipboardContent');
+      if (text) {
+        const lines = text.split('\n');
+        const newTitle = lines[0].substring(0, 100).trim();
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTitle(newTitle);
+        setTargetDate(new Date().toISOString().split('T')[0]);
+        
+        const htmlContent = lines.map(line => `<p dir="rtl">${line}</p>`).join('');
+        editor.commands.setContent(htmlContent);
+        
+        localStorage.removeItem('tempClipboardContent');
+      }
+    }
+  }, [isNew, searchParams, editor]);
 
   const checkIsDirty = () => {
     if (!editor) return false;
@@ -236,7 +254,7 @@ export default function EditorPage() {
     const statusText = status === 'published' ? t('published', language) : status === 'ready' ? t('readyToPublish', language) : t('draft', language);
     
     iframeDoc.write(`
-      <html lang="ar" dir="rtl">
+      \x3Chtml lang="ar" dir="rtl">
         <head>
           <title>${title || t('untitledStory', language)}</title>
           <style>
@@ -404,7 +422,7 @@ export default function EditorPage() {
 
     const statusText = status === 'published' ? t('published', language) : status === 'ready' ? t('readyToPublish', language) : t('draft', language);
 
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40' lang='ar' dir='rtl'><head><meta charset='utf-8'><title>" + (title || t('story', language)) + "</title></head><body style='font-family: Arial, sans-serif; text-align: right; direction: rtl;'>";
+    const header = "\x3Chtml xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40' lang='ar' dir='rtl'><head><meta charset='utf-8'><title>" + (title || t('story', language)) + "</title></head><body style='font-family: Arial, sans-serif; text-align: right; direction: rtl;'>";
     const footer = "</body></html>";
     
     const content = `
@@ -462,6 +480,19 @@ export default function EditorPage() {
           <button onClick={handleBackClick} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors shrink-0">
             <ArrowRight className="w-5 h-5" />
           </button>
+          {!isNew && existingStory && (
+            <button
+              onClick={() => toggleFavorite(existingStory.id)}
+              className={`p-2 rounded-xl border transition-colors shrink-0 ${
+                existingStory.isFavorite
+                  ? 'bg-amber-50 text-amber-500 border-amber-200'
+                  : 'bg-slate-50 text-slate-400 hover:text-amber-500 border-slate-200'
+              }`}
+              title={existingStory.isFavorite ? t('removeFromFavorites', language) : t('addToFavorites', language)}
+            >
+              <Star className={`w-5 h-5 ${existingStory.isFavorite ? 'fill-amber-400 text-amber-500' : ''}`} />
+            </button>
+          )}
           <input
             type="text"
             value={title}

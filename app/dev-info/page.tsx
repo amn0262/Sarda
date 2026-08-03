@@ -2,13 +2,20 @@
 
 import { useStore } from '@/lib/store';
 import { t } from '@/lib/i18n';
-import { Download, Upload, Info, Code, Database, AlertTriangle } from 'lucide-react';
+import { Download, Upload, Info, Code, Database, AlertTriangle, Youtube, Instagram, Facebook } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useRef } from 'react';
+import Link from 'next/link';
+
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1.04-.1z"/>
+  </svg>
+);
 
 export default function DevInfo() {
   const { folders, stories, importData, language } = useStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<any>(null);
 
   const handleExport = () => {
     const data = { folders, stories };
@@ -23,7 +30,7 @@ export default function DevInfo() {
     URL.revokeObjectURL(url);
   };
 
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = (e: React.ChangeEvent<any>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -81,6 +88,26 @@ export default function DevInfo() {
           <div className="space-y-4 text-slate-600 leading-relaxed">
             <p>{t('devPara1_1', language)}<strong>سـردة (Sarda)</strong>{t('devPara1_2', language)}</p>
             <p>{t('devPara2', language)}</p>
+
+            {/* Social Links */}
+            <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
+              <span className="text-sm font-bold text-slate-700">{language === 'ar' ? 'حساباتي:' : 'My Accounts:'}</span>
+              <div className="flex items-center gap-3">
+                <Link href="https://youtube.com/@amnbkr0" target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-50 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors" title="YouTube">
+                  <Youtube className="w-5 h-5" />
+                </Link>
+                <Link href="https://tiktok.com/@amnbkr0" target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-50 text-slate-500 hover:text-black hover:bg-slate-200 rounded-full transition-colors" title="TikTok">
+                  <TikTokIcon className="w-5 h-5" />
+                </Link>
+                <Link href="https://instagram.com/amnbkr0" target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-50 text-slate-500 hover:text-pink-600 hover:bg-pink-50 rounded-full transition-colors" title="Instagram">
+                  <Instagram className="w-5 h-5" />
+                </Link>
+                <Link href="https://facebook.com/AymenExplorer" target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="Facebook">
+                  <Facebook className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
+
             <div className="pt-4 border-t border-slate-100 flex items-center gap-2 text-sm text-slate-500">
               <Info className="w-4 h-4" />
               <span>{t('version', language)}</span>

@@ -29,7 +29,7 @@ export default function Dashboard() {
   const { folders, stories, addFolder, deleteStory, moveToTrash, importData, language } = useStore();
   const [newFolderName, setNewFolderName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<any>(null);
 
   const activeFolders = folders.filter(f => !f.isDeleted);
   const activeStories = stories.filter(s => !s.isDeleted);
@@ -102,7 +102,7 @@ export default function Dashboard() {
     const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
     
     iframeDoc.write(`
-      <html lang="ar" dir="rtl">
+      \x3Chtml lang="ar" dir="rtl">
         <head>
           <title>${story.title || t('untitledStory', language)}</title>
           <style>

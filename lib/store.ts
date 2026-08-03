@@ -24,6 +24,7 @@ export interface Story {
   createdAt: number;
   updatedAt: number;
   isDeleted?: boolean;
+  isFavorite?: boolean;
 }
 
 interface AppState {
@@ -36,6 +37,7 @@ interface AppState {
   deleteFolder: (id: string) => void;
   addStory: (story: Omit<Story, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateStory: (id: string, story: Partial<Omit<Story, 'id' | 'createdAt' | 'updatedAt'>>) => void;
+  toggleFavorite: (id: string) => void;
   deleteStory: (id: string) => void;
   moveToTrash: (id: string, type: 'story' | 'folder') => void;
   restoreFromTrash: (id: string, type: 'story' | 'folder') => void;
@@ -81,6 +83,9 @@ export const useStore = create<AppState>()(
       })),
       updateStory: (id, story) => set((state) => ({
         stories: state.stories.map(s => s.id === id ? { ...s, ...story, updatedAt: Date.now() } : s)
+      })),
+      toggleFavorite: (id) => set((state) => ({
+        stories: state.stories.map(s => s.id === id ? { ...s, isFavorite: !s.isFavorite } : s)
       })),
       deleteStory: (id) => set((state) => ({
         stories: state.stories.map(s => s.id === id ? { ...s, isDeleted: true } : s)
