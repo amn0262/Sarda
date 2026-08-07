@@ -2,12 +2,23 @@
 
 import { useStore } from '@/lib/store';
 import { t } from '@/lib/i18n';
-import { Trash2, RotateCcw, AlertTriangle, FileText, Folder as FolderIcon, Download, Upload, Globe } from 'lucide-react';
+import { Trash2, RotateCcw, AlertTriangle, FileText, Folder as FolderIcon, Download, Upload, Globe, Sparkles, Heart, PlayCircle } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function SettingsPage() {
-  const { folders, stories, restoreFromTrash, permanentDelete, emptyTrash, importData, language, setLanguage } = useStore();
+  const { 
+    folders, 
+    stories, 
+    restoreFromTrash, 
+    permanentDelete, 
+    emptyTrash, 
+    importData, 
+    language, 
+    setLanguage,
+    startTour,
+    setIsSupportGateOpen
+  } = useStore();
   const [showConfirmEmpty, setShowConfirmEmpty] = useState(false);
   const [itemToPermanentDelete, setItemToPermanentDelete] = useState<{id: string, type: 'story' | 'folder'} | null>(null);
   const fileInputRef = useRef<any>(null);
@@ -103,6 +114,46 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Onboarding Tour & Support Modal Controls */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+            <div className="p-3 bg-slate-100 text-slate-800 rounded-xl">
+              <Sparkles className="w-6 h-6 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                {t('tourTitle', language)} والدعم
+              </h2>
+              <p className="text-sm text-slate-500">
+                إعادة تشغيل الجولة التوضيحية أو فتح شاشة القنوات والتواصل
+              </p>
+            </div>
+          </div>
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              onClick={startTour}
+              className="flex items-center justify-between p-4 bg-slate-50 hover:bg-indigo-50/60 hover:text-indigo-600 border border-slate-200/80 rounded-xl transition-all group font-bold text-sm text-slate-800 cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <PlayCircle className="w-5 h-5 text-indigo-600" />
+                <span>{t('restartTour', language)}</span>
+              </div>
+              <span className="text-xs font-normal text-slate-400 group-hover:text-indigo-500">تشغيل الآن ←</span>
+            </button>
+
+            <button
+              onClick={() => setIsSupportGateOpen(true)}
+              className="flex items-center justify-between p-4 bg-slate-50 hover:bg-indigo-50/60 hover:text-indigo-600 border border-slate-200/80 rounded-xl transition-all group font-bold text-sm text-slate-800 cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <Heart className="w-5 h-5 text-indigo-600" />
+                <span>{t('openSupportGate', language)}</span>
+              </div>
+              <span className="text-xs font-normal text-slate-400 group-hover:text-indigo-500">عرض الحسابات ←</span>
+            </button>
           </div>
         </div>
 

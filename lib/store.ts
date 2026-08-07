@@ -32,6 +32,24 @@ interface AppState {
   stories: Story[];
   language: 'ar' | 'en';
   setLanguage: (lang: 'ar' | 'en') => void;
+  
+  // First Launch Gate & Onboarding Tour State
+  hasCompletedSupportGate: boolean;
+  isSupportGateOpen: boolean;
+  hasCompletedTour: boolean;
+  isTourOpen: boolean;
+  tourStep: number;
+  
+  setHasCompletedSupportGate: (val: boolean) => void;
+  setIsSupportGateOpen: (open: boolean) => void;
+  setHasCompletedTour: (val: boolean) => void;
+  setIsTourOpen: (open: boolean) => void;
+  startTour: () => void;
+  setTourStep: (step: number) => void;
+  nextTourStep: () => void;
+  prevTourStep: () => void;
+  closeTour: () => void;
+
   addFolder: (name: string, color?: string, parentId?: string | null) => void;
   updateFolder: (id: string, updates: Partial<Omit<Folder, 'id' | 'createdAt'>>) => void;
   deleteFolder: (id: string) => void;
@@ -64,6 +82,23 @@ export const useStore = create<AppState>()(
       stories: [],
       language: 'ar',
       setLanguage: (lang) => set({ language: lang }),
+
+      hasCompletedSupportGate: false,
+      isSupportGateOpen: false,
+      hasCompletedTour: false,
+      isTourOpen: false,
+      tourStep: 0,
+
+      setHasCompletedSupportGate: (val) => set({ hasCompletedSupportGate: val }),
+      setIsSupportGateOpen: (open) => set({ isSupportGateOpen: open }),
+      setHasCompletedTour: (val) => set({ hasCompletedTour: val }),
+      setIsTourOpen: (open) => set({ isTourOpen: open }),
+      startTour: () => set({ isTourOpen: true, tourStep: 0 }),
+      setTourStep: (step) => set({ tourStep: step }),
+      nextTourStep: () => set((state) => ({ tourStep: state.tourStep + 1 })),
+      prevTourStep: () => set((state) => ({ tourStep: Math.max(0, state.tourStep - 1) })),
+      closeTour: () => set({ isTourOpen: false, hasCompletedTour: true }),
+
       addFolder: (name, color, parentId) => set((state) => ({
         folders: [...state.folders, { id: uuidv4(), name, color, parentId, createdAt: Date.now() }]
       })),
