@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+import { StoryStyleId } from './storyStyles';
 
 export type StoryStatus = 'draft' | 'ready' | 'published';
 
@@ -25,9 +26,16 @@ export interface Story {
   updatedAt: number;
   isDeleted?: boolean;
   isFavorite?: boolean;
+  style?: StoryStyleId;
 }
 
 interface AppState {
+  _hasHydrated: boolean;
+  setHasHydrated: (val: boolean) => void;
+
+  isFocusMode: boolean;
+  setIsFocusMode: (val: boolean) => void;
+
   folders: Folder[];
   stories: Story[];
   language: 'ar' | 'en';
@@ -53,7 +61,7 @@ interface AppState {
   addFolder: (name: string, color?: string, parentId?: string | null) => void;
   updateFolder: (id: string, updates: Partial<Omit<Folder, 'id' | 'createdAt'>>) => void;
   deleteFolder: (id: string) => void;
-  addStory: (story: Omit<Story, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  addStory: (story: Omit<Story, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => string;
   updateStory: (id: string, story: Partial<Omit<Story, 'id' | 'createdAt' | 'updatedAt'>>) => void;
   toggleFavorite: (id: string) => void;
   deleteStory: (id: string) => void;
@@ -78,6 +86,12 @@ const getDescendantFolders = (folders: Folder[], parentId: string): string[] => 
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
+      _hasHydrated: false,
+      setHasHydrated: (val) => set({ _hasHydrated: val }),
+
+      isFocusMode: false,
+      setIsFocusMode: (val) => set({ isFocusMode: val }),
+
       folders: [],
       stories: [],
       language: 'ar',
@@ -113,9 +127,13 @@ export const useStore = create<AppState>()(
           stories: state.stories.map(s => idsToUpdate.includes(s.folderId) ? { ...s, isDeleted: true } : s)
         };
       }),
-      addStory: (story) => set((state) => ({
-        stories: [...state.stories, { ...story, id: uuidv4(), createdAt: Date.now(), updatedAt: Date.now() }]
-      })),
+      addStory: (story) => {
+        const newId = story.id || uuidv4();
+        set((state) => ({
+          stories: [...state.stories, { ...story, id: newId, style: story.style || 'classic', createdAt: Date.now(), updatedAt: Date.now() }]
+        }));
+        return newId;
+      },
       updateStory: (id, story) => set((state) => ({
         stories: state.stories.map(s => s.id === id ? { ...s, ...story, updatedAt: Date.now() } : s)
       })),
@@ -178,6 +196,16 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'sarda-storage',
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+      partialize: (state) => ({
+        folders: state.folders,
+        stories: state.stories,
+        language: state.language,
+        hasCompletedSupportGate: state.hasCompletedSupportGate,
+        hasCompletedTour: state.hasCompletedTour,
+      }),
     }
   )
 );

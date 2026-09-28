@@ -17,6 +17,9 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSyncExternalStore } from 'react';
+
+const emptySubscribe = () => () => {};
 
 export default function AppOnboardingTour() {
   const { 
@@ -25,12 +28,14 @@ export default function AppOnboardingTour() {
     nextTourStep, 
     prevTourStep, 
     closeTour, 
-    language 
+    language,
+    _hasHydrated
   } = useStore();
 
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const router = useRouter();
 
-  if (!isTourOpen) return null;
+  if (!isClient || !_hasHydrated || !isTourOpen) return null;
 
   const tourSteps = [
     {
@@ -101,104 +106,103 @@ export default function AppOnboardingTour() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75">
         <motion.div
           key={tourStep}
-          initial={{ opacity: 0, scale: 0.95, x: language === 'ar' ? -15 : 15 }}
-          animate={{ opacity: 1, scale: 1, x: 0 }}
-          exit={{ opacity: 0, scale: 0.95, x: language === 'ar' ? 15 : -15 }}
-          transition={{ duration: 0.25 }}
-          className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 sm:p-8 border border-slate-200 my-auto"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.2 }}
+          className="relative w-full max-w-md bg-white rounded-none shadow-2xl p-4 sm:p-5 border-2 border-black my-auto text-neutral-900"
         >
-          {/* Close / Skip button top right */}
+          {/* Close / Skip button */}
           <button
             onClick={closeTour}
-            className="absolute top-4 left-4 sm:top-6 sm:left-6 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+            className="absolute top-3 left-3 p-1 text-neutral-500 hover:text-black hover:bg-neutral-100 rounded-none border border-neutral-300 transition-colors"
             title={t('skipTour', language)}
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
 
           {/* Header Step Counter */}
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-neutral-100 text-neutral-900 rounded-none border border-neutral-400">
               {t('step', language)} {tourStep + 1} {t('of', language)} {tourSteps.length}
             </span>
-            <span className="text-xs text-slate-400 font-medium">{current.badge}</span>
+            <span className="text-[11px] text-neutral-500 font-bold">{current.badge}</span>
           </div>
 
-          {/* Step Icon & Content */}
-          <div className="space-y-4 mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-md">
-              <current.icon className="w-7 h-7 text-indigo-300" />
+          {/* Step Icon & Content - Compact */}
+          <div className="space-y-2.5 mb-4">
+            <div className="w-10 h-10 rounded-none bg-black text-white flex items-center justify-center border border-black">
+              <current.icon className="w-5 h-5" />
             </div>
 
             <div>
-              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+              <h3 className="text-base font-bold text-neutral-900 mb-1 font-serif">
                 {current.title}
               </h3>
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+              <p className="text-xs text-neutral-600 leading-relaxed">
                 {current.desc}
               </p>
             </div>
 
-            {/* Step Route Explorer button */}
             {current.href && (
               <button
                 onClick={() => handleNavigate(current.href)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-black hover:underline bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 px-2 py-1 rounded-none transition-colors"
               >
                 <span>{current.linkText}</span>
-                <ArrowRight className="w-3.5 h-3.5 rotate-180 dir-ltr:rotate-0" />
+                <ArrowRight className="w-3 h-3 rotate-180 dir-ltr:rotate-0" />
               </button>
             )}
           </div>
 
-          {/* Progress Indicators (Dots) */}
-          <div className="flex items-center justify-center gap-1.5 mb-8">
+          {/* Progress Indicators */}
+          <div className="flex items-center justify-center gap-1 mb-4">
             {tourSteps.map((_, idx) => (
               <div
                 key={idx}
-                className={`h-2 rounded-full transition-all ${
+                className={`h-1.5 transition-all ${
                   idx === tourStep 
-                    ? 'w-8 bg-slate-900' 
+                    ? 'w-6 bg-black' 
                     : idx < tourStep 
-                    ? 'w-2 bg-slate-400' 
-                    : 'w-2 bg-slate-200'
+                    ? 'w-2 bg-neutral-600' 
+                    : 'w-2 bg-neutral-200'
                 }`}
               />
             ))}
           </div>
 
           {/* Controls Footer */}
-          <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-100">
+          <div className="flex items-center justify-between gap-2 pt-3 border-t border-neutral-200">
             <button
               onClick={prevTourStep}
               disabled={isFirstStep}
-              className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-1.5 transition-colors ${
+              className={`px-3 py-1.5 rounded-none font-bold text-xs flex items-center gap-1 transition-colors ${
                 isFirstStep 
-                  ? 'opacity-40 text-slate-300 cursor-not-allowed' 
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer'
+                  ? 'opacity-30 text-neutral-400 cursor-not-allowed border border-transparent' 
+                  : 'bg-white hover:bg-neutral-100 text-neutral-800 border border-neutral-300'
               }`}
             >
-              <ChevronRight className="w-4 h-4 dir-ltr:rotate-180" />
+              <ChevronRight className="w-3.5 h-3.5 dir-ltr:rotate-180" />
               <span>{t('prevStep', language)}</span>
             </button>
 
             {isLastStep ? (
               <button
                 onClick={closeTour}
-                className="flex-1 py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md shadow-indigo-600/20 text-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 py-1.5 px-4 bg-black hover:bg-neutral-800 text-white font-bold rounded-none text-xs border border-black flex items-center justify-center gap-1"
               >
                 <span>{t('finishTour', language)}</span>
               </button>
             ) : (
               <button
                 onClick={nextTourStep}
-                className="flex-1 py-2.5 px-5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-md text-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 py-1.5 px-4 bg-black hover:bg-neutral-800 text-white font-bold rounded-none text-xs border border-black flex items-center justify-center gap-1"
               >
                 <span>{t('nextStep', language)}</span>
-                <ChevronLeft className="w-4 h-4 dir-ltr:rotate-180" />
+                <ChevronLeft className="w-3.5 h-3.5 dir-ltr:rotate-180" />
               </button>
             )}
           </div>

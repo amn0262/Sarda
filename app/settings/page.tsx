@@ -32,7 +32,6 @@ export default function SettingsPage() {
     setShowConfirmEmpty(false);
   };
 
-  // Full Backup Export handler
   const handleExportBackup = () => {
     const backupData = { folders, stories };
     const dataStr = JSON.stringify(backupData, null, 2);
@@ -47,7 +46,6 @@ export default function SettingsPage() {
     linkElement.click();
   };
 
-  // Full Backup Import handler
   const handleImportBackup = (e: React.ChangeEvent<any>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -70,45 +68,48 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+    <div className="p-3 md:p-5 max-w-5xl mx-auto w-full bg-neutral-100 min-h-screen text-neutral-900 space-y-3">
+      {/* Header */}
+      <div className="border-b border-neutral-300 pb-2">
+        <h1 className="text-xl md:text-2xl font-bold text-neutral-900 font-serif">
           {t('settingsTitle', language)}
         </h1>
-        <p className="text-slate-500">
+        <p className="text-neutral-500 text-xs">
           {t('settingsSub', language)}
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* Language & Preferences */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-              <Globe className="w-6 h-6" />
+        <div className="bg-white rounded-none border border-neutral-300 shadow-2xs">
+          <div className="p-3 border-b border-neutral-200 flex items-center gap-2">
+            <div className="p-1.5 bg-neutral-100 text-black border border-neutral-300 rounded-none">
+              <Globe className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-xs font-bold text-neutral-900 font-serif uppercase tracking-wider">
                 {t('appPreferences', language)}
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-[11px] text-neutral-500">
                 {t('appPreferencesSub', language)}
               </p>
             </div>
           </div>
-          <div className="p-6">
-            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
-              <span className="font-medium text-slate-900">
+          <div className="p-3">
+            <div className="flex items-center justify-between p-2.5 bg-neutral-50 border border-neutral-200 rounded-none text-xs">
+              <span className="font-bold text-neutral-900">
                 {t('appLanguage', language)}
               </span>
-              <div className="flex items-center gap-2 bg-slate-200/50 p-1 rounded-lg">
+              <div className="flex items-center gap-1 bg-neutral-200 p-0.5 rounded-none border border-neutral-300">
                 <button
                   onClick={() => setLanguage('ar')}
-                  className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${language === 'ar' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                >{t('arabic', language)}</button>
+                  className={`px-3 py-1 text-xs font-bold rounded-none transition-colors ${language === 'ar' ? 'bg-black text-white' : 'text-neutral-700 hover:text-black'}`}
+                >
+                  {t('arabic', language)}
+                </button>
                 <button
                   onClick={() => setLanguage('en')}
-                  className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${language === 'en' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  className={`px-3 py-1 text-xs font-bold rounded-none transition-colors ${language === 'en' ? 'bg-black text-white' : 'text-neutral-700 hover:text-black'}`}
                 >
                   English
                 </button>
@@ -118,71 +119,85 @@ export default function SettingsPage() {
         </div>
 
         {/* Onboarding Tour & Support Modal Controls */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-            <div className="p-3 bg-slate-100 text-slate-800 rounded-xl">
-              <Sparkles className="w-6 h-6 text-indigo-600" />
+        <div className="bg-white rounded-none border border-neutral-300 shadow-2xs">
+          <div className="p-3 border-b border-neutral-200 flex items-center gap-2">
+            <div className="p-1.5 bg-neutral-100 text-black border border-neutral-300 rounded-none">
+              <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
-                {t('tourTitle', language)} والدعم
+              <h2 className="text-xs font-bold text-neutral-900 font-serif uppercase tracking-wider">
+                {language === 'ar' ? 'المساعدة والدعم وجولة التعريف' : 'Help, Support & Tour'}
               </h2>
-              <p className="text-sm text-slate-500">
-                إعادة تشغيل الجولة التوضيحية أو فتح شاشة القنوات والتواصل
+              <p className="text-[11px] text-neutral-500">
+                {language === 'ar' ? 'إعادة تشغيل الجولة التعريفية أو فتح نافذة الاشتراك ودعم المطور' : 'Replay the onboarding tour or open support dialog'}
               </p>
             </div>
           </div>
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
-              onClick={startTour}
-              className="flex items-center justify-between p-4 bg-slate-50 hover:bg-indigo-50/60 hover:text-indigo-600 border border-slate-200/80 rounded-xl transition-all group font-bold text-sm text-slate-800 cursor-pointer"
+              onClick={() => startTour()}
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 rounded-none flex items-center gap-2.5 transition-colors text-right"
             >
-              <div className="flex items-center gap-3">
-                <PlayCircle className="w-5 h-5 text-indigo-600" />
-                <span>{t('restartTour', language)}</span>
+              <div className="p-2 bg-neutral-100 border border-neutral-300 text-black rounded-none">
+                <PlayCircle className="w-4 h-4" />
               </div>
-              <span className="text-xs font-normal text-slate-400 group-hover:text-indigo-500">تشغيل الآن ←</span>
+              <div>
+                <span className="font-bold text-xs text-neutral-900 block font-serif">
+                  {t('restartTour', language)}
+                </span>
+                <span className="text-[10px] text-neutral-500">
+                  {t('tourSub', language)}
+                </span>
+              </div>
             </button>
 
             <button
               onClick={() => setIsSupportGateOpen(true)}
-              className="flex items-center justify-between p-4 bg-slate-50 hover:bg-indigo-50/60 hover:text-indigo-600 border border-slate-200/80 rounded-xl transition-all group font-bold text-sm text-slate-800 cursor-pointer"
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 rounded-none flex items-center gap-2.5 transition-colors text-right"
             >
-              <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-indigo-600" />
-                <span>{t('openSupportGate', language)}</span>
+              <div className="p-2 bg-neutral-100 border border-neutral-300 text-black rounded-none">
+                <Heart className="w-4 h-4" />
               </div>
-              <span className="text-xs font-normal text-slate-400 group-hover:text-indigo-500">عرض الحسابات ←</span>
+              <div>
+                <span className="font-bold text-xs text-neutral-900 block font-serif">
+                  {t('openSupportGate', language)}
+                </span>
+                <span className="text-[10px] text-neutral-500">
+                  {t('supportGateTitle', language)}
+                </span>
+              </div>
             </button>
           </div>
         </div>
 
-        {/* Data Portability (Backup & Restore) */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Download className="w-6 h-6" />
+        {/* Data & Backup */}
+        <div className="bg-white rounded-none border border-neutral-300 shadow-2xs">
+          <div className="p-3 border-b border-neutral-200 flex items-center gap-2">
+            <div className="p-1.5 bg-neutral-100 text-black border border-neutral-300 rounded-none">
+              <Download className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-xs font-bold text-neutral-900 font-serif uppercase tracking-wider">
                 {t('dataSync', language)}
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-[11px] text-neutral-500">
                 {t('dataSyncSub', language)}
               </p>
             </div>
           </div>
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               onClick={handleExportBackup}
-              className="flex flex-col items-center justify-center p-6 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 border border-slate-200/60 rounded-xl transition-all space-y-3 group text-slate-700"
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 rounded-none flex items-center gap-2.5 transition-colors text-right"
             >
-              <Download className="w-8 h-8 text-slate-400 group-hover:text-indigo-500 transition-colors" />
-              <div className="text-center">
-                <span className="text-sm font-bold block mb-1">
+              <div className="p-2 bg-neutral-100 border border-neutral-300 text-black rounded-none">
+                <Download className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-xs text-neutral-900 block font-serif">
                   {t('exportBackup', language)}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="text-[10px] text-neutral-500">
                   {t('exportBackupSub', language)}
                 </span>
               </div>
@@ -190,14 +205,16 @@ export default function SettingsPage() {
 
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center p-6 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-100 border border-slate-200/60 rounded-xl transition-all space-y-3 group text-slate-700"
+              className="p-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 rounded-none flex items-center gap-2.5 transition-colors text-right"
             >
-              <Upload className="w-8 h-8 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-              <div className="text-center">
-                <span className="text-sm font-bold block mb-1">
+              <div className="p-2 bg-neutral-100 border border-neutral-300 text-black rounded-none">
+                <Upload className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-xs text-neutral-900 block font-serif">
                   {t('importBackup', language)}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="text-[10px] text-neutral-500">
                   {t('importBackupSub', language)}
                 </span>
               </div>
@@ -214,195 +231,170 @@ export default function SettingsPage() {
         </div>
 
         {/* Trash */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-red-50 text-red-600 rounded-xl">
-              <Trash2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">
-                {t('trash', language)}
-              </h2>
-              <p className="text-sm text-slate-500">
-                {t('trashSub', language)}
-              </p>
-            </div>
-          </div>
-          {hasDeletedItems && (
-            <button
-              onClick={() => setShowConfirmEmpty(true)}
-              className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              {language === 'ar' ? t('emptyTrash', language) : 'Empty Trash'}
-            </button>
-          )}
-        </div>
-
-        <div className="p-6">
-          {!hasDeletedItems ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-8 h-8" />
+        <div className="bg-white rounded-none border border-neutral-300 shadow-2xs">
+          <div className="p-3 border-b border-neutral-200 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-neutral-100 text-black border border-neutral-300 rounded-none">
+                <Trash2 className="w-4 h-4" />
               </div>
-              <h3 className="text-lg font-medium text-slate-900 mb-1">{t('trashEmpty', language)}</h3>
-              <p className="text-sm text-slate-500">{t('trashEmptySub', language)}</p>
+              <div>
+                <h2 className="text-xs font-bold text-neutral-900 font-serif uppercase tracking-wider">
+                  {t('trash', language)}
+                </h2>
+                <p className="text-[11px] text-neutral-500">
+                  {t('trashSub', language)}
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Deleted Folders */}
-              {deletedFolders.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-                    <FolderIcon className="w-4 h-4 text-slate-400" />{t('deletedFolders', language)}</h3>
-                  <div className="grid gap-3">
-                    {deletedFolders.map(folder => (
-                      <div key={folder.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <FolderIcon className="w-5 h-5 text-indigo-400" />
-                          <span className="font-medium text-slate-900">{folder.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => restoreFromTrash(folder.id, 'folder')}
-                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title={t('restore', language)}
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setItemToPermanentDelete({ id: folder.id, type: 'folder' })}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title={t('permanentDelete', language)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+            {hasDeletedItems && (
+              <button
+                onClick={() => setShowConfirmEmpty(true)}
+                className="px-3 py-1 bg-white hover:bg-neutral-100 text-neutral-900 border border-neutral-400 rounded-none text-xs font-bold transition-colors flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{language === 'ar' ? t('emptyTrash', language) : 'Empty Trash'}</span>
+              </button>
+            )}
+          </div>
 
-              {/* Deleted Stories */}
-              {deletedStories.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2 mt-6">
-                    <FileText className="w-4 h-4 text-slate-400" />{t('deletedStories', language)}</h3>
-                  <div className="grid gap-3">
-                    {deletedStories.map(story => (
-                      <div key={story.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <FileText className="w-5 h-5 text-slate-400" />
-                          <div>
-                            <p className="font-medium text-slate-900">{story.title || t('untitledStory', language)}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {new Date(story.updatedAt).toLocaleDateString('ar', { numberingSystem: 'latn' })}
-                            </p>
+          <div className="p-3">
+            {!hasDeletedItems ? (
+              <div className="text-center py-8 text-neutral-500 text-xs">
+                <Trash2 className="w-6 h-6 text-neutral-300 mx-auto mb-1" />
+                <h3 className="font-bold text-neutral-800">{t('trashEmpty', language)}</h3>
+                <p className="text-[11px] text-neutral-400">{t('trashEmptySub', language)}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Deleted Folders */}
+                {deletedFolders.length > 0 && (
+                  <div className="space-y-1.5">
+                    <h3 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                      <FolderIcon className="w-3.5 h-3.5 text-neutral-700" />
+                      <span>{t('deletedFolders', language)}</span>
+                    </h3>
+                    <div className="grid gap-1.5">
+                      {deletedFolders.map(folder => (
+                        <div key={folder.id} className="flex items-center justify-between p-2 bg-neutral-50 border border-neutral-200 rounded-none text-xs">
+                          <div className="flex items-center gap-2">
+                            <FolderIcon className="w-4 h-4 text-black" />
+                            <span className="font-bold text-neutral-900">{folder.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => restoreFromTrash(folder.id, 'folder')}
+                              className="p-1 border border-neutral-300 text-neutral-700 hover:text-black rounded-none"
+                              title={t('restore', language)}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setItemToPermanentDelete({ id: folder.id, type: 'folder' })}
+                              className="p-1 border border-neutral-300 text-neutral-700 hover:text-black rounded-none"
+                              title={t('permanentDelete', language)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => restoreFromTrash(story.id, 'story')}
-                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title={t('restore', language)}
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setItemToPermanentDelete({ id: story.id, type: 'story' })}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title={t('permanentDelete', language)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+
+                {/* Deleted Stories */}
+                {deletedStories.length > 0 && (
+                  <div className="space-y-1.5">
+                    <h3 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-neutral-700" />
+                      <span>{t('deletedStories', language)}</span>
+                    </h3>
+                    <div className="grid gap-1.5">
+                      {deletedStories.map(story => (
+                        <div key={story.id} className="flex items-center justify-between p-2 bg-neutral-50 border border-neutral-200 rounded-none text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileText className="w-4 h-4 text-neutral-700 shrink-0" />
+                            <span className="font-bold text-neutral-900 font-serif truncate">{story.title || t('untitledStory', language)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() => restoreFromTrash(story.id, 'story')}
+                              className="p-1 border border-neutral-300 text-neutral-700 hover:text-black rounded-none"
+                              title={t('restore', language)}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setItemToPermanentDelete({ id: story.id, type: 'story' })}
+                              className="p-1 border border-neutral-300 text-neutral-700 hover:text-black rounded-none"
+                              title={t('permanentDelete', language)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       </div>
 
       {/* Empty Trash Confirmation Modal */}
       <AnimatePresence>
         {showConfirmEmpty && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
-            >
-              <div className="p-6">
-                <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
-                  <AlertTriangle className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{t('emptyTrashTitle', language)}</h3>
-                <p className="text-sm text-slate-500 mb-6">{t('emptyTrashSub', language)}</p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleEmptyTrash}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
-                  >{t('emptyTrash', language)}</button>
-                  <button
-                    onClick={() => setShowConfirmEmpty(false)}
-                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
-                  >{t('cancel', language)}</button>
-                </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="bg-white rounded-none border-2 border-black shadow-2xl p-4 w-full max-w-sm space-y-3">
+              <h3 className="text-sm font-bold text-neutral-900 font-serif">{t('emptyTrashTitle', language)}</h3>
+              <p className="text-xs text-neutral-600">{t('emptyTrashSub', language)}</p>
+              <div className="flex gap-2 pt-2 border-t border-neutral-200">
+                <button
+                  onClick={handleEmptyTrash}
+                  className="flex-1 bg-black hover:bg-neutral-800 text-white py-1.5 rounded-none font-bold text-xs border border-black transition-colors"
+                >
+                  {t('emptyTrash', language)}
+                </button>
+                <button
+                  onClick={() => setShowConfirmEmpty(false)}
+                  className="flex-1 bg-white hover:bg-neutral-100 text-neutral-800 py-1.5 rounded-none font-semibold text-xs border border-neutral-300 transition-colors"
+                >
+                  {t('cancel', language)}
+                </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* Permanent Delete Confirmation Modal */}
       <AnimatePresence>
         {itemToPermanentDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
-            >
-              <div className="p-6">
-                <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
-                  <AlertTriangle className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{t('confirmPermanentDeleteTitle', language)}</h3>
-                <p className="text-sm text-slate-500 mb-6">{t('confirmPermanentDeleteSub', language)}</p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      permanentDelete(itemToPermanentDelete.id, itemToPermanentDelete.type);
-                      setItemToPermanentDelete(null);
-                    }}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
-                  >{t('permanentDelete', language)}</button>
-                  <button
-                    onClick={() => setItemToPermanentDelete(null)}
-                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
-                  >{t('cancel', language)}</button>
-                </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="bg-white rounded-none border-2 border-black shadow-2xl p-4 w-full max-w-sm space-y-3">
+              <h3 className="text-sm font-bold text-neutral-900 font-serif">{t('confirmPermanentDeleteTitle', language)}</h3>
+              <p className="text-xs text-neutral-600">{t('confirmPermanentDeleteSub', language)}</p>
+              <div className="flex gap-2 pt-2 border-t border-neutral-200">
+                <button
+                  onClick={() => {
+                    permanentDelete(itemToPermanentDelete.id, itemToPermanentDelete.type);
+                    setItemToPermanentDelete(null);
+                  }}
+                  className="flex-1 bg-black hover:bg-neutral-800 text-white py-1.5 rounded-none font-bold text-xs border border-black transition-colors"
+                >
+                  {t('permanentDelete', language)}
+                </button>
+                <button
+                  onClick={() => setItemToPermanentDelete(null)}
+                  className="flex-1 bg-white hover:bg-neutral-100 text-neutral-800 py-1.5 rounded-none font-semibold text-xs border border-neutral-300 transition-colors"
+                >
+                  {t('cancel', language)}
+                </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
     </div>

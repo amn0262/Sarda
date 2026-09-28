@@ -6,7 +6,7 @@ import { t } from "@/lib/i18n";
 import { 
   Calendar as CalendarIcon, Clock, CheckCircle, AlertCircle, 
   Search, Filter, ArrowUpDown, LayoutList, CalendarDays, FolderOpen, 
-  Edit2, Eye, FileDown, Sparkles, ChevronLeft, ChevronRight, Plus, X
+  Edit2, Eye, FileDown, Sparkles, ChevronLeft, ChevronRight, Plus, X, Folder as FolderIcon
 } from 'lucide-react';
 import { format, isBefore, isToday, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
@@ -75,12 +75,10 @@ export default function SchedulePlanner() {
   const processedStories = useMemo(() => {
     let list = [...scheduledStories];
 
-    // Filter by Folder
     if (folderFilter !== 'all') {
       list = list.filter(s => s.folderId === folderFilter);
     }
 
-    // Filter by Status
     if (statusFilter !== 'all') {
       if (statusFilter === 'overdue') {
         const now = new Date();
@@ -90,7 +88,6 @@ export default function SchedulePlanner() {
       }
     }
 
-    // Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(s => {
@@ -98,13 +95,12 @@ export default function SchedulePlanner() {
         return (
           (s.title && s.title.toLowerCase().includes(q)) ||
           folderName.toLowerCase().includes(q) ||
-          s.targetDate.includes(q)
+          (s.content && s.content.toLowerCase().includes(q))
         );
       });
     }
 
-    // Sort
-    return list.sort((a, b) => {
+    list.sort((a, b) => {
       if (sortBy === 'dateAsc') {
         return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
       }
@@ -119,12 +115,13 @@ export default function SchedulePlanner() {
       }
       return 0;
     });
+
+    return list;
   }, [scheduledStories, folderFilter, statusFilter, searchQuery, sortBy, folderMap]);
 
-  // Calendar Day Generation
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(monthStart);
+    const monthEnd = endOfMonth(currentMonth);
     return eachDayOfInterval({ start: monthStart, end: monthEnd });
   }, [currentMonth]);
 
@@ -152,35 +149,36 @@ export default function SchedulePlanner() {
     if (processedStories.length === 0) return;
 
     let content = `
-      \x3Chtml lang="${language}" dir="${language === 'ar' ? 'rtl' : 'ltr'}">
+      <html lang="${language}" dir="${language === 'ar' ? 'rtl' : 'ltr'}">
         <head>
           <meta charset="utf-8">
           <title>${t('scheduleTitle', language)}</title>
         </head>
-        <body style="font-family: Arial, sans-serif; text-align: ${language === 'ar' ? 'right' : 'left'}; direction: ${language === 'ar' ? 'rtl' : 'ltr'}; padding: 20px;">
-          <h1 style="text-align: center; color: #1e293b;">${t('scheduleTitle', language)}</h1>
-          <p style="text-align: center; color: #64748b; margin-bottom: 25px;">${t('scheduleTrackerDesc', language)}</p>
-          <table border="1" style="width: 100%; border-collapse: collapse; text-align: right;" cellpadding="8">
+        <body style="font-family: Arial, sans-serif; direction: ${language === 'ar' ? 'rtl' : 'ltr'}; text-align: ${language === 'ar' ? 'right' : 'left'}; color: #000000; padding: 20px;">
+          <h1 style="text-align: center; margin-bottom: 25px; color: #000000; border-bottom: 2px solid #000; padding-bottom: 10px;">${t('scheduleTitle', language)}</h1>
+          <p style="text-align: center; color: #444; font-size: 13px;">${t('totalScheduled', language)}: ${processedStories.length} ${t('storiesText', language)}</p>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;" border="1">
             <thead>
-              <tr style="background-color: #f1f5f9; color: #0f172a;">
-                <th>${t('dateLabel', language)}</th>
-                <th>${t('storyTitlePlaceholder', language)}</th>
-                <th>${t('folderLabel', language)}</th>
-                <th>${t('statusLabel', language)}</th>
+              <tr style="background-color: #000; color: #fff;">
+                <th style="padding: 10px;">${t('dateLabel', language)}</th>
+                <th style="padding: 10px;">${t('storyTitlePlaceholder', language)}</th>
+                <th style="padding: 10px;">${t('folderLabel', language)}</th>
+                <th style="padding: 10px;">${t('statusLabel', language)}</th>
               </tr>
             </thead>
             <tbody>
     `;
 
-    processedStories.forEach(s => {
-      const folderName = s.folderId ? folderMap.get(s.folderId)?.name || '---' : '---';
-      const statusText = s.status === 'published' ? t('published', language) : s.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
+    processedStories.forEach((story) => {
+      const folder = story.folderId ? folderMap.get(story.folderId) : null;
+      const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
+
       content += `
         <tr>
-          <td>${s.targetDate} ${s.publishTime ? `(${s.publishTime})` : ''}</td>
-          <td><strong>${s.title || 'بدون عنوان'}</strong></td>
-          <td>${folderName}</td>
-          <td>${statusText}</td>
+          <td style="padding: 8px; font-weight: bold;">${story.targetDate} ${story.publishTime ? `(${story.publishTime})` : ''}</td>
+          <td style="padding: 8px;">${story.title || t('untitledStory', language)}</td>
+          <td style="padding: 8px;">${folder ? folder.name : '---'}</td>
+          <td style="padding: 8px;">${statusText}</td>
         </tr>
       `;
     });
@@ -206,165 +204,163 @@ export default function SchedulePlanner() {
   const locale = language === 'ar' ? ar : enUS;
 
   return (
-    <div className="p-3 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 bg-slate-50 min-h-screen w-full overflow-x-hidden">
+    <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-3 bg-neutral-100 min-h-screen w-full overflow-x-hidden text-neutral-900">
       
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs">
+      {/* Page Header - Sharp & Compact */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-3.5 border border-neutral-300 rounded-none shadow-2xs">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="bg-indigo-50 p-1.5 sm:p-2 rounded-xl text-indigo-600 shrink-0">
-              <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6" />
+          <div className="flex items-center gap-2 mb-0.5">
+            <div className="bg-neutral-100 p-1.5 rounded-none text-black border border-neutral-300 shrink-0">
+              <CalendarDays className="w-4 h-4" />
             </div>
-            <h1 className="text-base sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight truncate">{t('scheduleTitle', language)}</h1>
+            <h1 className="text-base sm:text-lg font-bold text-neutral-900 tracking-tight truncate font-serif">
+              {t('scheduleTitle', language)}
+            </h1>
           </div>
-          <p className="text-slate-500 text-xs sm:text-sm font-medium leading-relaxed">
+          <p className="text-neutral-500 text-xs">
             {t('scheduleTrackerDesc', language)}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-0 border-slate-100">
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
           <button
             onClick={handleExportScheduleWord}
-            className="flex-1 sm:flex-initial justify-center px-3 sm:px-3.5 py-2 sm:py-2 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 touch-manipulation min-h-[40px] sm:min-h-0"
+            className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-900 border border-neutral-300 rounded-none font-bold text-xs transition-colors flex items-center gap-1"
           >
-            <FileDown className="w-4 h-4 text-indigo-600 shrink-0" />
-            <span className="truncate">{t('exportSchedule', language)}</span>
+            <FileDown className="w-3.5 h-3.5 shrink-0" />
+            <span>Word</span>
           </button>
 
           <Link
             href="/editor/new"
-            className="flex-1 sm:flex-initial justify-center px-3 sm:px-3.5 py-2 sm:py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs touch-manipulation min-h-[40px] sm:min-h-0"
+            className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-white rounded-none font-bold text-xs transition-colors flex items-center gap-1 border border-black"
           >
-            <Plus className="w-4 h-4 shrink-0" />
-            <span className="truncate">{t('createNewStoryBtn', language)}</span>
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span>{t('newStory', language)}</span>
           </Link>
         </div>
       </div>
 
-      {/* KPI Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-        <div className="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="p-2 sm:p-3 bg-indigo-50 text-indigo-600 rounded-xl sm:rounded-2xl shrink-0">
-            <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+      {/* KPI Stats Grid - Sharp & Compact */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="bg-white p-2.5 rounded-none border border-neutral-300 flex items-center gap-2 min-w-0">
+          <div className="p-1.5 bg-neutral-100 text-black border border-neutral-300 rounded-none shrink-0">
+            <CalendarIcon className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{stats.total}</div>
-            <div className="text-[10px] sm:text-[11px] text-slate-500 font-semibold truncate">{t('totalScheduled', language)}</div>
+            <div className="text-sm sm:text-base font-bold text-neutral-900 leading-tight font-mono">{stats.total}</div>
+            <div className="text-[10px] text-neutral-500 font-bold truncate">{t('totalScheduled', language)}</div>
           </div>
         </div>
 
-        <div className="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="p-2 sm:p-3 bg-emerald-50 text-emerald-600 rounded-xl sm:rounded-2xl shrink-0">
-            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="bg-white p-2.5 rounded-none border border-neutral-300 flex items-center gap-2 min-w-0">
+          <div className="p-1.5 bg-neutral-100 text-black border border-neutral-300 rounded-none shrink-0">
+            <CheckCircle className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{stats.dueToday}</div>
-            <div className="text-[10px] sm:text-[11px] text-emerald-700 font-semibold truncate">{t('dueToday', language)}</div>
+            <div className="text-sm sm:text-base font-bold text-neutral-900 leading-tight font-mono">{stats.dueToday}</div>
+            <div className="text-[10px] text-neutral-700 font-bold truncate">{t('dueToday', language)}</div>
           </div>
         </div>
 
-        <div className="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="p-2 sm:p-3 bg-amber-50 text-amber-600 rounded-xl sm:rounded-2xl shrink-0">
-            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="bg-white p-2.5 rounded-none border border-neutral-300 flex items-center gap-2 min-w-0">
+          <div className="p-1.5 bg-neutral-100 text-black border border-neutral-300 rounded-none shrink-0">
+            <AlertCircle className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{stats.overdue}</div>
-            <div className="text-[10px] sm:text-[11px] text-amber-700 font-semibold truncate">{t('overdue', language)}</div>
+            <div className="text-sm sm:text-base font-bold text-neutral-900 leading-tight font-mono">{stats.overdue}</div>
+            <div className="text-[10px] text-neutral-700 font-bold truncate">{t('overdue', language)}</div>
           </div>
         </div>
 
-        <div className="bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="p-2 sm:p-3 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl shrink-0">
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="bg-white p-2.5 rounded-none border border-neutral-300 flex items-center gap-2 min-w-0">
+          <div className="p-1.5 bg-neutral-100 text-black border border-neutral-300 rounded-none shrink-0">
+            <Sparkles className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{stats.upcoming}</div>
-            <div className="text-[10px] sm:text-[11px] text-blue-700 font-semibold truncate">{t('upcoming', language)}</div>
+            <div className="text-sm sm:text-base font-bold text-neutral-900 leading-tight font-mono">{stats.upcoming}</div>
+            <div className="text-[10px] text-neutral-700 font-bold truncate">{t('upcoming', language)}</div>
           </div>
         </div>
       </div>
 
       {/* Control Bar: View Modes, Search, Sort & Filters */}
-      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3 lg:space-y-0 lg:flex lg:items-center lg:justify-between lg:gap-4 overflow-hidden">
+      <div className="bg-white p-2.5 rounded-none border border-neutral-300 space-y-2 lg:space-y-0 lg:flex lg:items-center lg:justify-between lg:gap-3">
         
-        {/* View Mode Switcher - Responsive Grid on Mobile */}
-        <div className="grid grid-cols-2 sm:flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold gap-1 w-full lg:w-auto">
+        {/* View Mode Switcher - Sharp Segmented Tabs */}
+        <div className="grid grid-cols-2 sm:flex p-0.5 bg-neutral-200 rounded-none border border-neutral-300 text-xs font-bold gap-0.5 w-full lg:w-auto">
           <button
             onClick={() => setViewMode('detailed')}
-            className={`py-2 px-2.5 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap touch-manipulation min-h-[36px] sm:min-h-0 ${
-              viewMode === 'detailed' ? 'bg-white text-indigo-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            className={`py-1 px-2.5 rounded-none transition-colors flex items-center justify-center gap-1 ${
+              viewMode === 'detailed' ? 'bg-black text-white font-bold' : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
             }`}
           >
             <CalendarDays className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{t('viewDetailed', language)}</span>
+            <span>{t('viewDetailed', language)}</span>
           </button>
 
           <button
             onClick={() => setViewMode('compact')}
-            className={`py-2 px-2.5 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap touch-manipulation min-h-[36px] sm:min-h-0 ${
-              viewMode === 'compact' ? 'bg-white text-indigo-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            className={`py-1 px-2.5 rounded-none transition-colors flex items-center justify-center gap-1 ${
+              viewMode === 'compact' ? 'bg-black text-white font-bold' : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
             }`}
           >
             <LayoutList className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{t('viewCompact', language)}</span>
+            <span>{t('viewCompact', language)}</span>
           </button>
 
           <button
             onClick={() => setViewMode('calendar')}
-            className={`py-2 px-2.5 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap touch-manipulation min-h-[36px] sm:min-h-0 ${
-              viewMode === 'calendar' ? 'bg-white text-indigo-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            className={`py-1 px-2.5 rounded-none transition-colors flex items-center justify-center gap-1 ${
+              viewMode === 'calendar' ? 'bg-black text-white font-bold' : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
             }`}
           >
             <CalendarIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{t('viewCalendar', language)}</span>
+            <span>{t('viewCalendar', language)}</span>
           </button>
 
           <button
             onClick={() => setViewMode('folder')}
-            className={`py-2 px-2.5 sm:py-1.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap touch-manipulation min-h-[36px] sm:min-h-0 ${
-              viewMode === 'folder' ? 'bg-white text-indigo-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            className={`py-1 px-2.5 rounded-none transition-colors flex items-center justify-center gap-1 ${
+              viewMode === 'folder' ? 'bg-black text-white font-bold' : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
             }`}
           >
             <FolderOpen className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{t('viewByFolder', language)}</span>
+            <span>{t('viewByFolder', language)}</span>
           </button>
         </div>
 
         {/* Search & Filters */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs w-full lg:w-auto">
-          {/* Search */}
-          <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[150px]">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-2.5" />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 text-xs w-full lg:w-auto">
+          <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[140px]">
+            <Search className="w-3.5 h-3.5 text-neutral-400 absolute right-2.5 top-2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('searchSchedulePlaceholder', language)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-8 pl-3 py-2 sm:py-1.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-xs min-h-[38px] sm:min-h-0"
+              className="w-full bg-white border border-neutral-300 rounded-none pr-7 pl-2 py-1 text-xs text-neutral-900 focus:outline-none focus:border-black"
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 w-full sm:w-auto">
             {/* Folder Filter */}
-            <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 min-h-[38px] sm:min-h-0 w-full sm:w-auto">
-              <Filter className="w-3.5 h-3.5 text-slate-400 mx-1 shrink-0" />
-              <select
-                value={folderFilter}
-                onChange={(e) => setFolderFilter(e.target.value)}
-                className="bg-transparent font-semibold text-slate-700 focus:outline-none px-1 py-1 cursor-pointer w-full text-xs truncate"
-              >
-                <option value="all">{t('allFolders', language)}</option>
-                {activeFolders.map(f => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={folderFilter}
+              onChange={(e) => setFolderFilter(e.target.value)}
+              className="bg-white border border-neutral-300 font-bold text-neutral-900 rounded-none px-2 py-1 focus:outline-none focus:border-black cursor-pointer text-xs"
+            >
+              <option value="all">{t('allFolders', language)}</option>
+              {activeFolders.map(f => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
 
             {/* Status Filter */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 font-semibold text-slate-700 rounded-xl px-2 py-2 sm:py-1.5 focus:outline-none cursor-pointer w-full sm:w-auto text-xs min-h-[38px] sm:min-h-0"
+              className="bg-white border border-neutral-300 font-bold text-neutral-900 rounded-none px-2 py-1 focus:outline-none focus:border-black cursor-pointer text-xs"
             >
               <option value="all">{t('allStatuses', language)}</option>
               <option value="draft">{t('draft', language)}</option>
@@ -374,99 +370,93 @@ export default function SchedulePlanner() {
             </select>
 
             {/* Sort By */}
-            <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 min-h-[38px] sm:min-h-0 w-full sm:w-auto">
-              <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 mx-1 shrink-0" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="bg-transparent font-semibold text-slate-700 focus:outline-none px-1 py-1 cursor-pointer w-full text-xs truncate"
-              >
-                <option value="dateAsc">{t('sortDateAsc', language)}</option>
-                <option value="dateDesc">{t('sortDateDesc', language)}</option>
-                <option value="title">{t('sortTitle', language)}</option>
-                <option value="status">{t('sortStatus', language)}</option>
-              </select>
-            </div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="bg-white border border-neutral-300 font-bold text-neutral-900 rounded-none px-2 py-1 focus:outline-none focus:border-black cursor-pointer text-xs"
+            >
+              <option value="dateAsc">{t('sortDateAsc', language)}</option>
+              <option value="dateDesc">{t('sortDateDesc', language)}</option>
+              <option value="title">{t('sortTitle', language)}</option>
+              <option value="status">{t('sortStatus', language)}</option>
+            </select>
           </div>
         </div>
       </div>
 
       {/* VIEW RENDERING */}
       {processedStories.length === 0 && viewMode !== 'calendar' ? (
-        <div className="text-center py-12 sm:py-16 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 border-dashed p-6 space-y-3">
-          <CalendarIcon className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="text-base font-bold text-slate-900">{t('noScheduledTexts', language)}</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">{t('setTargetDateSub', language)}</p>
+        <div className="text-center py-10 bg-white rounded-none border border-neutral-300 border-dashed p-4 space-y-2">
+          <CalendarIcon className="w-8 h-8 text-neutral-300 mx-auto" />
+          <h3 className="text-xs font-bold text-neutral-900">{t('noScheduledTexts', language)}</h3>
+          <p className="text-[11px] text-neutral-500 max-w-sm mx-auto">{t('setTargetDateSub', language)}</p>
           <Link
             href="/content"
-            className="inline-flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-indigo-700 shadow-xs mt-2 touch-manipulation"
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-black hover:bg-neutral-800 text-white rounded-none text-xs font-bold transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            <span>{t('goToContentManager', language)}</span>
+            {t('goToContentManager', language)}
           </Link>
         </div>
       ) : (
         <>
-          {/* MODE 1: DETAILED TIMELINE */}
+          {/* MODE 1: DETAILED TIMELINE CARDS - Sharp & Compact */}
           {viewMode === 'detailed' && (
-            <div className="relative border-r-2 border-indigo-100 mr-2 sm:mr-4 pr-3.5 sm:pr-6 md:pr-8 space-y-4 sm:space-y-6">
-              {processedStories.map((story, index) => {
-                const date = parseISO(story.targetDate);
-                const isPast = isBefore(date, new Date()) && !isToday(date);
-                const today = isToday(date);
+            <div className="space-y-2">
+              {processedStories.map((story) => {
                 const folder = story.folderId ? folderMap.get(story.folderId) : null;
+                const d = parseISO(story.targetDate);
+                const isOverdue = isBefore(d, new Date()) && !isToday(d) && story.status !== 'published';
+                const isDueToday = isToday(d);
 
                 return (
-                  <motion.div
+                  <div
                     key={story.id}
-                    initial={{ opacity: 0, x: 15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.04 }}
-                    className="relative"
+                    className={`bg-white rounded-none p-3 border transition-colors ${
+                      isDueToday ? 'border-black shadow-xs' : isOverdue ? 'border-neutral-500' : 'border-neutral-300'
+                    }`}
                   >
-                    {/* Timeline Dot */}
-                    <div className={`absolute -right-[7px] sm:-right-[8px] md:-right-[10px] top-4 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 rounded-full border-2 sm:border-4 border-white shadow-xs z-10 ${
-                      today ? 'bg-indigo-600 ring-2 sm:ring-4 ring-indigo-100' : isPast ? 'bg-slate-300' : 'bg-emerald-500'
-                    }`} />
+                    <div className="space-y-2">
+                      {/* Top Header Row */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-none font-bold border font-mono ${
+                            isOverdue 
+                              ? 'bg-black text-white border-black' 
+                              : isDueToday 
+                              ? 'bg-neutral-900 text-white border-black' 
+                              : 'bg-neutral-100 text-neutral-800 border-neutral-300'
+                          }`}>
+                            {isDueToday ? t('dueToday', language) : isOverdue ? t('overdue', language) : t('upcoming', language)}
+                          </span>
 
-                    <div className={`bg-white rounded-2xl p-4 sm:p-5 shadow-2xs border transition-all hover:shadow-md ${
-                      today ? 'border-indigo-300 ring-1 ring-indigo-50 bg-indigo-50/10' : 'border-slate-200/80'
-                    }`}>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-3">
-                        <div className="flex items-center gap-2.5 sm:gap-3">
-                          <div className={`p-2 sm:p-2.5 rounded-xl shrink-0 ${today ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
-                            <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </div>
-                          <div>
-                            <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                              {format(date, 'EEEE، d MMMM yyyy', { locale })}
-                            </h3>
-                            {today && <span className="text-indigo-600 text-[11px] sm:text-xs font-bold">{t('today', language)}</span>}
-                          </div>
+                          <span className="text-xs font-bold text-neutral-900 flex items-center gap-1 font-mono">
+                            <CalendarIcon className="w-3.5 h-3.5 text-neutral-500" />
+                            <span>{format(d, 'EEEE d MMMM yyyy', { locale })}</span>
+                          </span>
                         </div>
 
-                        {/* Status & Quick Status Switcher */}
-                        <div className="flex items-center justify-between sm:justify-start gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0 w-full sm:w-auto">
+                        {/* Quick Status Setter */}
+                        <div className="flex items-center gap-1 bg-neutral-100 p-0.5 rounded-none border border-neutral-300 text-xs">
                           <button
                             onClick={() => handleQuickStatusChange(story.id, 'draft')}
-                            className={`flex-1 sm:flex-initial text-center px-2.5 py-1 sm:py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all touch-manipulation min-h-[32px] sm:min-h-0 ${
-                              story.status === 'draft' ? 'bg-amber-100 text-amber-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                            className={`px-2 py-0.5 rounded-none text-[10px] font-bold transition-colors ${
+                              story.status === 'draft' ? 'bg-black text-white' : 'text-neutral-600 hover:text-black'
                             }`}
                           >
                             {t('draft', language)}
                           </button>
                           <button
                             onClick={() => handleQuickStatusChange(story.id, 'ready')}
-                            className={`flex-1 sm:flex-initial text-center px-2.5 py-1 sm:py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all touch-manipulation min-h-[32px] sm:min-h-0 ${
-                              story.status === 'ready' ? 'bg-emerald-100 text-emerald-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                            className={`px-2 py-0.5 rounded-none text-[10px] font-bold transition-colors ${
+                              story.status === 'ready' ? 'bg-black text-white' : 'text-neutral-600 hover:text-black'
                             }`}
                           >
                             {t('readyToPublish', language)}
                           </button>
                           <button
                             onClick={() => handleQuickStatusChange(story.id, 'published')}
-                            className={`flex-1 sm:flex-initial text-center px-2.5 py-1 sm:py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all touch-manipulation min-h-[32px] sm:min-h-0 ${
-                              story.status === 'published' ? 'bg-blue-100 text-blue-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                            className={`px-2 py-0.5 rounded-none text-[10px] font-bold transition-colors ${
+                              story.status === 'published' ? 'bg-black text-white' : 'text-neutral-600 hover:text-black'
                             }`}
                           >
                             {t('published', language)}
@@ -474,240 +464,167 @@ export default function SchedulePlanner() {
                         </div>
                       </div>
 
-                      <div className="bg-slate-50/80 rounded-2xl p-3.5 sm:p-4 border border-slate-100 hover:border-indigo-200 transition-colors space-y-2.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <Link href={`/editor/${story.id}`} className="font-bold text-slate-900 hover:text-indigo-600 text-sm sm:text-base md:text-lg transition-colors leading-snug">
+                      <div className="bg-neutral-50 rounded-none p-2.5 border border-neutral-200 space-y-1.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <Link href={`/editor/${story.id}`} className="font-bold text-neutral-900 hover:underline text-xs sm:text-sm font-serif truncate">
                             {story.title || t('untitledStory', language)}
                           </Link>
 
-                          <div className="flex items-center gap-0.5 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0">
                             <button
                               onClick={() => setReadingStory(story)}
-                              className="p-2 text-slate-400 hover:text-indigo-600 active:bg-slate-200 rounded-lg touch-manipulation"
+                              className="p-1 text-neutral-600 hover:text-black border border-neutral-300 bg-white rounded-none"
                               title={language === 'ar' ? 'معاينة' : 'Preview'}
                             >
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => openRescheduleModal(story)}
-                              className="p-2 text-slate-400 hover:text-indigo-600 active:bg-slate-200 rounded-lg touch-manipulation"
+                              className="p-1 text-neutral-600 hover:text-black border border-neutral-300 bg-white rounded-none"
                               title={t('quickReschedule', language)}
                             >
-                              <Clock className="w-4 h-4" />
+                              <Clock className="w-3.5 h-3.5" />
                             </button>
                             <Link
                               href={`/editor/${story.id}`}
-                              className="p-2 text-slate-400 hover:text-indigo-600 active:bg-slate-200 rounded-lg touch-manipulation"
+                              className="p-1 text-neutral-600 hover:text-black border border-neutral-300 bg-white rounded-none"
                               title={t('editStory', language)}
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Edit2 className="w-3.5 h-3.5" />
                             </Link>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-medium pt-1 border-t border-slate-100/80">
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 font-mono pt-1 border-t border-neutral-200">
                           {folder && (
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: folder.color || '#6366f1' }} />
-                              <span className="truncate max-w-[120px]">{folder.name}</span>
+                            <div className="flex items-center gap-1 font-bold text-neutral-800">
+                              <FolderIcon className="w-3 h-3 text-black" />
+                              <span>{folder.name}</span>
                             </div>
                           )}
 
                           {story.publishTime && (
                             <div className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <Clock className="w-3 h-3 text-neutral-400" />
                               <span>{story.publishTime}</span>
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
           )}
 
-          {/* MODE 2: COMPACT LIST */}
+          {/* MODE 2: COMPACT LIST - Dense Table */}
           {viewMode === 'compact' && (
-            <div>
-              {/* Mobile Card List (< sm) */}
-              <div className="space-y-3 sm:hidden">
-                {processedStories.map(story => {
-                  const folder = story.folderId ? folderMap.get(story.folderId) : null;
-                  return (
-                    <div key={story.id} className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                          <CalendarIcon className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                          <span>{story.targetDate}</span>
-                          {story.publishTime && <span className="text-slate-400 font-normal">({story.publishTime})</span>}
-                        </div>
-
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
-                          story.status === 'published' ? 'bg-blue-50 text-blue-800 border-blue-200' : story.status === 'ready' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'
-                        }`}>
-                          {story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
-                        </span>
-                      </div>
-
-                      <Link href={`/editor/${story.id}`} className="block font-bold text-slate-900 text-sm hover:text-indigo-600">
-                        {story.title || t('untitledStory', language)}
-                      </Link>
-
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-                        <div>
+            <div className="bg-white rounded-none border border-neutral-300 shadow-2xs overflow-x-auto">
+              <table className="w-full text-right text-xs">
+                <thead className="bg-neutral-100 text-neutral-700 border-b border-neutral-300 font-bold">
+                  <tr>
+                    <th className="p-2.5">{t('dateLabel', language)}</th>
+                    <th className="p-2.5">{t('storyTitlePlaceholder', language)}</th>
+                    <th className="p-2.5">{t('folderLabel', language)}</th>
+                    <th className="p-2.5">{t('statusLabel', language)}</th>
+                    <th className="p-2.5 text-left">{language === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-200">
+                  {processedStories.map(story => {
+                    const folder = story.folderId ? folderMap.get(story.folderId) : null;
+                    return (
+                      <tr key={story.id} className="hover:bg-neutral-50 transition-colors">
+                        <td className="p-2 font-mono text-neutral-900 whitespace-nowrap">
+                          {story.targetDate} {story.publishTime && <span className="text-neutral-400">({story.publishTime})</span>}
+                        </td>
+                        <td className="p-2 font-bold text-neutral-900 font-serif max-w-[220px] truncate">
+                          <Link href={`/editor/${story.id}`} className="hover:underline">
+                            {story.title || t('untitledStory', language)}
+                          </Link>
+                        </td>
+                        <td className="p-2 text-neutral-600">
                           {folder ? (
-                            <span className="inline-flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md text-[11px] font-semibold">
-                              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: folder.color || '#6366f1' }} />
-                              {folder.name}
+                            <span className="border border-neutral-300 px-1.5 py-0.2 text-[11px] bg-neutral-50">
+                              📁 {folder.name}
                             </span>
                           ) : '---'}
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => setReadingStory(story)}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg touch-manipulation"
-                            title={language === 'ar' ? 'معاينة' : 'Preview'}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => openRescheduleModal(story)}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg touch-manipulation"
-                            title={t('quickReschedule', language)}
-                          >
-                            <Clock className="w-4 h-4" />
-                          </button>
-                          <Link
-                            href={`/editor/${story.id}`}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg touch-manipulation"
-                            title={t('editStory', language)}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Desktop Table (>= sm) */}
-              <div className="hidden sm:block bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-right text-xs">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-bold">
-                        <th className="p-3.5">{t('dateLabel', language)}</th>
-                        <th className="p-3.5">{t('storyTitlePlaceholder', language)}</th>
-                        <th className="p-3.5">{t('folderLabel', language)}</th>
-                        <th className="p-3.5">{t('statusLabel', language)}</th>
-                        <th className="p-3.5 text-center">{language === 'ar' ? 'إجراءات' : 'Actions'}</th>
+                        </td>
+                        <td className="p-2">
+                          <span className="border border-neutral-400 px-1.5 py-0.2 text-[10px] font-mono font-bold">
+                            {story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
+                          </span>
+                        </td>
+                        <td className="p-2 text-left whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => setReadingStory(story)}
+                              className="p-1 border border-neutral-300 text-neutral-600 hover:text-black rounded-none"
+                              title="معاينة"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => openRescheduleModal(story)}
+                              className="p-1 border border-neutral-300 text-neutral-600 hover:text-black rounded-none"
+                              title={t('quickReschedule', language)}
+                            >
+                              <Clock className="w-3.5 h-3.5" />
+                            </button>
+                            <Link
+                              href={`/editor/${story.id}`}
+                              className="p-1 border border-neutral-300 text-neutral-600 hover:text-black rounded-none"
+                              title={t('editStory', language)}
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {processedStories.map(story => {
-                        const folder = story.folderId ? folderMap.get(story.folderId) : null;
-                        return (
-                          <tr key={story.id} className="hover:bg-indigo-50/30 transition-colors">
-                            <td className="p-3.5 font-bold text-slate-900 whitespace-nowrap">
-                              {story.targetDate} {story.publishTime && <span className="text-slate-400 text-[11px] font-normal">({story.publishTime})</span>}
-                            </td>
-                            <td className="p-3.5">
-                              <Link href={`/editor/${story.id}`} className="font-bold text-slate-800 hover:text-indigo-600">
-                                {story.title || t('untitledStory', language)}
-                              </Link>
-                            </td>
-                            <td className="p-3.5 text-slate-600">
-                              {folder ? (
-                                <span className="inline-flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md text-[11px] font-semibold">
-                                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: folder.color || '#6366f1' }} />
-                                  {folder.name}
-                                </span>
-                              ) : '---'}
-                            </td>
-                            <td className="p-3.5">
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
-                                story.status === 'published' ? 'bg-blue-50 text-blue-800 border-blue-200' : story.status === 'ready' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'
-                              }`}>
-                                {story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
-                              </span>
-                            </td>
-                            <td className="p-3.5">
-                              <div className="flex items-center justify-center gap-1">
-                                <button
-                                  onClick={() => setReadingStory(story)}
-                                  className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg"
-                                  title={language === 'ar' ? 'معاينة' : 'Preview'}
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => openRescheduleModal(story)}
-                                  className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg"
-                                  title={t('quickReschedule', language)}
-                                >
-                                  <Clock className="w-4 h-4" />
-                                </button>
-                                <Link
-                                  href={`/editor/${story.id}`}
-                                  className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg"
-                                  title={t('editStory', language)}
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </Link>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
 
-          {/* MODE 3: MONTHLY CALENDAR GRID */}
+          {/* MODE 3: MONTHLY CALENDAR GRID - Sharp */}
           {viewMode === 'calendar' && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs p-3 sm:p-5 space-y-3 sm:space-y-4 overflow-hidden">
-              {/* Month Navigator Header */}
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+            <div className="bg-white rounded-none border border-neutral-300 p-3 space-y-2.5 overflow-hidden">
+              <div className="flex items-center justify-between gap-2 border-b border-neutral-200 pb-2">
+                <h2 className="text-sm font-bold text-neutral-900 font-serif">
                   {format(currentMonth, 'MMMM yyyy', { locale })}
                 </h2>
 
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
-                    className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 active:bg-slate-300 touch-manipulation"
+                    className="p-1.5 bg-white hover:bg-neutral-100 border border-neutral-300 rounded-none text-neutral-800"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setCurrentMonth(new Date())}
-                    className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs active:bg-slate-300 touch-manipulation"
+                    className="px-2 py-1 bg-white hover:bg-neutral-100 text-neutral-800 rounded-none font-bold text-xs border border-neutral-300"
                   >
                     {t('today', language)}
                   </button>
                   <button
                     onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
-                    className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 active:bg-slate-300 touch-manipulation"
+                    className="p-1.5 bg-white hover:bg-neutral-100 border border-neutral-300 rounded-none text-neutral-800"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
-              {/* Responsive Calendar Grid */}
+              {/* Calendar Grid */}
               <div className="w-full overflow-x-auto">
-                <div className="w-full min-w-[320px] sm:min-w-0 grid grid-cols-7 gap-0.5 sm:gap-1.5 text-center text-xs">
+                <div className="w-full min-w-[320px] grid grid-cols-7 gap-1 text-center text-xs">
                   {['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'].map((day, idx) => (
-                    <div key={idx} className="p-1 sm:p-2 font-bold text-slate-400 bg-slate-50 rounded-md sm:rounded-xl text-[10px] sm:text-xs">
-                      <span className="sm:hidden">{['أح', 'إث', 'ثل', 'أر', 'خم', 'جم', 'سب'][idx]}</span>
-                      <span className="hidden sm:inline">{day}</span>
+                    <div key={idx} className="p-1 font-bold text-neutral-700 bg-neutral-100 border border-neutral-300 rounded-none text-[11px]">
+                      {day}
                     </div>
                   ))}
 
@@ -719,29 +636,29 @@ export default function SchedulePlanner() {
                     return (
                       <div
                         key={idx}
-                        className={`min-h-[54px] sm:min-h-[90px] p-1 sm:p-2 rounded-lg sm:rounded-2xl border transition-all text-right flex flex-col justify-between ${
+                        className={`min-h-[55px] sm:min-h-[75px] p-1 border transition-colors text-right flex flex-col justify-between rounded-none ${
                           isCurrentToday 
-                            ? 'bg-indigo-50/50 border-indigo-300 font-bold' 
-                            : 'bg-white border-slate-100 hover:border-slate-200'
+                            ? 'bg-neutral-100 border-black font-bold' 
+                            : 'bg-white border-neutral-200 hover:border-black'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className={`text-[10px] sm:text-xs ${isCurrentToday ? 'text-indigo-600 font-extrabold' : 'text-slate-500'}`}>
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className={isCurrentToday ? 'text-black font-bold' : 'text-neutral-600'}>
                             {format(day, 'd')}
                           </span>
                           {postsOnDay.length > 0 && (
-                            <span className="text-[8px] sm:text-[10px] bg-indigo-100 text-indigo-700 px-1 sm:px-1.5 py-0.2 rounded-full font-bold">
+                            <span className="text-[9px] bg-black text-white px-1 py-0.2 rounded-none font-mono">
                               {postsOnDay.length}
                             </span>
                           )}
                         </div>
 
-                        <div className="space-y-0.5 sm:space-y-1 mt-0.5 sm:mt-1 overflow-hidden">
+                        <div className="space-y-0.5 mt-1 overflow-hidden">
                           {postsOnDay.map(post => (
                             <Link
                               key={post.id}
                               href={`/editor/${post.id}`}
-                              className="block text-[8px] sm:text-[10px] p-0.5 sm:p-1 rounded sm:rounded-lg bg-indigo-600 text-white truncate font-medium hover:bg-indigo-700 active:bg-indigo-800 leading-tight"
+                              className="block text-[9px] px-1 py-0.5 rounded-none bg-neutral-900 text-white truncate hover:bg-black font-serif leading-tight"
                               title={post.title}
                             >
                               {post.title || t('untitledStory', language)}
@@ -758,37 +675,37 @@ export default function SchedulePlanner() {
 
           {/* MODE 4: GROUPED BY FOLDER */}
           {viewMode === 'folder' && (
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-2.5">
               {activeFolders.map(f => {
                 const folderPosts = processedStories.filter(s => s.folderId === f.id);
                 if (folderPosts.length === 0) return null;
 
                 return (
-                  <div key={f.id} className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs space-y-3">
-                    <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                      <span className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: f.color || '#6366f1' }} />
-                      <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate">{f.name}</h3>
-                      <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold shrink-0">
+                  <div key={f.id} className="bg-white rounded-none p-3 border border-neutral-300 space-y-2">
+                    <div className="flex items-center justify-between border-b border-neutral-200 pb-1.5">
+                      <div className="flex items-center gap-2">
+                        <FolderIcon className="w-3.5 h-3.5 text-black shrink-0" />
+                        <h3 className="font-bold text-neutral-900 text-xs sm:text-sm font-serif">{f.name}</h3>
+                      </div>
+                      <span className="text-[10px] font-mono border border-neutral-300 px-1.5 py-0.2 bg-neutral-50">
                         {folderPosts.length}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {folderPosts.map(story => (
-                        <div key={story.id} className="bg-slate-50 p-3 sm:p-3.5 rounded-2xl border border-slate-200/60 flex items-center justify-between gap-2">
+                        <div key={story.id} className="bg-neutral-50 p-2.5 rounded-none border border-neutral-200 flex items-center justify-between gap-2">
                           <div className="min-w-0 flex-1">
-                            <Link href={`/editor/${story.id}`} className="font-bold text-xs sm:text-sm text-slate-900 hover:text-indigo-600 block truncate">
+                            <Link href={`/editor/${story.id}`} className="font-bold text-xs text-neutral-900 hover:underline block truncate font-serif">
                               {story.title || t('untitledStory', language)}
                             </Link>
-                            <div className="text-[10px] sm:text-[11px] text-slate-400 mt-1 flex items-center gap-2">
+                            <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
                               <span>{story.targetDate}</span>
-                              {story.publishTime && <span>• {story.publishTime}</span>}
+                              {story.publishTime && <span> · {story.publishTime}</span>}
                             </div>
                           </div>
 
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border shrink-0 ${
-                            story.status === 'published' ? 'bg-blue-50 text-blue-800 border-blue-200' : story.status === 'ready' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'
-                          }`}>
+                          <span className="text-[10px] px-1.5 py-0.2 font-mono font-bold border border-neutral-400 shrink-0">
                             {story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
                           </span>
                         </div>
@@ -802,52 +719,52 @@ export default function SchedulePlanner() {
         </>
       )}
 
-      {/* Quick Reschedule Modal */}
+      {/* Quick Reschedule Modal - Sharp Box */}
       {editingScheduleId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-5 sm:p-6 w-full max-w-sm space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-sm">{t('quickReschedule', language)}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-none border-2 border-black shadow-2xl p-4 w-full max-w-sm space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
+              <h3 className="font-bold text-neutral-900 text-xs font-serif uppercase tracking-wider">{t('quickReschedule', language)}</h3>
               <button
                 onClick={() => setEditingScheduleId(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-full"
+                className="p-1 text-neutral-500 hover:text-black"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-2.5 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">{t('dateLabel', language)}</label>
+                <label className="block font-bold text-neutral-800 mb-1">{t('dateLabel', language)}</label>
                 <input
                   type="date"
                   value={rescheduleDate}
                   onChange={(e) => setRescheduleDate(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-xs min-h-[42px]"
+                  className="w-full bg-white border border-neutral-300 rounded-none px-2.5 py-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black font-mono"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">{t('publishTimeLabel', language)}</label>
+                <label className="block font-bold text-neutral-800 mb-1">{t('publishTimeLabel', language)}</label>
                 <input
                   type="time"
                   value={rescheduleTime}
                   onChange={(e) => setRescheduleTime(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-xs min-h-[42px]"
+                  className="w-full bg-white border border-neutral-300 rounded-none px-2.5 py-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black font-mono"
                 />
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
               <button
                 onClick={handleSaveReschedule}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs touch-manipulation"
+                className="flex-1 bg-black hover:bg-neutral-800 text-white py-1.5 rounded-none text-xs font-bold transition-colors border border-black"
               >
                 {t('save', language)}
               </button>
               <button
                 onClick={() => setEditingScheduleId(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition-all touch-manipulation"
+                className="flex-1 bg-white hover:bg-neutral-100 text-neutral-800 py-1.5 rounded-none text-xs font-bold transition-colors border border-neutral-300"
               >
                 {language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
@@ -856,53 +773,47 @@ export default function SchedulePlanner() {
         </div>
       )}
 
-      {/* Quick Story Reader Modal */}
+      {/* Quick Story Reader Modal - Sharp Box */}
       {readingStory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
-          <motion.div 
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white w-full max-w-2xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
-          >
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-2 min-w-0">
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate">{readingStory.title || t('untitledStory', language)}</h3>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white w-full max-w-xl rounded-none border-2 border-black shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+            <div className="p-3 border-b border-black flex items-center justify-between bg-neutral-100">
+              <h3 className="font-bold text-neutral-900 text-xs sm:text-sm truncate font-serif">{readingStory.title || t('untitledStory', language)}</h3>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <Link
                   href={`/editor/${readingStory.id}`}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center gap-1 touch-manipulation"
+                  className="px-2 py-1 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-none flex items-center gap-1"
                 >
-                  <Edit2 className="w-3.5 h-3.5" />
+                  <Edit2 className="w-3 h-3" />
                   <span>{t('editStory', language)}</span>
                 </Link>
                 <button
                   onClick={() => setReadingStory(null)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full touch-manipulation"
+                  className="p-1 border border-neutral-300 hover:bg-black hover:text-white rounded-none"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 leading-relaxed text-slate-800 text-xs sm:text-sm md:text-base prose max-w-none" dir="rtl">
-              <div dangerouslySetInnerHTML={{ __html: readingStory.content || `<p class="text-slate-400">${t('noContentYet', language)}</p>` }} />
+            <div className="p-4 overflow-y-auto flex-1 leading-relaxed text-neutral-900 text-xs sm:text-sm font-sans" dir="rtl">
+              <div dangerouslySetInnerHTML={{ __html: readingStory.content || `<p class="opacity-40">${t('noContentYet', language)}</p>` }} />
             </div>
 
-            <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <div className="flex items-center gap-1.5">
-                <CalendarIcon className="w-3.5 h-3.5 shrink-0" />
+            <div className="p-2.5 bg-neutral-100 border-t border-neutral-300 flex items-center justify-between text-xs font-mono">
+              <div className="flex items-center gap-1 text-neutral-500">
+                <CalendarIcon className="w-3 h-3" />
                 <span>{readingStory.targetDate || '---'}</span>
               </div>
               <button
                 onClick={() => setReadingStory(null)}
-                className="px-4 py-1.5 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 touch-manipulation"
+                className="px-3 py-1 bg-white text-neutral-900 rounded-none font-bold hover:bg-neutral-200 border border-neutral-400 text-xs"
               >
                 {language === 'ar' ? 'إغلاق' : 'Close'}
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 
