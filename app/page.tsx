@@ -16,13 +16,15 @@ import {
   BookOpen,
   ArrowLeft,
   Trash2,
-  FolderPlus
+  FolderPlus,
+  ExternalLink
 } from 'lucide-react';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 
 export default function Dashboard() {
-  const { folders, stories, addFolder, moveToTrash, language } = useStore();
+  const { folders, stories, addFolder, moveToTrash, language, setFloatingStory } = useStore();
   const [newFolderName, setNewFolderName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
@@ -188,25 +190,32 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-3 md:p-5 max-w-7xl mx-auto space-y-3 md:space-y-4 bg-neutral-100 min-h-screen text-neutral-900">
+    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-5 bg-[#F5F5F7] min-h-screen text-neutral-900">
       
-      {/* Welcome Hero Panel - Sharp Box & Compact */}
-      <div className="bg-black text-white rounded-none p-4 md:p-6 border border-black shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">
+      {/* Welcome Hero Panel - Apple macOS Frosted Banner */}
+      <div className="bg-neutral-900 text-white rounded-3xl p-6 md:p-8 border border-white/10 shadow-sm relative overflow-hidden">
+        {/* Subtle macOS Traffic Lights on Hero */}
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] inline-block opacity-80"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] inline-block opacity-80"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F] inline-block opacity-80"></span>
+        </div>
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+          <div className="space-y-1.5">
+            <div className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider">
               {t('systemBadge', language)}
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight font-serif">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
               {t('welcomeSarda', language)}
             </h1>
-            <p className="text-neutral-400 text-xs max-w-xl leading-relaxed hidden sm:block">
+            <p className="text-neutral-400 text-xs sm:text-sm max-w-xl leading-relaxed">
               {t('systemDesc', language)}
             </p>
           </div>
           
-          {/* Quick Primary CTA Button - Sharp Edges */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Quick Primary CTA Button - Apple Squircle Pill */}
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <Link
               href={activeFolders.length > 0 ? `/editor/new?folderId=${activeFolders[0].id}` : '#'}
               onClick={() => {
@@ -215,7 +224,7 @@ export default function Dashboard() {
                   setIsCreatingFolder(true);
                 }
               }}
-              className="bg-white hover:bg-neutral-200 text-black px-4 py-2 font-bold flex items-center justify-center gap-1.5 transition-colors text-xs rounded-none border border-white"
+              className="bg-white hover:bg-neutral-100 text-neutral-900 px-4 py-2.5 font-bold flex items-center justify-center gap-2 transition-all text-xs rounded-xl shadow-xs active:scale-95 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{t('newStory', language)}</span>
@@ -223,7 +232,7 @@ export default function Dashboard() {
 
             <Link
               href="/content"
-              className="bg-transparent hover:bg-neutral-900 text-white px-3.5 py-2 font-bold flex items-center justify-center gap-1.5 transition-colors text-xs rounded-none border border-neutral-600"
+              className="bg-white/10 hover:bg-white/15 text-white px-4 py-2.5 font-semibold flex items-center justify-center gap-2 transition-all text-xs rounded-xl border border-white/15 active:scale-95 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4" />
               <span>{t('contentManager', language)}</span>
@@ -232,29 +241,33 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Statistics Grid - Sharp Rectangular Cards & Compact Spacing */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+      {/* Statistics Grid - Apple Widget Style */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {/* Total Folders */}
-        <div className="bg-white rounded-none p-3.5 border border-neutral-300 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-neutral-500 font-bold">
+        <div className="bg-white rounded-2xl p-4 md:p-5 border border-black/5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs text-neutral-500 font-semibold">
             <span>{t('totalFolders', language)}</span>
-            <FolderIcon className="w-4 h-4 text-black" />
+            <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <FolderIcon className="w-4 h-4" />
+            </div>
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-neutral-900 font-mono">{totalFolders}</span>
-            <span className="text-[10px] text-neutral-400 font-mono">{t('indexedFolders', language)}</span>
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl md:text-3xl font-extrabold text-neutral-900 tracking-tight">{totalFolders}</span>
+            <span className="text-[11px] text-neutral-400 font-medium">{t('indexedFolders', language)}</span>
           </div>
         </div>
 
         {/* Total Stories */}
-        <div className="bg-white rounded-none p-3.5 border border-neutral-300 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-neutral-500 font-bold">
+        <div className="bg-white rounded-2xl p-4 md:p-5 border border-black/5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs text-neutral-500 font-semibold">
             <span>{t('writtenStories', language)}</span>
-            <FileText className="w-4 h-4 text-black" />
+            <div className="w-7 h-7 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <FileText className="w-4 h-4" />
+            </div>
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-neutral-900 font-mono">{totalStories}</span>
-            <div className="text-[10px] text-neutral-500 font-mono flex items-center gap-1">
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl md:text-3xl font-extrabold text-neutral-900 tracking-tight">{totalStories}</span>
+            <div className="text-[11px] text-neutral-500 flex items-center gap-1 font-medium">
               <span>{publishedStories} {t('published', language)}</span>
               <span>·</span>
               <span>{draftStories} {t('draft', language)}</span>
@@ -263,62 +276,66 @@ export default function Dashboard() {
         </div>
 
         {/* Written Words */}
-        <div className="bg-white rounded-none p-3.5 border border-neutral-300 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-neutral-500 font-bold">
+        <div className="bg-white rounded-2xl p-4 md:p-5 border border-black/5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs text-neutral-500 font-semibold">
             <span>{t('writtenWords', language)}</span>
-            <BookOpen className="w-4 h-4 text-black" />
+            <div className="w-7 h-7 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <BookOpen className="w-4 h-4" />
+            </div>
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-neutral-900 font-mono">{totalWords.toLocaleString('en-US')}</span>
-            <span className="text-[10px] text-neutral-400 font-mono">{t('words', language)}</span>
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl md:text-3xl font-extrabold text-neutral-900 tracking-tight">{totalWords.toLocaleString('en-US')}</span>
+            <span className="text-[11px] text-neutral-400 font-medium">{t('words', language)}</span>
           </div>
         </div>
 
         {/* Ready to Publish */}
-        <div className="bg-white rounded-none p-3.5 border border-neutral-300 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-neutral-500 font-bold">
+        <div className="bg-white rounded-2xl p-4 md:p-5 border border-black/5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs text-neutral-500 font-semibold">
             <span>{t('readyToPublish', language)}</span>
-            <CheckCircle className="w-4 h-4 text-black" />
+            <div className="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <CheckCircle className="w-4 h-4" />
+            </div>
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-neutral-900 font-mono">{readyStories}</span>
-            <span className="text-[10px] text-neutral-400 font-mono">{t('readyToShare', language)}</span>
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl md:text-3xl font-extrabold text-neutral-900 tracking-tight">{readyStories}</span>
+            <span className="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">{t('readyToShare', language)}</span>
           </div>
         </div>
       </div>
 
-      {/* Control Panel: Quick Actions & Upcoming Spotlight - Sharp & Compact */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-3">
+      {/* Control Panel: Quick Actions & Upcoming Spotlight - Apple Card Style */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
         
         {/* Quick Actions Panel */}
-        <div className="bg-white rounded-none p-3.5 border border-neutral-300 flex flex-col justify-between space-y-2.5">
-          <div className="border-b border-neutral-200 pb-1.5 flex items-center justify-between">
-            <h2 className="text-xs font-bold text-neutral-900 font-serif uppercase tracking-wider">{t('quickControl', language)}</h2>
-            <span className="text-[10px] text-neutral-400 font-mono">PANEL</span>
+        <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-2xs flex flex-col justify-between space-y-3">
+          <div className="border-b border-black/5 pb-2.5 flex items-center justify-between">
+            <h2 className="text-xs font-bold text-neutral-900 tracking-tight uppercase">{t('quickControl', language)}</h2>
+            <span className="text-[10px] text-neutral-400 font-semibold bg-neutral-100 px-2 py-0.5 rounded-full">macOS / iOS</span>
           </div>
 
           <div className="space-y-2">
             {isCreatingFolder ? (
-              <form onSubmit={handleCreateFolder} className="flex flex-col gap-2">
+              <form onSubmit={handleCreateFolder} className="flex flex-col gap-2 bg-neutral-50 p-3 rounded-xl border border-black/5">
                 <input
                   type="text"
                   autoFocus
                   placeholder={t('newFolderNamePlaceholder', language)}
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-neutral-300 text-xs rounded-none focus:outline-none focus:border-black bg-white text-neutral-900"
+                  className="w-full px-3 py-2 border border-black/10 text-xs rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white text-neutral-900"
                 />
-                <div className="flex items-center gap-1.5 justify-end">
+                <div className="flex items-center gap-2 justify-end">
                   <button
                     type="submit"
-                    className="bg-black text-white px-3 py-1 rounded-none text-xs font-bold hover:bg-neutral-800 transition-colors"
+                    className="bg-neutral-900 hover:bg-black text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                   >
                     {t('add', language)}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsCreatingFolder(false)}
-                    className="bg-white text-neutral-700 px-3 py-1 rounded-none text-xs font-semibold hover:bg-neutral-100 transition-colors border border-neutral-300"
+                    className="bg-white text-neutral-700 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-neutral-100 transition-all border border-black/10 cursor-pointer"
                   >
                     {t('cancel', language)}
                   </button>
@@ -327,39 +344,39 @@ export default function Dashboard() {
             ) : (
               <button
                 onClick={() => setIsCreatingFolder(true)}
-                className="w-full flex items-center justify-between px-3 py-2 bg-neutral-50 hover:bg-neutral-100 text-neutral-900 rounded-none transition-colors border border-neutral-300 text-xs font-bold"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 bg-neutral-50 hover:bg-neutral-100/80 text-neutral-900 rounded-xl transition-all border border-black/5 text-xs font-semibold cursor-pointer"
               >
                 <span className="flex items-center gap-2">
-                  <FolderPlus className="w-3.5 h-3.5 text-black" />
+                  <FolderPlus className="w-4 h-4 text-blue-600" />
                   {t('createNewFolder', language)}
                 </span>
-                <Plus className="w-3.5 h-3.5 text-black" />
+                <Plus className="w-4 h-4 text-neutral-400" />
               </button>
             )}
 
             <Link
               href="/content"
-              className="w-full flex items-center justify-between px-3 py-2 bg-white hover:bg-neutral-50 text-neutral-900 rounded-none transition-colors border border-neutral-300 text-xs font-bold"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 bg-neutral-50 hover:bg-neutral-100/80 text-neutral-900 rounded-xl transition-all border border-black/5 text-xs font-semibold cursor-pointer"
             >
               <span className="flex items-center gap-2">
-                <FileSpreadsheet className="w-3.5 h-3.5 text-neutral-700" />
+                <FileSpreadsheet className="w-4 h-4 text-neutral-600" />
                 {t('browseAllFiles', language)}
               </span>
-              <ArrowLeft className="w-3.5 h-3.5 text-neutral-700" />
+              <ArrowLeft className="w-4 h-4 text-neutral-400 rtl:rotate-0 ltr:rotate-180" />
             </Link>
           </div>
         </div>
 
         {/* Upcoming Scheduled Story Spotlight */}
-        <div className="bg-white rounded-none p-3.5 border border-neutral-300 flex flex-col justify-between space-y-2.5">
-          <div className="border-b border-neutral-200 pb-1.5 flex items-center justify-between">
-            <h2 className="text-xs font-bold text-neutral-900 font-serif uppercase tracking-wider">{t('upcomingPublishPlan', language)}</h2>
-            <Link href="/schedule" className="text-[10px] text-black font-bold hover:underline font-mono">{t('viewSchedule', language)}</Link>
+        <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-2xs flex flex-col justify-between space-y-3">
+          <div className="border-b border-black/5 pb-2.5 flex items-center justify-between">
+            <h2 className="text-xs font-bold text-neutral-900 tracking-tight uppercase">{t('upcomingPublishPlan', language)}</h2>
+            <Link href="/schedule" className="text-xs text-blue-600 font-semibold hover:underline">{t('viewSchedule', language)}</Link>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {scheduledStories.length === 0 ? (
-              <div className="py-4 text-center text-xs text-neutral-400 border border-dashed border-neutral-300 rounded-none">
+              <div className="py-5 text-center text-xs text-neutral-400 border border-dashed border-black/10 rounded-2xl bg-neutral-50/50">
                 {t('noUpcomingPosts', language)}
               </div>
             ) : (
@@ -367,13 +384,13 @@ export default function Dashboard() {
                 <Link
                   key={story.id}
                   href={`/editor/${story.id}`}
-                  className="flex items-center justify-between px-2.5 py-1.5 rounded-none bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 transition-colors text-xs"
+                  className="flex items-center justify-between px-3 py-2 rounded-xl bg-neutral-50 hover:bg-neutral-100/80 border border-black/5 transition-all text-xs"
                 >
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <Calendar className="w-3.5 h-3.5 text-black shrink-0" />
-                    <span className="font-semibold text-neutral-900 truncate font-serif">{story.title || t('untitledStory', language)}</span>
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    <Calendar className="w-4 h-4 text-neutral-600 shrink-0" />
+                    <span className="font-semibold text-neutral-900 truncate">{story.title || t('untitledStory', language)}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 font-mono shrink-0">
+                  <div className="flex items-center gap-1.5 text-[11px] text-neutral-500 shrink-0 font-medium bg-white px-2 py-0.5 rounded-full border border-black/5">
                     <span>{story.targetDate}</span>
                     {story.publishTime && <span>({story.publishTime})</span>}
                   </div>
@@ -385,45 +402,47 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Dynamic Folders Navigator Grid - Sharp & Compact */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between border-b border-neutral-300 pb-1.5">
-          <h2 className="text-sm font-bold text-neutral-900 font-serif uppercase tracking-wider">{t('foldersAndQuickAccess', language)}</h2>
-          <Link href="/content" className="text-xs font-bold text-black hover:underline">{t('viewAll', language)}</Link>
+      {/* Dynamic Folders Navigator Grid - Apple Finder Style */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between border-b border-black/5 pb-2">
+          <h2 className="text-sm font-bold text-neutral-900 tracking-tight uppercase">{t('foldersAndQuickAccess', language)}</h2>
+          <Link href="/content" className="text-xs font-semibold text-blue-600 hover:underline">{t('viewAll', language)}</Link>
         </div>
 
         {activeFolders.length === 0 ? (
-          <div className="bg-white rounded-none p-6 border border-neutral-300 border-dashed text-center space-y-1.5">
-            <FolderIcon className="w-8 h-8 text-neutral-300 mx-auto" />
+          <div className="bg-white rounded-2xl p-8 border border-dashed border-black/10 text-center space-y-2">
+            <FolderIcon className="w-10 h-10 text-neutral-300 mx-auto" />
             <h3 className="text-xs font-bold text-neutral-900">{t('noFoldersYet', language)}</h3>
-            <p className="text-[11px] text-neutral-500">{t('createFirstFolderSub', language)}</p>
+            <p className="text-xs text-neutral-500">{t('createFirstFolderSub', language)}</p>
             <button
               onClick={() => setIsCreatingFolder(true)}
-              className="inline-flex items-center gap-1 text-xs text-black font-bold hover:underline"
+              className="inline-flex items-center gap-1 text-xs text-blue-600 font-bold hover:underline cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />{t('addFolderNow', language)}
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {activeFolders.slice(0, 8).map(folder => {
               const folderStoriesCount = activeStories.filter(s => s.folderId === folder.id).length;
               return (
                 <div
                   key={folder.id}
-                  className="bg-white rounded-none p-2.5 border border-neutral-300 hover:border-black transition-colors flex items-center justify-between"
+                  className="bg-white rounded-2xl p-3.5 border border-black/5 hover:border-black/15 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between group"
                 >
-                  <Link href={`/content?folderId=${encodeURIComponent(folder.id)}`} className="flex-1 min-w-0 pr-1 flex items-center gap-2">
-                    <FolderIcon className="w-4 h-4 text-black shrink-0" />
+                  <Link href={`/content?folderId=${encodeURIComponent(folder.id)}`} className="flex-1 min-w-0 pr-1 flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                      <FolderIcon className="w-4 h-4" />
+                    </div>
                     <div className="min-w-0">
-                      <h3 className="font-bold text-neutral-900 text-xs truncate font-serif">{folder.name}</h3>
-                      <p className="text-[10px] text-neutral-400 font-mono">{folderStoriesCount} {t('savedStory', language)}</p>
+                      <h3 className="font-bold text-neutral-900 text-xs truncate">{folder.name}</h3>
+                      <p className="text-[11px] text-neutral-400 font-medium">{folderStoriesCount} {t('savedStory', language)}</p>
                     </div>
                   </Link>
 
                   <Link
                     href={`/editor/new?folderId=${folder.id}`}
-                    className="p-1 hover:bg-neutral-100 rounded-none text-neutral-600 hover:text-black transition-colors"
+                    className="p-1.5 hover:bg-neutral-100 rounded-xl text-neutral-400 hover:text-neutral-900 transition-colors cursor-pointer"
                     title={t('writeNewStoryInFolder', language)}
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -435,70 +454,86 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Main Bottom Section: Recent Stories List - Sharp & Dense */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between border-b border-neutral-300 pb-1.5">
-          <h2 className="text-sm font-bold text-neutral-900 font-serif uppercase tracking-wider">{t('recentStories', language)}</h2>
-          <Link href="/content" className="text-xs font-bold text-black hover:underline">{t('viewAll', language)}</Link>
+      {/* Main Bottom Section: Recent Stories List - Apple Notes Card Style */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between border-b border-black/5 pb-2">
+          <h2 className="text-sm font-bold text-neutral-900 tracking-tight uppercase">{t('recentStories', language)}</h2>
+          <Link href="/content" className="text-xs font-semibold text-blue-600 hover:underline">{t('viewAll', language)}</Link>
         </div>
 
         {recentStories.length === 0 ? (
-          <div className="bg-white rounded-none p-6 border border-neutral-300 border-dashed text-center text-xs text-neutral-500">
+          <div className="bg-white rounded-2xl p-8 border border-black/5 border-dashed text-center text-xs text-neutral-500">
             {t('noStoriesYet', language)}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {recentStories.map((story) => {
               const wordCount = countWords(story.content);
               const folderName = folders.find(f => f.id === story.folderId)?.name || t('uncategorized', language);
+              
+              const statusBadgeClass = story.status === 'published'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+                : story.status === 'ready'
+                ? 'bg-amber-50 text-amber-700 border-amber-200/60'
+                : 'bg-neutral-100 text-neutral-600 border-neutral-200/60';
+
               return (
                 <div
                   key={story.id}
-                  className="bg-white rounded-none p-3 border border-neutral-300 hover:border-black transition-colors flex flex-col justify-between space-y-2"
+                  className="bg-white rounded-2xl p-4 border border-black/5 hover:border-black/15 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-1 gap-1 text-[10px]">
-                      <span className="font-mono text-neutral-600 border border-neutral-300 px-1 py-0.2 bg-neutral-50">
-                        {folderName}
+                    <div className="flex items-center justify-between mb-1.5 gap-1.5 text-xs">
+                      <span className="text-[11px] text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-full font-medium">
+                        📁 {folderName}
                       </span>
-                      <span className="font-mono font-bold border border-neutral-400 px-1 py-0.2">
+                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${statusBadgeClass}`}>
                         {getStatusText(story.status)}
                       </span>
                     </div>
 
-                    <h3 className="text-xs md:text-sm font-bold text-neutral-900 line-clamp-1 font-serif">
-                      <Link href={`/editor/${story.id}`} className="hover:underline">
+                    <h3 className="text-sm font-bold text-neutral-900 line-clamp-1">
+                      <Link href={`/editor/${story.id}`} className="hover:text-blue-600 transition-colors">
                         {story.title || t('untitled', language)}
                       </Link>
                     </h3>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200 text-[10px] text-neutral-500 font-mono">
-                    <span>{wordCount} {t('words', language)} · {new Date(story.updatedAt).toLocaleDateString(language === 'ar' ? 'ar' : 'en', { numberingSystem: 'latn', day: 'numeric', month: 'short' })}</span>
+                  <div className="flex items-center justify-between pt-2.5 border-t border-black/5 text-[11px] text-neutral-500">
+                    <span className="font-medium">{wordCount} {t('words', language)} · {new Date(story.updatedAt).toLocaleDateString(language === 'ar' ? 'ar' : 'en', { numberingSystem: 'latn', day: 'numeric', month: 'short' })}</span>
 
                     <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setFloatingStory(story)}
+                        className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 rounded-xl transition-all cursor-pointer"
+                        title={t('quickFloatStory', language)}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </button>
+
                       <Link
                         href={`/editor/${story.id}`}
-                        className="p-1 border border-neutral-300 hover:border-black text-neutral-700 hover:text-black rounded-none transition-colors"
+                        className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 rounded-xl transition-all cursor-pointer"
                         title={t('editStory', language)}
                       >
-                        <Edit className="w-3 h-3" />
+                        <Edit className="w-3.5 h-3.5" />
                       </Link>
 
                       <button
                         onClick={() => handleExportPDF(story)}
-                        className="p-1 border border-neutral-300 hover:border-black text-neutral-700 hover:text-black rounded-none transition-colors"
+                        className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 rounded-xl transition-all cursor-pointer"
                         title={t('downloadPdf', language)}
                       >
-                        <FileDown className="w-3 h-3" />
+                        <FileDown className="w-3.5 h-3.5" />
                       </button>
 
                       <button
                         onClick={() => setItemToDelete({ id: story.id, type: 'story' })}
-                        className="p-1 border border-neutral-300 hover:border-black text-neutral-700 hover:text-black rounded-none transition-colors"
+                        className="p-1.5 hover:bg-red-50 text-neutral-400 hover:text-red-600 rounded-xl transition-all cursor-pointer"
                         title={t('moveToTrash', language)}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -509,26 +544,31 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Delete Confirmation Modal - Sharp */}
+      {/* Delete Confirmation Modal - Apple macOS Window Style */}
       <AnimatePresence>
         {itemToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="bg-white border-2 border-black rounded-none shadow-2xl p-4 w-full max-w-sm space-y-3">
-              <h3 className="text-sm font-bold text-neutral-900 font-serif">{t('confirmTrashTitle', language)}</h3>
-              <p className="text-xs text-neutral-600">{t('confirmTrashSub', language)}</p>
-              <div className="flex gap-2 pt-2 border-t border-neutral-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+            <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-sm space-y-4 border border-black/8 text-center animate-in fade-in zoom-in-95 duration-150">
+              <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-black border border-black/5 mx-auto flex items-center justify-center shadow-2xs">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-neutral-900">{t('confirmTrashTitle', language)}</h3>
+                <p className="text-xs text-neutral-600 mt-1">{t('confirmTrashSub', language)}</p>
+              </div>
+              <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => {
                     moveToTrash(itemToDelete.id, itemToDelete.type);
                     setItemToDelete(null);
                   }}
-                  className="flex-1 bg-black hover:bg-neutral-800 text-white py-1.5 rounded-none font-bold text-xs border border-black transition-colors"
+                  className="flex-1 bg-black hover:bg-neutral-800 text-white py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
                 >
                   {t('moveToTrash', language)}
                 </button>
                 <button
                   onClick={() => setItemToDelete(null)}
-                  className="flex-1 bg-white hover:bg-neutral-100 text-neutral-800 py-1.5 rounded-none font-semibold text-xs border border-neutral-300 transition-colors"
+                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2.5 rounded-xl font-semibold text-xs border border-black/5 transition-all cursor-pointer"
                 >
                   {t('cancel', language)}
                 </button>
@@ -537,6 +577,9 @@ export default function Dashboard() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Scroll to Top floating button */}
+      <ScrollToTopButton />
     </div>
   );
 }

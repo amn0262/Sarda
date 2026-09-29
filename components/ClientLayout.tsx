@@ -4,6 +4,7 @@ import { useStore } from '@/lib/store';
 import { useEffect } from 'react';
 import SupportGateModal from '@/components/SupportGateModal';
 import AppOnboardingTour from '@/components/AppOnboardingTour';
+import FloatingStoryWindow from '@/components/FloatingStoryWindow';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { language } = useStore();
@@ -17,6 +18,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <>
       <SupportGateModal />
       <AppOnboardingTour />
+      <FloatingStoryWindow />
       {children}
     </>
   );

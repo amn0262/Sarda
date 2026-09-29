@@ -7,8 +7,9 @@ import {
   FolderPlus, Folder as FolderIcon, Trash2, Edit2, FileText, Plus, 
   Calendar, Clock, FileDown, ChevronLeft, ChevronRight, Search, 
   Filter, LayoutGrid, Layers, Star, X, Eye, 
-  ArrowRight, FolderOpen, ChevronDown, Clipboard, List, Grid3X3
+  ArrowRight, FolderOpen, ChevronDown, Clipboard, List, Grid3X3, ExternalLink
 } from 'lucide-react';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -18,7 +19,7 @@ function ContentManager() {
   const searchParams = useSearchParams();
   const folderParam = searchParams.get('folderId');
 
-  const { folders, stories, addFolder, updateFolder, addStory, updateStory, toggleFavorite, moveToTrash, language } = useStore();
+  const { folders, stories, addFolder, updateFolder, addStory, updateStory, toggleFavorite, moveToTrash, language, setFloatingStory } = useStore();
   
   const activeFolders = useMemo(() => folders.filter(f => !f.isDeleted), [folders]);
   const activeStories = useMemo(() => stories.filter(s => !s.isDeleted), [stories]);
@@ -397,7 +398,7 @@ function ContentManager() {
 
   const ChevronIcon = language === 'ar' ? ChevronLeft : ChevronRight;
 
-  // Sidebar tree folder renderer with sharp edges & tight spacing
+  // Sidebar tree folder renderer with Apple macOS Finder style
   const renderSidebarFolderItem = (folder: FolderType, depth = 0) => {
     const isSelected = selectedFolderId === folder.id;
     const subChildren = activeFolders.filter(f => f.parentId === folder.id);
@@ -409,39 +410,39 @@ function ContentManager() {
       <div key={folder.id} className="space-y-0.5">
         <div 
           onClick={() => handleSelectFolder(folder.id)}
-          className={`w-full group flex items-center justify-between px-2 py-1.5 rounded-none transition-colors cursor-pointer border ${
+          className={`w-full group flex items-center justify-between px-2.5 py-1.5 rounded-xl transition-all cursor-pointer text-xs ${
             isSelected
-              ? 'bg-black text-white border-black font-bold'
-              : 'bg-white text-neutral-800 hover:bg-neutral-100 hover:text-black border-neutral-200'
+              ? 'bg-neutral-900 text-white font-bold shadow-xs'
+              : 'text-neutral-700 hover:bg-black/5 hover:text-black'
           }`}
-          style={{ marginRight: depth > 0 && language === 'ar' ? `${depth * 8}px` : undefined, marginLeft: depth > 0 && language === 'en' ? `${depth * 8}px` : undefined }}
+          style={{ marginRight: depth > 0 && language === 'ar' ? `${depth * 10}px` : undefined, marginLeft: depth > 0 && language === 'en' ? `${depth * 10}px` : undefined }}
         >
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {hasChildren ? (
               <button 
                 type="button"
                 onClick={(e) => toggleFolderExpand(folder.id, e)}
-                className={`p-0.5 rounded-none transition-colors ${isSelected ? 'text-white' : 'text-neutral-500 hover:text-black'}`}
+                className={`p-0.5 rounded-lg transition-colors ${isSelected ? 'text-white' : 'text-neutral-400 hover:text-black'}`}
               >
-                {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronIcon className="w-3 h-3" />}
+                {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronIcon className="w-3.5 h-3.5" />}
               </button>
             ) : (
-              <span className="w-3 h-3 inline-block shrink-0" />
+              <span className="w-3.5 h-3.5 inline-block shrink-0" />
             )}
             
-            <FolderIcon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-black'}`} />
-            <span className="text-xs truncate">{folder.name}</span>
+            <FolderIcon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-blue-500'}`} />
+            <span className="truncate font-medium">{folder.name}</span>
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            <span className={`text-[10px] px-1 py-0.2 rounded-none font-mono ${isSelected ? 'bg-neutral-800 text-white' : 'bg-neutral-100 text-neutral-700'}`}>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${isSelected ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
               {count}
             </span>
           </div>
         </div>
 
         {hasChildren && isExpanded && (
-          <div className="space-y-0.5 border-r border-neutral-300 pr-1 mr-2">
+          <div className="space-y-0.5 border-r border-black/5 pr-1.5 mr-2.5">
             {subChildren.map((child) => renderSidebarFolderItem(child, depth + 1))}
           </div>
         )}
@@ -450,117 +451,122 @@ function ContentManager() {
   };
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden bg-neutral-100 text-neutral-900">
+    <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden bg-[#F5F5F7] text-neutral-900">
       
-      {/* Toast Notification - Sharp rectangular box */}
+      {/* Toast Notification - Apple Pill */}
       <AnimatePresence>
         {toastNotification && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-black text-white border border-neutral-700 px-4 py-2 text-xs font-bold shadow-lg rounded-none flex items-center gap-2"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/90 backdrop-blur-xl text-white border border-white/10 px-4 py-2 text-xs font-semibold shadow-xl rounded-full flex items-center gap-2"
           >
             <span>{toastNotification.message}</span>
-            <button onClick={() => setToastNotification(null)} className="text-neutral-400 hover:text-white">
+            <button onClick={() => setToastNotification(null)} className="text-neutral-400 hover:text-white cursor-pointer">
               <X className="w-3.5 h-3.5" />
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Desktop Left/Right Hierarchy Panel - Sharp & Compact */}
-      <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-white border-e border-neutral-300 shrink-0 select-none">
+      {/* Desktop Left/Right Hierarchy Panel - Apple macOS Finder Sidebar */}
+      <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-white/80 backdrop-blur-xl border-e border-black/5 shrink-0 select-none">
         
         {/* Panel Header */}
-        <div className="p-2.5 border-b border-neutral-300 space-y-2 bg-neutral-50">
+        <div className="p-3 border-b border-black/5 space-y-2.5">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold text-xs text-neutral-900 flex items-center gap-1.5 font-serif uppercase tracking-wider">
-              <FolderIcon className="w-3.5 h-3.5 text-black" />
-              <span>{language === 'ar' ? 'فهرس المجلدات' : 'Folder Index'}</span>
+            <h2 className="font-bold text-xs text-neutral-900 flex items-center gap-2 uppercase tracking-tight">
+              {/* Traffic lights decoration */}
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] inline-block"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] inline-block"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F] inline-block"></span>
+              <span className="ms-1">{language === 'ar' ? 'فهرس المجلدات' : 'Folder Index'}</span>
             </h2>
             <button
               onClick={() => openAddFolder()}
-              className="p-1 bg-white hover:bg-black hover:text-white text-black border border-neutral-300 rounded-none transition-colors"
+              className="p-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl transition-all border border-black/5 active:scale-95 cursor-pointer"
               title={t('createFolder', language)}
             >
               <FolderPlus className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Sharp Segmented Tabs */}
-          <div className="grid grid-cols-3 gap-0.5 bg-neutral-200 p-0.5 border border-neutral-300 text-[11px] font-bold">
+          {/* Apple Segmented Tabs */}
+          <div className="grid grid-cols-3 gap-1 bg-neutral-200/60 p-1 rounded-xl text-xs font-medium">
             <button
               onClick={() => setViewMode('folders')}
-              className={`py-1 px-1 rounded-none text-center truncate transition-colors ${
-                viewMode === 'folders' ? 'bg-black text-white' : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+              className={`py-1 px-1.5 rounded-lg text-center truncate transition-all cursor-pointer ${
+                viewMode === 'folders' ? 'bg-white text-neutral-900 shadow-xs font-bold' : 'text-neutral-600 hover:text-black'
               }`}
             >
               {t('viewFoldersMode', language)}
             </button>
             <button
               onClick={() => setViewMode('all')}
-              className={`py-1 px-1 rounded-none text-center truncate transition-colors ${
-                viewMode === 'all' ? 'bg-black text-white' : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+              className={`py-1 px-1.5 rounded-lg text-center truncate transition-all cursor-pointer ${
+                viewMode === 'all' ? 'bg-white text-neutral-900 shadow-xs font-bold' : 'text-neutral-600 hover:text-black'
               }`}
             >
               {t('allStories', language)}
             </button>
             <button
               onClick={() => setViewMode('favorites')}
-              className={`py-1 px-1 rounded-none text-center truncate transition-colors ${
-                viewMode === 'favorites' ? 'bg-black text-white' : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+              className={`py-1 px-1.5 rounded-lg text-center truncate transition-all cursor-pointer ${
+                viewMode === 'favorites' ? 'bg-white text-neutral-900 shadow-xs font-bold' : 'text-neutral-600 hover:text-black'
               }`}
             >
               ⭐ ({favoriteStories.length})
             </button>
           </div>
 
-          {/* Quick Search */}
+          {/* Quick Search - Apple Input */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-neutral-500 absolute right-2 top-2" />
+            <Search className="w-3.5 h-3.5 text-neutral-400 absolute right-2.5 top-2.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={language === 'ar' ? 'بحث سريع...' : 'Search...'}
-              className="w-full bg-white border border-neutral-300 rounded-none pr-7 pl-2 py-1 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-black"
+              className="w-full bg-neutral-100/80 border border-black/5 rounded-xl pr-8 pl-3 py-1.5 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
 
         {/* Folder Tree List */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        <div className="flex-1 overflow-y-auto p-2.5 space-y-1">
           {viewMode === 'folders' && (
             <>
               <button
                 onClick={() => handleSelectFolder(null)}
-                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-none transition-colors border text-xs ${
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl transition-all text-xs cursor-pointer ${
                   selectedFolderId === null
-                    ? 'bg-black text-white border-black font-bold'
-                    : 'bg-white text-neutral-800 hover:bg-neutral-100 border-neutral-200'
+                    ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                    : 'text-neutral-700 hover:bg-black/5'
                 }`}
               >
-                <div className="flex items-center gap-1.5 truncate">
-                  <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
+                <div className="flex items-center gap-2 truncate">
+                  <LayoutGrid className="w-4 h-4 shrink-0 text-blue-500" />
                   <span className="truncate">{t('allFoldersOverview', language)}</span>
                 </div>
-                <span className="text-[10px] font-mono opacity-80">({activeFolders.length})</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderId === null ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
+                  {activeFolders.length}
+                </span>
               </button>
 
-              <div className="pt-1 space-y-1">
+              <div className="pt-1.5 space-y-0.5">
                 {rootFolders.map((folder) => renderSidebarFolderItem(folder, 0))}
               </div>
             </>
           )}
 
           {viewMode === 'favorites' && (
-            <div className="p-2 border border-neutral-300 bg-neutral-50 text-xs space-y-1.5">
+            <div className="p-3 rounded-2xl bg-neutral-50 border border-black/5 text-xs space-y-1.5">
               <div className="font-bold flex items-center gap-1.5 text-neutral-900">
-                <Star className="w-3.5 h-3.5 fill-black text-black" />
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
                 <span>{t('favoritesList', language)}</span>
               </div>
-              <p className="text-[11px] text-neutral-600 leading-normal">
+              <p className="text-[11px] text-neutral-500 leading-relaxed">
                 {t('favoritesDesc', language)}
               </p>
             </div>
@@ -570,12 +576,14 @@ function ContentManager() {
             <div className="space-y-1">
               <button
                 onClick={() => setSelectedFolderFilter('all')}
-                className={`w-full text-right px-2 py-1.5 text-xs rounded-none border transition-colors flex items-center justify-between ${
-                  selectedFolderFilter === 'all' ? 'bg-black text-white border-black font-bold' : 'bg-white text-neutral-800 border-neutral-200 hover:bg-neutral-50'
+                className={`w-full text-right px-2.5 py-1.5 text-xs rounded-xl transition-all flex items-center justify-between cursor-pointer ${
+                  selectedFolderFilter === 'all' ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'text-neutral-700 hover:bg-black/5'
                 }`}
               >
                 <span>{t('allFolders', language)}</span>
-                <span className="font-mono text-[10px]">({activeStories.length})</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderFilter === 'all' ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
+                  {activeStories.length}
+                </span>
               </button>
               {activeFolders.map(f => {
                 const count = activeStories.filter(s => s.folderId === f.id).length;
@@ -583,12 +591,14 @@ function ContentManager() {
                   <button
                     key={f.id}
                     onClick={() => setSelectedFolderFilter(f.id)}
-                    className={`w-full text-right px-2 py-1.5 text-xs rounded-none border transition-colors flex items-center justify-between ${
-                      selectedFolderFilter === f.id ? 'bg-black text-white border-black font-bold' : 'bg-white text-neutral-800 border-neutral-200 hover:bg-neutral-50'
+                    className={`w-full text-right px-2.5 py-1.5 text-xs rounded-xl transition-all flex items-center justify-between cursor-pointer ${
+                      selectedFolderFilter === f.id ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'text-neutral-700 hover:bg-black/5'
                     }`}
                   >
                     <span className="truncate">{f.name}</span>
-                    <span className="font-mono text-[10px]">({count})</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderFilter === f.id ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
+                      {count}
+                    </span>
                   </button>
                 );
               })}
@@ -597,41 +607,41 @@ function ContentManager() {
         </div>
       </aside>
 
-      {/* Main Content Workspace - Compact, Sharp Edges, High Density */}
+      {/* Main Content Workspace - Apple macOS Finder Style */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         
-        {/* Top Control Bar: Compact & Information Rich */}
-        <div className="bg-white border-b border-neutral-300 px-3 py-2 shrink-0 flex flex-wrap items-center justify-between gap-2">
+        {/* Top Control Bar: Apple macOS Finder Toolbar */}
+        <div className="bg-white/80 backdrop-blur-xl border-b border-black/5 px-4 py-2.5 shrink-0 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
           
           {/* Breadcrumbs / View Title */}
-          <div className="flex items-center gap-1.5 text-xs font-semibold overflow-x-auto min-w-0">
+          <div className="flex items-center gap-2 text-xs font-semibold overflow-x-auto min-w-0">
             {/* Mobile Drawer Trigger */}
             <button
               onClick={() => setIsMobileFolderDrawerOpen(true)}
-              className="md:hidden p-1 border border-neutral-300 bg-neutral-50 text-black rounded-none"
+              className="md:hidden p-1.5 border border-black/5 bg-neutral-100 text-black rounded-xl cursor-pointer"
               title="القائمة"
             >
-              <FolderIcon className="w-3.5 h-3.5" />
+              <FolderIcon className="w-4 h-4 text-blue-500" />
             </button>
 
             <button
               onClick={() => handleSelectFolder(null)}
-              className="hover:underline flex items-center gap-1 text-neutral-700"
+              className="hover:text-blue-600 transition-colors flex items-center gap-1.5 text-neutral-700 cursor-pointer"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-4 h-4 text-blue-500" />
               <span>{language === 'ar' ? 'المحتوى' : 'Content'}</span>
             </button>
 
             {viewMode === 'folders' && selectedFolder && (
               <>
-                <span>/</span>
+                <span className="text-neutral-300">/</span>
                 {breadcrumbs.map((crumb, idx) => (
-                  <div key={crumb.id} className="flex items-center gap-1">
-                    {idx > 0 && <span>/</span>}
+                  <div key={crumb.id} className="flex items-center gap-1.5">
+                    {idx > 0 && <span className="text-neutral-300">/</span>}
                     <button
                       onClick={() => handleSelectFolder(crumb.id)}
-                      className={`hover:underline truncate max-w-[120px] ${
-                        idx === breadcrumbs.length - 1 ? 'font-bold text-black' : 'text-neutral-600'
+                      className={`hover:text-blue-600 transition-colors truncate max-w-[140px] cursor-pointer ${
+                        idx === breadcrumbs.length - 1 ? 'font-bold text-neutral-900' : 'text-neutral-500 font-medium'
                       }`}
                     >
                       {crumb.name}
@@ -643,30 +653,30 @@ function ContentManager() {
 
             {viewMode === 'all' && (
               <>
-                <span>/</span>
-                <span className="font-bold text-black">{t('allStories', language)}</span>
+                <span className="text-neutral-300">/</span>
+                <span className="font-bold text-neutral-900">{t('allStories', language)}</span>
               </>
             )}
 
             {viewMode === 'favorites' && (
               <>
-                <span>/</span>
-                <span className="font-bold text-black">{t('favoritesList', language)}</span>
+                <span className="text-neutral-300">/</span>
+                <span className="font-bold text-neutral-900">{t('favoritesList', language)}</span>
               </>
             )}
 
-            <span className="text-neutral-400 font-normal">|</span>
-            <span className="text-[11px] text-neutral-500 font-mono">
+            <span className="text-neutral-300">|</span>
+            <span className="text-[11px] text-neutral-500 font-medium bg-neutral-100 px-2 py-0.5 rounded-full">
               {filteredStories.length} {language === 'ar' ? 'نص' : 'texts'}
             </span>
           </div>
 
-          {/* Action Buttons Toolbar: Sharp Edges, Compact Spacing */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Action Buttons Toolbar: Apple Squircle Pills */}
+          <div className="flex items-center gap-2 flex-wrap">
             {/* New Story Button */}
             <Link
               href={selectedFolderId ? `/editor/new?folderId=${encodeURIComponent(selectedFolderId)}` : '/editor/new'}
-              className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-white font-bold text-xs rounded-none border border-black flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-1.5 bg-neutral-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{t('newStory', language)}</span>
@@ -675,19 +685,19 @@ function ContentManager() {
             {/* New Folder Button */}
             <button
               onClick={() => openAddFolder(selectedFolderId || undefined)}
-              className="px-2.5 py-1.5 bg-white hover:bg-neutral-100 text-black font-bold text-xs rounded-none border border-neutral-300 flex items-center gap-1 transition-colors"
+              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-800 font-semibold text-xs rounded-xl border border-black/5 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
             >
-              <FolderPlus className="w-3.5 h-3.5" />
+              <FolderPlus className="w-3.5 h-3.5 text-blue-600" />
               <span>{t('createFolder', language)}</span>
             </button>
 
             {/* Smart Clipboard Paste Button */}
             <button
               onClick={handlePasteStory}
-              className="px-2.5 py-1.5 bg-white hover:bg-neutral-100 text-neutral-800 font-bold text-xs rounded-none border border-neutral-300 flex items-center gap-1 transition-colors"
+              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-800 font-semibold text-xs rounded-xl border border-black/5 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
               title={language === 'ar' ? 'إنشاء قصة مباشرة من نص الحافظة' : 'Create from clipboard'}
             >
-              <Clipboard className="w-3.5 h-3.5 text-black" />
+              <Clipboard className="w-3.5 h-3.5 text-neutral-600" />
               <span className="hidden sm:inline">{language === 'ar' ? 'لصق قصة' : 'Paste'}</span>
             </button>
 
@@ -695,20 +705,20 @@ function ContentManager() {
             <button
               onClick={handleExportFolderWord}
               disabled={filteredStories.length === 0}
-              className="px-2.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 disabled:opacity-40 font-bold text-xs rounded-none border border-neutral-300 flex items-center gap-1 transition-colors"
+              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-800 disabled:opacity-40 font-semibold text-xs rounded-xl border border-black/5 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
               title={t('downloadWord', language)}
             >
-              <FileDown className="w-3.5 h-3.5" />
+              <FileDown className="w-3.5 h-3.5 text-neutral-600" />
               <span className="hidden sm:inline">Word</span>
             </button>
           </div>
         </div>
 
-        {/* Filter Strip: Sharp, Slim, Compact */}
-        <div className="bg-neutral-50 border-b border-neutral-300 px-3 py-1.5 shrink-0 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold text-neutral-600 flex items-center gap-1">
-              <Filter className="w-3 h-3" />
+        {/* Filter Strip: Apple macOS Filter Controls */}
+        <div className="bg-neutral-100/70 border-b border-black/5 px-4 py-2 shrink-0 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-bold text-neutral-500 flex items-center gap-1">
+              <Filter className="w-3 h-3 text-neutral-500" />
               <span>{language === 'ar' ? 'تصفية:' : 'Filter:'}</span>
             </span>
 
@@ -716,7 +726,7 @@ function ContentManager() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-white border border-neutral-300 rounded-none px-2 py-1 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-black cursor-pointer"
+              className="bg-white border border-black/5 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
             >
               <option value="all">{t('allStatuses', language)}</option>
               <option value="draft">{t('draft', language)}</option>
@@ -732,7 +742,7 @@ function ContentManager() {
                   setSelectedYear(e.target.value);
                   setSelectedMonth('all');
                 }}
-                className="bg-white border border-neutral-300 rounded-none px-2 py-1 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-black cursor-pointer"
+                className="bg-white border border-black/5 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
               >
                 <option value="all">{t('allYears', language)}</option>
                 {availableYears.map(year => (
@@ -746,7 +756,7 @@ function ContentManager() {
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-white border border-neutral-300 rounded-none px-2 py-1 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-black cursor-pointer"
+                className="bg-white border border-black/5 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
               >
                 <option value="all">{t('allMonths', language)}</option>
                 {availableMonths.map(month => (
@@ -756,12 +766,12 @@ function ContentManager() {
             )}
           </div>
 
-          {/* Layout Toggle: Sharp Grid vs List */}
-          <div className="flex items-center gap-1 border border-neutral-300 bg-white p-0.5">
+          {/* Layout Toggle: Apple Segmented Pill */}
+          <div className="flex items-center gap-0.5 bg-neutral-200/60 p-0.5 rounded-xl">
             <button
               onClick={() => setDisplayLayout('grid')}
-              className={`p-1 rounded-none transition-colors ${
-                displayLayout === 'grid' ? 'bg-black text-white font-bold' : 'text-neutral-500 hover:text-black'
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                displayLayout === 'grid' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-black'
               }`}
               title="عرض شبكة"
             >
@@ -769,8 +779,8 @@ function ContentManager() {
             </button>
             <button
               onClick={() => setDisplayLayout('table')}
-              className={`p-1 rounded-none transition-colors ${
-                displayLayout === 'table' ? 'bg-black text-white font-bold' : 'text-neutral-500 hover:text-black'
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                displayLayout === 'table' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-black'
               }`}
               title="عرض جدول / قائمة"
             >
@@ -971,6 +981,7 @@ function ContentManager() {
                 onToggleFavorite={toggleFavorite}
                 onRead={setReadingStory}
                 onDelete={(id) => setItemToDelete({ id, type: 'story' })}
+                onFloatStory={setFloatingStory}
               />
             </div>
           )}
@@ -1014,6 +1025,7 @@ function ContentManager() {
                 onToggleFavorite={toggleFavorite}
                 onRead={setReadingStory}
                 onDelete={(id) => setItemToDelete({ id, type: 'story' })}
+                onFloatStory={setFloatingStory}
               />
             </div>
           )}
@@ -1025,17 +1037,21 @@ function ContentManager() {
       {isPasteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-white border-2 border-black rounded-none shadow-2xl p-4 w-full max-w-lg space-y-3">
-            <div className="flex items-center justify-between border-b border-neutral-300 pb-2">
-              <h3 className="font-bold text-sm text-neutral-900 flex items-center gap-1.5 font-serif">
-                <Clipboard className="w-4 h-4 text-black" />
-                <span>{language === 'ar' ? 'إنشاء قصة من نص الحافظة' : 'Create Story from Clipboard'}</span>
-              </h3>
-              <button onClick={() => setIsPasteModalOpen(false)} className="text-neutral-500 hover:text-black">
+            <div className="flex items-center justify-between border-b border-black/5 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <Clipboard className="w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-sm text-neutral-900">
+                  {language === 'ar' ? 'إنشاء قصة من نص الحافظة' : 'Create Story from Clipboard'}
+                </h3>
+              </div>
+              <button onClick={() => setIsPasteModalOpen(false)} className="text-neutral-400 hover:text-black p-1 rounded-lg transition-colors cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-neutral-600">
+            <p className="text-xs text-neutral-600 leading-relaxed">
               {language === 'ar' ? 'الصق النص المنسوخ أدناه لإنشاء قصة جديدة فوراً (السطر الأول سيكون العنوان):' : 'Paste your text below to create a new story immediately:'}
             </p>
 
@@ -1044,11 +1060,11 @@ function ContentManager() {
               value={manualPasteText}
               onChange={(e) => setManualPasteText(e.target.value)}
               placeholder={language === 'ar' ? 'الصق النص هنا...' : 'Paste text here...'}
-              className="w-full bg-neutral-50 border border-neutral-300 rounded-none p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black font-sans leading-relaxed"
+              className="w-full bg-neutral-50 border border-black/10 rounded-2xl p-3 text-xs text-neutral-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 font-sans leading-relaxed"
               autoFocus
             />
 
-            <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
+            <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => {
                   if (manualPasteText.trim()) {
@@ -1057,13 +1073,13 @@ function ContentManager() {
                   }
                 }}
                 disabled={!manualPasteText.trim()}
-                className="flex-1 bg-black hover:bg-neutral-800 disabled:opacity-50 text-white py-2 text-xs font-bold rounded-none border border-black transition-colors"
+                className="flex-1 bg-neutral-900 hover:bg-black disabled:opacity-50 text-white py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
               >
                 {language === 'ar' ? 'إنشاء القصة الآن' : 'Create Story Now'}
               </button>
               <button
                 onClick={() => setIsPasteModalOpen(false)}
-                className="flex-1 bg-white hover:bg-neutral-100 text-neutral-800 py-2 text-xs font-bold rounded-none border border-neutral-300 transition-colors"
+                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2.5 text-xs font-semibold rounded-xl border border-black/5 transition-all cursor-pointer"
               >
                 {language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
@@ -1072,40 +1088,44 @@ function ContentManager() {
         </div>
       )}
 
-      {/* Story Reader Modal - Sharp Newspaper/Editorial Classic */}
+      {/* Story Reader Modal - Apple macOS Reading Window */}
       {readingStory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
-          <div className="bg-white border-2 border-black rounded-none shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden text-neutral-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden text-neutral-900 border border-black/8 animate-in fade-in zoom-in-95 duration-150">
             {/* Header */}
-            <div className="p-3 border-b border-black flex items-center justify-between bg-neutral-100">
-              <div className="min-w-0 flex-1 pr-2">
-                <div className="flex items-center gap-2 text-[10px] text-neutral-600 font-mono mb-1">
-                  <span className="font-bold border border-black px-1.5 py-0.2 bg-white text-black">
+            <div className="px-5 py-3.5 border-b border-black/5 flex items-center justify-between bg-neutral-50/70">
+              <div className="min-w-0 flex-1 pr-3">
+                <div className="flex items-center gap-2 text-xs text-neutral-500 mb-1">
+                  <span className={`font-semibold px-2 py-0.5 rounded-full border text-[10px] ${
+                    readingStory.status === 'published' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' :
+                    readingStory.status === 'ready' ? 'bg-amber-50 text-amber-700 border-amber-200/60' :
+                    'bg-neutral-100 text-neutral-600 border-neutral-200/60'
+                  }`}>
                     {readingStory.status === 'published' ? t('published', language) : readingStory.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
                   </span>
                   {readingStory.folderId && (
-                    <span>· {folderMap.get(readingStory.folderId)?.name}</span>
+                    <span>· 📁 {folderMap.get(readingStory.folderId)?.name}</span>
                   )}
                   {readingStory.targetDate && (
                     <span>· {readingStory.targetDate}</span>
                   )}
                 </div>
-                <h2 className="text-base font-bold text-neutral-900 font-serif truncate">
+                <h2 className="text-base font-bold text-neutral-900 truncate">
                   {readingStory.title || t('untitledStory', language)}
                 </h2>
               </div>
 
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <Link
                   href={`/editor/${readingStory.id}`}
-                  className="px-2.5 py-1 bg-black text-white hover:bg-neutral-800 rounded-none text-xs font-bold flex items-center gap-1"
+                  className="px-3 py-1.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
                 >
-                  <Edit2 className="w-3 h-3" />
+                  <Edit2 className="w-3.5 h-3.5" />
                   <span>{t('editStory', language)}</span>
                 </Link>
                 <button
                   onClick={() => setReadingStory(null)}
-                  className="p-1 border border-neutral-300 hover:bg-black hover:text-white rounded-none"
+                  className="p-1.5 hover:bg-neutral-200/70 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1113,18 +1133,18 @@ function ContentManager() {
             </div>
 
             {/* Reading Story Text Content */}
-            <div className="p-4 md:p-6 overflow-y-auto flex-1 leading-relaxed text-sm max-w-none text-neutral-900 font-sans" dir="rtl">
+            <div className="p-6 md:p-8 overflow-y-auto flex-1 leading-relaxed text-sm max-w-none text-neutral-900 font-sans" dir="rtl">
               <div dangerouslySetInnerHTML={{ __html: readingStory.content || `<p class="opacity-40">${t('noContentYet', language)}</p>` }} />
             </div>
 
             {/* Footer */}
-            <div className="p-2.5 bg-neutral-100 border-t border-neutral-300 flex items-center justify-between text-xs">
-              <span className="text-[11px] text-neutral-500 font-mono">
+            <div className="px-5 py-3 bg-neutral-50/70 border-t border-black/5 flex items-center justify-between text-xs">
+              <span className="text-[11px] text-neutral-500 font-medium">
                 {readingStory.content ? readingStory.content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length : 0} {t('words', language)}
               </span>
               <button
                 onClick={() => setReadingStory(null)}
-                className="px-3 py-1 bg-white hover:bg-neutral-200 text-neutral-900 border border-neutral-400 font-bold rounded-none text-xs"
+                className="px-4 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-semibold rounded-xl text-xs border border-black/5 transition-all cursor-pointer"
               >
                 {language === 'ar' ? 'إغلاق' : 'Close'}
               </button>
@@ -1133,39 +1153,44 @@ function ContentManager() {
         </div>
       )}
 
-      {/* Add / Edit Folder Modal - Sharp Form */}
+      {/* Add / Edit Folder Modal - Apple macOS Window Style */}
       {isFolderModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <form onSubmit={handleSaveFolder} className="bg-white border-2 border-black rounded-none shadow-2xl p-4 w-full max-w-md space-y-3">
-            <div className="flex items-center justify-between border-b border-neutral-300 pb-2">
-              <h3 className="font-bold text-neutral-900 text-xs font-serif uppercase tracking-wider">
-                {editingFolderId ? (language === 'ar' ? 'تعديل تسمية المجلد' : 'Edit Folder Name') : t('createFolder', language)}
-              </h3>
-              <button type="button" onClick={() => setIsFolderModalOpen(false)} className="text-neutral-500 hover:text-black">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+          <form onSubmit={handleSaveFolder} className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-md space-y-4 border border-black/8 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-black/5 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <FolderIcon className="w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-neutral-900 text-sm">
+                  {editingFolderId ? (language === 'ar' ? 'تعديل تسمية المجلد' : 'Edit Folder Name') : t('createFolder', language)}
+                </h3>
+              </div>
+              <button type="button" onClick={() => setIsFolderModalOpen(false)} className="text-neutral-400 hover:text-black p-1 rounded-lg transition-colors cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-neutral-800 mb-1">{t('folderName', language)}</label>
+                <label className="block font-semibold text-neutral-700 mb-1.5">{t('folderName', language)}</label>
                 <input
                   type="text"
                   required
                   value={folderForm.name}
                   onChange={(e) => setFolderForm({ ...folderForm, name: e.target.value })}
-                  className="w-full bg-white border border-neutral-300 rounded-none px-2.5 py-1.5 text-xs font-medium text-neutral-900 focus:outline-none focus:border-black"
+                  className="w-full bg-neutral-50 border border-black/10 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                   placeholder={t('folderNamePlaceholder', language)}
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-neutral-800 mb-1">{t('parentFolder', language)}</label>
+                <label className="block font-semibold text-neutral-700 mb-1.5">{t('parentFolder', language)}</label>
                 <select
                   value={folderForm.parentId}
                   onChange={(e) => setFolderForm({ ...folderForm, parentId: e.target.value })}
-                  className="w-full bg-white border border-neutral-300 rounded-none px-2.5 py-1.5 text-xs font-medium text-neutral-900 focus:outline-none focus:border-black cursor-pointer"
+                  className="w-full bg-neutral-50 border border-black/10 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
                 >
                   <option value="">{t('none', language)}</option>
                   {activeFolders.filter(f => f.id !== editingFolderId).map(f => (
@@ -1175,17 +1200,17 @@ function ContentManager() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
+            <div className="flex items-center gap-2 pt-2">
               <button
                 type="submit"
-                className="flex-1 bg-black hover:bg-neutral-800 text-white py-2 text-xs font-bold rounded-none border border-black transition-colors"
+                className="flex-1 bg-neutral-900 hover:bg-black text-white py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
               >
                 {t('save', language)}
               </button>
               <button
                 type="button"
                 onClick={() => setIsFolderModalOpen(false)}
-                className="flex-1 bg-white hover:bg-neutral-100 text-neutral-800 py-2 text-xs font-bold rounded-none border border-neutral-300 transition-colors"
+                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2.5 text-xs font-semibold rounded-xl border border-black/5 transition-all cursor-pointer"
               >
                 {language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
@@ -1194,47 +1219,47 @@ function ContentManager() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal - Sharp Form */}
+      {/* Delete Confirmation Modal - Apple macOS Window Style */}
       {itemToDelete && (() => {
         const isFolder = itemToDelete.type === 'folder';
         const targetFolder = isFolder ? folders.find(f => f.id === itemToDelete.id) : null;
         const targetStory = !isFolder ? stories.find(s => s.id === itemToDelete.id) : null;
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="bg-white border-2 border-black rounded-none shadow-2xl p-4 w-full max-w-sm space-y-3">
-              <div className="flex items-center gap-2 border-b border-neutral-200 pb-2">
-                <Trash2 className="w-4 h-4 text-black" />
-                <h3 className="font-bold text-neutral-900 text-sm font-serif">
-                  {isFolder ? t('deleteFolder', language) : t('moveToTrash', language)}
-                </h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+            <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-sm space-y-4 border border-black/8 text-center animate-in fade-in zoom-in-95 duration-150">
+              <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-black border border-black/5 mx-auto flex items-center justify-center shadow-2xs">
+                <Trash2 className="w-6 h-6" />
               </div>
 
-              <div className="space-y-1.5 text-xs text-neutral-700">
+              <div>
+                <h3 className="font-bold text-neutral-900 text-base">
+                  {isFolder ? t('deleteFolder', language) : t('moveToTrash', language)}
+                </h3>
                 {isFolder && targetFolder && (
-                  <p className="font-bold text-black border border-neutral-300 bg-neutral-50 p-2">
+                  <p className="font-semibold text-neutral-900 bg-neutral-100/80 rounded-xl p-2 mt-2 text-xs">
                     📁 {targetFolder.name}
                   </p>
                 )}
                 {!isFolder && targetStory && (
-                  <p className="font-bold text-black border border-neutral-300 bg-neutral-50 p-2">
+                  <p className="font-semibold text-neutral-900 bg-neutral-100/80 rounded-xl p-2 mt-2 text-xs">
                     📄 {targetStory.title || t('untitledStory', language)}
                   </p>
                 )}
-                <p className="text-[11px] text-neutral-500">
+                <p className="text-xs text-neutral-500 mt-2">
                   {language === 'ar' ? 'سيتم نقل هذا العنصر إلى سلة المهملات، ويمكنك استعادته لاحقاً من الإعدادات.' : 'This item will be moved to the trash bin.'}
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
+              <div className="flex items-center gap-2 pt-2">
                 <button
                   onClick={handleDeleteConfirm}
-                  className="flex-1 bg-black hover:bg-neutral-800 text-white py-2 text-xs font-bold rounded-none border border-black transition-colors"
+                  className="flex-1 bg-black hover:bg-neutral-800 text-white py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
                 >
                   {language === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'}
                 </button>
                 <button
                   onClick={() => setItemToDelete(null)}
-                  className="flex-1 bg-white hover:bg-neutral-100 text-neutral-800 py-2 text-xs font-bold rounded-none border border-neutral-300 transition-colors"
+                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2.5 text-xs font-semibold rounded-xl border border-black/5 transition-all cursor-pointer"
                 >
                   {language === 'ar' ? 'إلغاء' : 'Cancel'}
                 </button>
@@ -1244,35 +1269,35 @@ function ContentManager() {
         );
       })()}
 
-      {/* Mobile Folder Drawer Modal */}
+      {/* Mobile Folder Drawer Modal - Apple Bottom Sheet */}
       {isMobileFolderDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 md:hidden">
-          <div className="bg-white border-t-2 border-black rounded-none max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="p-3 border-b border-neutral-300 flex items-center justify-between bg-neutral-50">
-              <h3 className="font-bold text-xs text-neutral-900 flex items-center gap-1.5 font-serif">
-                <FolderIcon className="w-3.5 h-3.5 text-black" />
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 backdrop-blur-sm md:hidden">
+          <div className="bg-white rounded-t-3xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border-t border-black/10">
+            <div className="p-4 border-b border-black/5 flex items-center justify-between">
+              <h3 className="font-bold text-sm text-neutral-900 flex items-center gap-2">
+                <FolderIcon className="w-4 h-4 text-blue-500" />
                 <span>{language === 'ar' ? 'اختيار مجلد' : 'Select Folder'}</span>
               </h3>
-              <button onClick={() => setIsMobileFolderDrawerOpen(false)} className="p-1 text-neutral-500 hover:text-black">
+              <button onClick={() => setIsMobileFolderDrawerOpen(false)} className="p-1.5 text-neutral-400 hover:text-black rounded-xl">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-2 overflow-y-auto space-y-1 flex-1 text-xs">
+            <div className="p-3 overflow-y-auto space-y-1 flex-1 text-xs">
               <button
                 onClick={() => {
                   handleSelectFolder(null);
                   setIsMobileFolderDrawerOpen(false);
                 }}
-                className={`w-full flex items-center justify-between p-2 rounded-none border ${
-                  selectedFolderId === null ? 'bg-black text-white border-black font-bold' : 'bg-neutral-50 text-neutral-800 border-neutral-200'
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                  selectedFolderId === null ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <LayoutGrid className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-blue-500" />
                   <span>{t('allFoldersOverview', language)}</span>
                 </div>
-                <span className="font-mono text-[10px]">({activeFolders.length})</span>
+                <span className="font-semibold text-[10px]">({activeFolders.length})</span>
               </button>
 
               {activeFolders.map(f => (
@@ -1282,28 +1307,28 @@ function ContentManager() {
                     handleSelectFolder(f.id);
                     setIsMobileFolderDrawerOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between p-2 rounded-none border ${
-                    selectedFolderId === f.id ? 'bg-black text-white border-black font-bold' : 'bg-white text-neutral-800 border-neutral-200'
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all ${
+                    selectedFolderId === f.id ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 truncate">
-                    <FolderIcon className="w-3.5 h-3.5" />
-                    <span className="truncate">{f.name}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <FolderIcon className="w-4 h-4 text-blue-500" />
+                    <span className="truncate font-medium">{f.name}</span>
                   </div>
-                  <span className="font-mono text-[10px]">
+                  <span className="font-semibold text-[10px]">
                     ({activeStories.filter(s => s.folderId === f.id).length})
                   </span>
                 </button>
               ))}
             </div>
 
-            <div className="p-2 border-t border-neutral-300 bg-neutral-50">
+            <div className="p-3 border-t border-black/5 bg-neutral-50">
               <button
                 onClick={() => {
                   setIsMobileFolderDrawerOpen(false);
                   openAddFolder();
                 }}
-                className="w-full py-2 bg-black text-white text-xs font-bold rounded-none flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{t('createNewFolder', language)}</span>
@@ -1313,6 +1338,8 @@ function ContentManager() {
         </div>
       )}
 
+      {/* Scroll to Top floating button */}
+      <ScrollToTopButton />
     </div>
   );
 }
@@ -1329,6 +1356,7 @@ interface StorySectionProps {
   onToggleFavorite: (id: string) => void;
   onRead: (story: Story) => void;
   onDelete: (id: string) => void;
+  onFloatStory?: (story: Story) => void;
 }
 
 function StoryContentSection({
@@ -1341,17 +1369,20 @@ function StoryContentSection({
   newStoryUrl,
   onToggleFavorite,
   onRead,
-  onDelete
+  onDelete,
+  onFloatStory
 }: StorySectionProps) {
   if (stories.length === 0) {
     return (
-      <div className="text-center py-10 bg-white border border-neutral-300 border-dashed rounded-none p-4 space-y-2">
-        <FileText className="w-8 h-8 text-neutral-400 mx-auto" />
-        <h3 className="text-sm font-bold text-neutral-800">{emptyMessage}</h3>
-        <p className="text-xs text-neutral-500 max-w-sm mx-auto">{emptySubText}</p>
+      <div className="text-center py-12 bg-white border border-black/5 border-dashed rounded-3xl p-6 space-y-2.5">
+        <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-400 mx-auto flex items-center justify-center">
+          <FileText className="w-6 h-6" />
+        </div>
+        <h3 className="text-sm font-bold text-neutral-900">{emptyMessage}</h3>
+        <p className="text-xs text-neutral-500 max-w-sm mx-auto leading-relaxed">{emptySubText}</p>
         <Link
           href={newStoryUrl}
-          className="inline-flex items-center gap-1 bg-black text-white px-3 py-1.5 text-xs font-bold rounded-none hover:bg-neutral-800 mt-2"
+          className="inline-flex items-center gap-1.5 bg-neutral-900 hover:bg-black text-white px-4 py-2 text-xs font-bold rounded-xl shadow-xs active:scale-95 transition-all mt-2 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t('newStory', language)}</span>
@@ -1360,83 +1391,98 @@ function StoryContentSection({
     );
   }
 
-  // 1. Table / List View - High Density & Sharp Lines
+  // 1. Table / List View - Apple macOS List Style
   if (displayLayout === 'table') {
     return (
-      <div className="bg-white border border-neutral-300 rounded-none overflow-x-auto shadow-2xs">
+      <div className="bg-white border border-black/5 rounded-2xl overflow-hidden shadow-2xs">
         <table className="w-full text-right text-xs">
-          <thead className="bg-neutral-100 text-neutral-700 border-b border-neutral-300 font-bold">
+          <thead className="bg-neutral-50/80 text-neutral-500 border-b border-black/5 font-semibold">
             <tr>
-              <th className="p-2.5 w-8 text-center">⭐</th>
-              <th className="p-2.5">{language === 'ar' ? 'العنوان' : 'Title'}</th>
-              <th className="p-2.5">{language === 'ar' ? 'المجلد' : 'Folder'}</th>
-              <th className="p-2.5">{language === 'ar' ? 'الحالة' : 'Status'}</th>
-              <th className="p-2.5">{language === 'ar' ? 'التاريخ' : 'Date'}</th>
-              <th className="p-2.5">{language === 'ar' ? 'الكلمات' : 'Words'}</th>
-              <th className="p-2.5 text-left">{language === 'ar' ? 'إجراءات' : 'Actions'}</th>
+              <th className="p-3 w-10 text-center">⭐</th>
+              <th className="p-3">{language === 'ar' ? 'العنوان' : 'Title'}</th>
+              <th className="p-3">{language === 'ar' ? 'المجلد' : 'Folder'}</th>
+              <th className="p-3">{language === 'ar' ? 'الحالة' : 'Status'}</th>
+              <th className="p-3">{language === 'ar' ? 'التاريخ' : 'Date'}</th>
+              <th className="p-3">{language === 'ar' ? 'الكلمات' : 'Words'}</th>
+              <th className="p-3 text-left">{language === 'ar' ? 'إجراءات' : 'Actions'}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-black/5">
             {stories.map((story) => {
               const folder = story.folderId ? folderMap.get(story.folderId) : null;
               const wordCount = story.content ? story.content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length : 0;
               const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
 
+              const statusBadgeClass = story.status === 'published'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+                : story.status === 'ready'
+                ? 'bg-amber-50 text-amber-700 border-amber-200/60'
+                : 'bg-neutral-100 text-neutral-600 border-neutral-200/60';
+
               return (
-                <tr key={story.id} className="hover:bg-neutral-50 transition-colors">
-                  <td className="p-2 text-center">
+                <tr key={story.id} className="hover:bg-neutral-50/80 transition-colors">
+                  <td className="p-3 text-center">
                     <button
                       onClick={() => onToggleFavorite(story.id)}
-                      className="text-neutral-400 hover:text-black"
+                      className="text-neutral-300 hover:text-amber-500 transition-colors cursor-pointer"
                       title={story.isFavorite ? t('removeFromFavorites', language) : t('addToFavorites', language)}
                     >
-                      <Star className={`w-3.5 h-3.5 ${story.isFavorite ? 'fill-black text-black' : ''}`} />
+                      <Star className={`w-3.5 h-3.5 ${story.isFavorite ? 'fill-amber-400 text-amber-500' : ''}`} />
                     </button>
                   </td>
-                  <td className="p-2 font-bold text-neutral-900 font-serif">
-                    <Link href={`/editor/${story.id}`} className="hover:underline">
+                  <td className="p-3 font-bold text-neutral-900">
+                    <Link href={`/editor/${story.id}`} className="hover:text-blue-600 transition-colors">
                       {story.title || t('untitledStory', language)}
                     </Link>
                   </td>
-                  <td className="p-2 text-neutral-600">
+                  <td className="p-3 text-neutral-600">
                     {folder ? (
-                      <span className="border border-neutral-300 px-1.5 py-0.2 bg-neutral-50 text-[11px]">
+                      <span className="bg-neutral-100 text-neutral-700 px-2 py-0.5 rounded-full text-[11px] font-medium">
                         📁 {folder.name}
                       </span>
                     ) : (
                       <span className="text-neutral-400">---</span>
                     )}
                   </td>
-                  <td className="p-2">
-                    <span className="border border-neutral-400 px-1.5 py-0.2 text-[10px] font-bold font-mono">
+                  <td className="p-3">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusBadgeClass}`}>
                       {statusText}
                     </span>
                   </td>
-                  <td className="p-2 text-neutral-500 font-mono text-[11px] whitespace-nowrap">
+                  <td className="p-3 text-neutral-500 font-medium text-[11px] whitespace-nowrap">
                     {story.targetDate || '---'}
                   </td>
-                  <td className="p-2 text-neutral-500 font-mono text-[11px]">
+                  <td className="p-3 text-neutral-500 font-medium text-[11px]">
                     {wordCount}
                   </td>
-                  <td className="p-2 text-left whitespace-nowrap">
+                  <td className="p-3 text-left whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => onRead(story)}
-                        className="p-1 border border-neutral-300 hover:border-black hover:bg-neutral-100 rounded-none text-neutral-700"
+                        className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
                         title="قراءة سريعة"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
+                      {onFloatStory && (
+                        <button
+                          onClick={() => onFloatStory(story)}
+                          className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                          title={t('quickFloatStory', language)}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <Link
                         href={`/editor/${story.id}`}
-                        className="p-1 border border-neutral-300 hover:border-black hover:bg-neutral-100 rounded-none text-neutral-700"
+                        className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
                         title={t('editStory', language)}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </Link>
                       <button
                         onClick={() => onDelete(story.id)}
-                        className="p-1 border border-neutral-300 hover:border-black hover:bg-neutral-100 rounded-none text-neutral-700"
+                        className="p-1.5 hover:bg-red-50 text-neutral-400 hover:text-red-600 rounded-xl transition-colors cursor-pointer"
                         title={t('moveToTrash', language)}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1452,28 +1498,34 @@ function StoryContentSection({
     );
   }
 
-  // 2. Grid View - Sharp Rectangular Cards, Compact Padding
+  // 2. Grid View - Apple Notes Card Style
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
       {stories.map((story) => {
         const folder = story.folderId ? folderMap.get(story.folderId) : null;
         const wordCount = story.content ? story.content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length : 0;
         const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
 
+        const statusBadgeClass = story.status === 'published'
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+          : story.status === 'ready'
+          ? 'bg-amber-50 text-amber-700 border-amber-200/60'
+          : 'bg-neutral-100 text-neutral-600 border-neutral-200/60';
+
         return (
           <div
             key={story.id}
-            className="bg-white border border-neutral-300 hover:border-black rounded-none p-3 flex flex-col justify-between space-y-2 transition-colors group"
+            className="bg-white border border-black/5 hover:border-black/15 rounded-2xl p-4 flex flex-col justify-between space-y-3 transition-all shadow-2xs hover:shadow-xs group"
           >
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {/* Card Meta Row */}
-              <div className="flex items-center justify-between text-[10px]">
+              <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
-                  <span className="border border-neutral-400 px-1 py-0.2 font-mono font-bold bg-neutral-50 text-black">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusBadgeClass}`}>
                     {statusText}
                   </span>
                   {folder && (
-                    <span className="text-neutral-500 truncate max-w-[90px]">
+                    <span className="text-[11px] text-neutral-500 truncate max-w-[100px] bg-neutral-100 px-2 py-0.5 rounded-full font-medium">
                       📁 {folder.name}
                     </span>
                   )}
@@ -1482,16 +1534,16 @@ function StoryContentSection({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => onToggleFavorite(story.id)}
-                    className="p-1 text-neutral-400 hover:text-black"
+                    className="p-1 text-neutral-300 hover:text-amber-500 transition-colors cursor-pointer"
                     title={story.isFavorite ? t('removeFromFavorites', language) : t('addToFavorites', language)}
                   >
-                    <Star className={`w-3.5 h-3.5 ${story.isFavorite ? 'fill-black text-black' : ''}`} />
+                    <Star className={`w-3.5 h-3.5 ${story.isFavorite ? 'fill-amber-400 text-amber-500' : ''}`} />
                   </button>
                 </div>
               </div>
 
               {/* Title */}
-              <h3 className="font-bold text-xs text-neutral-900 font-serif line-clamp-1 leading-snug group-hover:underline">
+              <h3 className="font-bold text-sm text-neutral-900 line-clamp-1 leading-snug group-hover:text-blue-600 transition-colors">
                 <Link href={`/editor/${story.id}`}>
                   {story.title || t('untitledStory', language)}
                 </Link>
@@ -1499,36 +1551,45 @@ function StoryContentSection({
 
               {/* Preview */}
               <div
-                className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed font-sans"
+                className="text-xs text-neutral-500 line-clamp-2 leading-relaxed font-sans"
                 dangerouslySetInnerHTML={{ __html: story.content || `<span class="italic opacity-40">${t('noContentYet', language)}</span>` }}
               />
             </div>
 
             {/* Card Footer: Metadata + Actions */}
-            <div className="pt-2 border-t border-neutral-200 flex items-center justify-between text-[10px] text-neutral-500 font-mono">
+            <div className="pt-2.5 border-t border-black/5 flex items-center justify-between text-[11px] text-neutral-500 font-medium">
               <span>{wordCount} {t('words', language)}</span>
               
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => onRead(story)}
-                  className="p-1 border border-neutral-200 hover:border-black hover:bg-neutral-100 rounded-none text-neutral-700"
+                  className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
                   title="قراءة"
                 >
-                  <Eye className="w-3 h-3" />
+                  <Eye className="w-3.5 h-3.5" />
                 </button>
+                {onFloatStory && (
+                  <button
+                    onClick={() => onFloatStory(story)}
+                    className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                    title={t('quickFloatStory', language)}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <Link
                   href={`/editor/${story.id}`}
-                  className="p-1 border border-neutral-200 hover:border-black hover:bg-neutral-100 rounded-none text-neutral-700"
+                  className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
                   title={t('editStory', language)}
                 >
-                  <Edit2 className="w-3 h-3" />
+                  <Edit2 className="w-3.5 h-3.5" />
                 </Link>
                 <button
                   onClick={() => onDelete(story.id)}
-                  className="p-1 border border-neutral-200 hover:border-black hover:bg-neutral-100 rounded-none text-neutral-700"
+                  className="p-1.5 hover:bg-red-50 text-neutral-400 hover:text-red-600 rounded-xl transition-colors cursor-pointer"
                   title={t('moveToTrash', language)}
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -1543,8 +1604,8 @@ export default function ContentPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center h-[calc(100vh-65px)] bg-neutral-100 text-neutral-600 font-mono text-xs">
-          <div className="animate-spin rounded-none h-6 w-6 border-b-2 border-black"></div>
+        <div className="flex items-center justify-center h-[calc(100vh-65px)] bg-[#F5F5F7] text-neutral-600 text-xs">
+          <div className="animate-spin rounded-full h-7 w-7 border-2 border-neutral-300 border-t-neutral-900"></div>
         </div>
       }
     >

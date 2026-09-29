@@ -40,6 +40,14 @@ interface AppState {
   stories: Story[];
   language: 'ar' | 'en';
   setLanguage: (lang: 'ar' | 'en') => void;
+
+  // Floating Story Window State
+  floatingStory: Story | null;
+  isFloatingStoryMinimized: boolean;
+  setFloatingStory: (story: Story | null) => void;
+  setIsFloatingStoryMinimized: (minimized: boolean) => void;
+  updateFloatingStoryContent: (content: string) => void;
+  updateFloatingStoryTitle: (title: string) => void;
   
   // First Launch Gate & Onboarding Tour State
   hasCompletedSupportGate: boolean;
@@ -97,6 +105,27 @@ export const useStore = create<AppState>()(
       language: 'ar',
       setLanguage: (lang) => set({ language: lang }),
 
+      floatingStory: null,
+      isFloatingStoryMinimized: false,
+      setFloatingStory: (story) => set({ floatingStory: story, isFloatingStoryMinimized: false }),
+      setIsFloatingStoryMinimized: (minimized) => set({ isFloatingStoryMinimized: minimized }),
+      updateFloatingStoryContent: (content) => set((state) => {
+        if (!state.floatingStory) return state;
+        const updated = { ...state.floatingStory, content, updatedAt: Date.now() };
+        return {
+          floatingStory: updated,
+          stories: state.stories.map(s => s.id === updated.id ? updated : s)
+        };
+      }),
+      updateFloatingStoryTitle: (title) => set((state) => {
+        if (!state.floatingStory) return state;
+        const updated = { ...state.floatingStory, title, updatedAt: Date.now() };
+        return {
+          floatingStory: updated,
+          stories: state.stories.map(s => s.id === updated.id ? updated : s)
+        };
+      }),
+
       hasCompletedSupportGate: false,
       isSupportGateOpen: false,
       hasCompletedTour: false,
@@ -129,14 +158,46 @@ export const useStore = create<AppState>()(
       }),
       addStory: (story) => {
         const newId = story.id || uuidv4();
+        const now = Date.now();
+        const today = new Date(now);
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+        const currentTimeStr = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         set((state) => ({
-          stories: [...state.stories, { ...story, id: newId, style: story.style || 'classic', createdAt: Date.now(), updatedAt: Date.now() }]
+          stories: [...state.stories, {
+            ...story,
+            targetDate: story.targetDate || todayStr,
+            publishTime: story.publishTime || currentTimeStr,
+            id: newId,
+            style: story.style || 'classic',
+            createdAt: now,
+            updatedAt: now
+          }]
         }));
         return newId;
       },
-      updateStory: (id, story) => set((state) => ({
-        stories: state.stories.map(s => s.id === id ? { ...s, ...story, updatedAt: Date.now() } : s)
-      })),
+      updateStory: (id, story) => set((state) => {
+        const now = Date.now();
+        const today = new Date(now);
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+        const currentTimeStr = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return {
+          stories: state.stories.map(s => s.id === id ? {
+            ...s,
+            ...story,
+            targetDate: story.targetDate !== undefined ? story.targetDate : (s.targetDate || todayStr),
+            publishTime: story.publishTime !== undefined ? story.publishTime : (s.publishTime || currentTimeStr),
+            updatedAt: now
+          } : s)
+        };
+      }),
       toggleFavorite: (id) => set((state) => ({
         stories: state.stories.map(s => s.id === id ? { ...s, isFavorite: !s.isFavorite } : s)
       })),
@@ -203,6 +264,8 @@ export const useStore = create<AppState>()(
         folders: state.folders,
         stories: state.stories,
         language: state.language,
+        floatingStory: state.floatingStory,
+        isFloatingStoryMinimized: state.isFloatingStoryMinimized,
         hasCompletedSupportGate: state.hasCompletedSupportGate,
         hasCompletedTour: state.hasCompletedTour,
       }),
