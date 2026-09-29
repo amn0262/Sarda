@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderOpen, CalendarDays, Info, PenTool, Settings, ChevronRight, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, CalendarDays, Info, PenTool, Settings, ChevronRight, ChevronLeft, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useStore } from '@/lib/store';
 import { useState } from 'react';
@@ -87,6 +87,29 @@ export default function Sidebar() {
 
         {/* Navigation Items (Apple Side Menu Item Pills) */}
         <nav className="flex-1 flex flex-col gap-1.5 p-3 overflow-y-auto">
+          {/* Quick Global Search Button in Sidebar */}
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
+            }}
+            className={clsx(
+              'flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-xs font-medium cursor-pointer mb-1 border border-white/10 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white',
+              isCollapsed ? 'justify-center px-0' : 'justify-between'
+            )}
+            title={language === 'ar' ? 'بحث شامل (⌘K)' : 'Global Search (⌘K)'}
+          >
+            <div className="flex items-center gap-2.5">
+              <Search className="w-4 h-4 text-blue-400 shrink-0" />
+              {!isCollapsed && (
+                <span className="whitespace-nowrap tracking-tight">{language === 'ar' ? 'بحث في كل القصص' : 'Search All Stories'}</span>
+              )}
+            </div>
+            {!isCollapsed && (
+              <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded font-mono text-neutral-400">⌘K</span>
+            )}
+          </button>
+
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
             return (
@@ -111,11 +134,11 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Minimal macOS Style Footer */}
+        {/* Minimal Apple Style Footer */}
         {!isCollapsed && (
           <div className="p-3 border-t border-white/10 text-[10px] text-neutral-500 font-mono text-center flex items-center justify-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>SARDA · macOS Design</span>
+            <span>SARDA · CMS</span>
           </div>
         )}
       </aside>

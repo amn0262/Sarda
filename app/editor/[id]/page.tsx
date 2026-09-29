@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { t } from "@/lib/i18n";
 import { useStore, StoryStatus, Story } from '@/lib/store';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
@@ -10,10 +10,12 @@ import TextAlign from '@tiptap/extension-text-align';
 import {
   Save, ArrowRight, Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
   Heading1, Heading2, Heading3, FileDown, FileText, Star, Eye, EyeOff, Maximize, Minimize,
-  Trash2, Columns2, ExternalLink, Copy, Check, ArrowLeftRight, X, Search, Plus, BookOpen, Layers
+  Trash2, Columns2, ExternalLink, Copy, Check, ArrowLeftRight, X, Search, Plus, BookOpen, Layers,
+  ChevronUp, ChevronDown
 } from 'lucide-react';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import Link from 'next/link';
+import { normalizeArabicText } from '@/lib/searchUtils';
 
 const MenuBar = ({ editor }: { editor: any }) => {
   const { language } = useStore();
@@ -22,14 +24,14 @@ const MenuBar = ({ editor }: { editor: any }) => {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 p-2 bg-neutral-100/80 backdrop-blur-md rounded-2xl border border-black/5 m-3 shadow-2xs">
+    <div className="flex flex-wrap items-center gap-1.5 p-2 bg-neutral-100/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/10 m-3 shadow-2xs">
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
         disabled={!editor.can().chain().focus().toggleBold().run()}
         className={`p-1.5 rounded-xl transition-all border text-xs cursor-pointer ${
           editor.isActive('bold')
-            ? 'bg-black text-white border-black font-bold shadow-xs scale-105'
-            : 'hover:bg-white text-neutral-800 border-transparent hover:shadow-2xs active:scale-95'
+            ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white font-bold shadow-xs scale-105'
+            : 'hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-transparent hover:shadow-2xs active:scale-95'
         }`}
         title={t('boldText', language)}
       >
@@ -40,20 +42,20 @@ const MenuBar = ({ editor }: { editor: any }) => {
         disabled={!editor.can().chain().focus().toggleItalic().run()}
         className={`p-1.5 rounded-xl transition-all border text-xs cursor-pointer ${
           editor.isActive('italic')
-            ? 'bg-black text-white border-black font-bold shadow-xs scale-105'
-            : 'hover:bg-white text-neutral-800 border-transparent hover:shadow-2xs active:scale-95'
+            ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white font-bold shadow-xs scale-105'
+            : 'hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-transparent hover:shadow-2xs active:scale-95'
         }`}
         title={t('italicText', language)}
       >
         <Italic className="w-4 h-4" />
       </button>
-      <div className="w-px h-5 bg-neutral-300/80 mx-1" />
+      <div className="w-px h-5 bg-neutral-300/80 dark:bg-neutral-700 mx-1" />
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         className={`p-1.5 rounded-xl transition-all border text-xs cursor-pointer ${
           editor.isActive('heading', { level: 1 })
-            ? 'bg-black text-white border-black font-bold shadow-xs scale-105'
-            : 'hover:bg-white text-neutral-800 border-transparent hover:shadow-2xs active:scale-95'
+            ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white font-bold shadow-xs scale-105'
+            : 'hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-transparent hover:shadow-2xs active:scale-95'
         }`}
         title={t('heading1', language)}
       >
@@ -63,8 +65,8 @@ const MenuBar = ({ editor }: { editor: any }) => {
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         className={`p-1.5 rounded-xl transition-all border text-xs cursor-pointer ${
           editor.isActive('heading', { level: 2 })
-            ? 'bg-black text-white border-black font-bold shadow-xs scale-105'
-            : 'hover:bg-white text-neutral-800 border-transparent hover:shadow-2xs active:scale-95'
+            ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white font-bold shadow-xs scale-105'
+            : 'hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-transparent hover:shadow-2xs active:scale-95'
         }`}
         title={t('heading2', language)}
       >
@@ -74,20 +76,20 @@ const MenuBar = ({ editor }: { editor: any }) => {
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         className={`p-1.5 rounded-xl transition-all border text-xs cursor-pointer ${
           editor.isActive('heading', { level: 3 })
-            ? 'bg-black text-white border-black font-bold shadow-xs scale-105'
-            : 'hover:bg-white text-neutral-800 border-transparent hover:shadow-2xs active:scale-95'
+            ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white font-bold shadow-xs scale-105'
+            : 'hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-transparent hover:shadow-2xs active:scale-95'
         }`}
         title={t('heading3', language)}
       >
         <Heading3 className="w-4 h-4" />
       </button>
-      <div className="w-px h-5 bg-neutral-300/80 mx-1" />
+      <div className="w-px h-5 bg-neutral-300/80 dark:bg-neutral-700 mx-1" />
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         className={`p-1.5 rounded-xl transition-all border text-xs cursor-pointer ${
           editor.isActive('bulletList')
-            ? 'bg-black text-white border-black font-bold shadow-xs scale-105'
-            : 'hover:bg-white text-neutral-800 border-transparent hover:shadow-2xs active:scale-95'
+            ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white font-bold shadow-xs scale-105'
+            : 'hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-transparent hover:shadow-2xs active:scale-95'
         }`}
         title={t('bulletList', language)}
       >
@@ -97,14 +99,14 @@ const MenuBar = ({ editor }: { editor: any }) => {
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
         className={`p-1.5 rounded-xl transition-all border text-xs cursor-pointer ${
           editor.isActive('orderedList')
-            ? 'bg-black text-white border-black font-bold shadow-xs scale-105'
-            : 'hover:bg-white text-neutral-800 border-transparent hover:shadow-2xs active:scale-95'
+            ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white font-bold shadow-xs scale-105'
+            : 'hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-transparent hover:shadow-2xs active:scale-95'
         }`}
         title={t('numberedList', language)}
       >
         <ListOrdered className="w-4 h-4" />
       </button>
-      <div className="w-px h-5 bg-neutral-300/80 mx-1" />
+      <div className="w-px h-5 bg-neutral-300/80 dark:bg-neutral-700 mx-1" />
       <button
         onClick={() => {
           if (editor.isActive({ textAlign: 'right' })) {
@@ -115,15 +117,15 @@ const MenuBar = ({ editor }: { editor: any }) => {
             editor.chain().focus().setTextAlign('right').run();
           }
         }}
-        className="p-1.5 rounded-xl hover:bg-white text-neutral-800 bg-neutral-200/60 border border-black/5 transition-all flex items-center gap-1 cursor-pointer hover:shadow-2xs active:scale-95"
+        className="p-1.5 rounded-xl hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 bg-neutral-200/60 dark:bg-white/10 border border-black/5 dark:border-white/10 transition-all flex items-center gap-1 cursor-pointer hover:shadow-2xs active:scale-95"
         title={t('alignment', language)}
       >
         {editor.isActive({ textAlign: 'left' }) ? (
-          <AlignLeft className="w-4 h-4 text-black" />
+          <AlignLeft className="w-4 h-4 text-black dark:text-white" />
         ) : editor.isActive({ textAlign: 'center' }) ? (
-          <AlignCenter className="w-4 h-4 text-black" />
+          <AlignCenter className="w-4 h-4 text-black dark:text-white" />
         ) : (
-          <AlignRight className="w-4 h-4 text-black" />
+          <AlignRight className="w-4 h-4 text-black dark:text-white" />
         )}
       </button>
     </div>
@@ -265,9 +267,126 @@ export default function EditorPage() {
     }
   }, [isNew, searchParams, editor]);
 
+  // Search Query Word Highlighting Logic
+  const highlightParam = searchParams.get('highlight') || '';
+  const [highlightTerm, setHighlightTerm] = useState<string>(highlightParam);
+  const [totalMatches, setTotalMatches] = useState<number>(0);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState<number>(0);
+  const [matchElements, setMatchElements] = useState<HTMLElement[]>([]);
+
+  const clearHighlights = useCallback(() => {
+    if (typeof document === 'undefined') return;
+    const marks = document.querySelectorAll('.sarda-search-match');
+    marks.forEach((mark) => {
+      const parent = mark.parentNode;
+      if (parent) {
+        while (mark.firstChild) {
+          parent.insertBefore(mark.firstChild, mark);
+        }
+        parent.removeChild(mark);
+        parent.normalize();
+      }
+    });
+    setMatchElements([]);
+    setTotalMatches(0);
+  }, []);
+
+  const applyHighlights = useCallback((term: string) => {
+    if (typeof document === 'undefined' || !term || !editor || !editor.view?.dom) return;
+    clearHighlights();
+
+    const dom = editor.view.dom;
+    const normTerm = normalizeArabicText(term.trim());
+    if (!normTerm) return;
+
+    const walker = document.createTreeWalker(dom, NodeFilter.SHOW_TEXT, null);
+    const textNodes: Text[] = [];
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      textNodes.push(node as Text);
+    }
+
+    const createdMarks: HTMLElement[] = [];
+
+    textNodes.forEach((textNode) => {
+      const text = textNode.nodeValue || '';
+      const normText = normalizeArabicText(text);
+      if (!normText.includes(normTerm)) return;
+
+      const parent = textNode.parentNode;
+      if (!parent) return;
+
+      const fragments = document.createDocumentFragment();
+      let lastIdx = 0;
+      let searchPos = 0;
+      let index = 0;
+
+      while ((index = normText.indexOf(normTerm, searchPos)) !== -1) {
+        if (index > lastIdx) {
+          fragments.appendChild(document.createTextNode(text.substring(lastIdx, index)));
+        }
+
+        const matchLength = term.trim().length;
+        const matchedText = text.substring(index, index + matchLength);
+        const mark = document.createElement('mark');
+        mark.className = 'sarda-search-match bg-amber-300 text-neutral-950 font-bold px-1 py-0.5 rounded shadow-2xs ring-1 ring-amber-400 transition-all duration-200';
+        mark.setAttribute('data-match-index', createdMarks.length.toString());
+        mark.textContent = matchedText;
+        fragments.appendChild(mark);
+        createdMarks.push(mark);
+
+        lastIdx = index + matchLength;
+        searchPos = index + matchLength;
+      }
+
+      if (lastIdx < text.length) {
+        fragments.appendChild(document.createTextNode(text.substring(lastIdx)));
+      }
+
+      parent.replaceChild(fragments, textNode);
+    });
+
+    setMatchElements(createdMarks);
+    setTotalMatches(createdMarks.length);
+    setCurrentMatchIndex(0);
+
+    if (createdMarks.length > 0) {
+      setTimeout(() => {
+        createdMarks[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        createdMarks[0].classList.add('ring-2', 'ring-blue-600', 'bg-amber-400', 'scale-105');
+      }, 350);
+    }
+  }, [editor, clearHighlights]);
+
+  useEffect(() => {
+    if (highlightTerm && editor && !editor.isDestroyed) {
+      const timer = setTimeout(() => {
+        applyHighlights(highlightTerm);
+      }, 450);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightTerm, editor, applyHighlights]);
+
+  const scrollToMatch = (index: number) => {
+    if (matchElements.length === 0) return;
+    const targetIndex = (index + matchElements.length) % matchElements.length;
+
+    matchElements.forEach((el, i) => {
+      if (i === targetIndex) {
+        el.classList.add('ring-2', 'ring-blue-600', 'bg-amber-400', 'scale-105');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        el.classList.remove('ring-2', 'ring-blue-600', 'bg-amber-400', 'scale-105');
+      }
+    });
+
+    setCurrentMatchIndex(targetIndex);
+  };
+
   const checkIsDirty = () => {
     if (!editor) return false;
-    const currentContent = editor.getHTML();
+    const rawContent = editor.getHTML();
+    const currentContent = rawContent.replace(/<mark class="sarda-search-match[^"]*"[^>]*>(.*?)<\/mark>/gi, '$1');
     return (
       title !== initialState.title ||
       status !== initialState.status ||
@@ -296,7 +415,8 @@ export default function EditorPage() {
       return;
     }
 
-    const currentContent = editor?.getHTML() || '';
+    const rawContent = editor?.getHTML() || '';
+    const currentContent = rawContent.replace(/<mark class="sarda-search-match[^"]*"[^>]*>(.*?)<\/mark>/gi, '$1');
     const now = new Date();
     const currentMomentDate = getTodayFormattedDate();
     const currentMomentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -633,27 +753,27 @@ export default function EditorPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#F5F5F7] relative">
+    <div className="flex flex-col h-full bg-[#F5F5F7] dark:bg-[#121214] relative">
       {/* Unsaved Changes Modal - Apple Sheet Style */}
       {showUnsavedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-          <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-black/8 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-black/8 dark:border-white/10 animate-in fade-in zoom-in-95 duration-150">
             <div className="p-6">
-              <h3 className="text-lg font-bold text-neutral-900 mb-2">{t('unsavedChangesTitle', language)}</h3>
-              <p className="text-xs text-neutral-600 mb-6 leading-relaxed">{t('unsavedChangesSub', language)}</p>
+              <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">{t('unsavedChangesTitle', language)}</h3>
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 mb-6 leading-relaxed">{t('unsavedChangesSub', language)}</p>
               
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={handleSave}
-                  className="flex-1 bg-black hover:bg-neutral-800 text-white px-4 py-2.5 rounded-xl font-bold transition-all text-xs shadow-xs active:scale-95 cursor-pointer"
+                  className="flex-1 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-4 py-2.5 rounded-xl font-bold transition-all text-xs shadow-xs active:scale-95 cursor-pointer"
                 >{t('saveChanges', language)}</button>
                 <button
                   onClick={() => router.push(getDestination())}
-                  className="flex-1 bg-neutral-200/80 hover:bg-neutral-300 text-neutral-900 px-4 py-2.5 rounded-xl font-medium transition-all text-xs active:scale-95 cursor-pointer"
+                  className="flex-1 bg-neutral-200/80 hover:bg-neutral-300 dark:bg-white/10 dark:hover:bg-white/15 text-neutral-900 dark:text-white px-4 py-2.5 rounded-xl font-medium transition-all text-xs active:scale-95 cursor-pointer"
                 >{t('discard', language)}</button>
                 <button
                   onClick={() => setShowUnsavedModal(false)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-4 py-2.5 rounded-xl font-medium transition-all text-xs border border-black/5 active:scale-95 cursor-pointer"
+                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 px-4 py-2.5 rounded-xl font-medium transition-all text-xs border border-black/5 dark:border-white/10 active:scale-95 cursor-pointer"
                 >{t('cancel', language)}</button>
               </div>
             </div>
@@ -664,26 +784,26 @@ export default function EditorPage() {
       {/* Delete Story Confirmation Modal - Apple Sheet Style */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-          <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center space-y-4 border border-black/8 animate-in fade-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-black border border-black/5 mx-auto flex items-center justify-center shadow-2xs">
+          <div className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center space-y-4 border border-black/8 dark:border-white/10 animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-white/10 text-black dark:text-white border border-black/5 dark:border-white/10 mx-auto flex items-center justify-center shadow-2xs">
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-neutral-900 text-base">{t('moveToTrash', language)}</h3>
-              <p className="text-xs text-neutral-600 mt-1">
+              <h3 className="font-bold text-neutral-900 dark:text-white text-base">{t('moveToTrash', language)}</h3>
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
                 {language === 'ar' ? 'هل أنت متأكد من حذف هذه القصة ونقلها إلى سلة المهملات؟' : 'Are you sure you want to move this story to trash?'}
               </p>
             </div>
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={handleDeleteStoryConfirm}
-                className="flex-1 bg-black hover:bg-neutral-800 text-white py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
+                className="flex-1 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
               >
                 {language === 'ar' ? 'حذف القصة' : 'Delete Story'}
               </button>
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2.5 rounded-xl text-xs font-semibold transition-all border border-black/5 active:scale-95 cursor-pointer"
+                className="flex-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 py-2.5 rounded-xl text-xs font-semibold transition-all border border-black/5 dark:border-white/10 active:scale-95 cursor-pointer"
               >
                 {t('cancel', language)}
               </button>
@@ -695,31 +815,31 @@ export default function EditorPage() {
       {/* Floating Story Multitasking Modal */}
       {showFloatModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-          <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-black/8 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-black/8 dark:border-white/10 animate-in fade-in zoom-in-95 duration-150">
             <div className="p-6">
-              <div className="flex items-center justify-between pb-3 border-b border-neutral-100 mb-4">
+              <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-white/10 mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shadow-xs">
+                  <div className="w-9 h-9 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xs">
                     <ExternalLink className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm md:text-base font-bold text-neutral-900">
+                    <h3 className="text-sm md:text-base font-bold text-neutral-900 dark:text-white">
                       {t('floatStoryWindow', language)}
                     </h3>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
                       {t('floatingStoryActive', language)}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowFloatModal(false)}
-                  className="p-1 text-neutral-400 hover:text-black rounded-lg transition-colors cursor-pointer"
+                  className="p-1 text-neutral-400 hover:text-black dark:hover:text-white rounded-lg transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <p className="text-xs text-neutral-600 mb-4 leading-relaxed">
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 mb-4 leading-relaxed">
                 {t('openAnotherStoryDesc', language)}
               </p>
 
@@ -730,7 +850,7 @@ export default function EditorPage() {
                   setShowFloatModal(false);
                   router.push('/editor/new');
                 }}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-black hover:bg-neutral-800 text-white font-bold text-xs transition-colors mb-3 shadow-xs cursor-pointer"
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black font-bold text-xs transition-colors mb-3 shadow-xs cursor-pointer"
               >
                 <span className="flex items-center gap-2">
                   <Plus className="w-4 h-4" />
@@ -741,10 +861,10 @@ export default function EditorPage() {
 
               {/* Action: Open another existing story from library */}
               <div className="mb-4">
-                <span className="text-[11px] font-bold text-neutral-600 block mb-2">
+                <span className="text-[11px] font-bold text-neutral-600 dark:text-neutral-300 block mb-2">
                   {t('chooseStoryToOpen', language)}:
                 </span>
-                <div className="max-h-48 overflow-y-auto space-y-1.5 border border-neutral-200 rounded-xl p-2 bg-neutral-50">
+                <div className="max-h-48 overflow-y-auto space-y-1.5 border border-neutral-200 dark:border-neutral-800 rounded-xl p-2 bg-neutral-50 dark:bg-neutral-900/60">
                   {stories.filter(s => !s.isDeleted && s.id !== (existingStory?.id || floatingStory?.id)).length > 0 ? (
                     stories
                       .filter(s => !s.isDeleted && s.id !== (existingStory?.id || floatingStory?.id))
@@ -756,17 +876,17 @@ export default function EditorPage() {
                             setShowFloatModal(false);
                             router.push(`/editor/${st.id}`);
                           }}
-                          className="w-full text-start p-2.5 rounded-lg bg-white hover:bg-neutral-100 border border-neutral-200 transition-colors flex items-center justify-between gap-2 cursor-pointer"
+                          className="w-full text-start p-2.5 rounded-lg bg-white dark:bg-[#2C2C2E] hover:bg-neutral-100 dark:hover:bg-[#3A3A3C] border border-neutral-200 dark:border-neutral-700 transition-colors flex items-center justify-between gap-2 cursor-pointer"
                         >
                           <div className="min-w-0">
-                            <span className="text-xs font-bold text-neutral-900 block truncate">
+                            <span className="text-xs font-bold text-neutral-900 dark:text-white block truncate">
                               {st.title || t('untitledStory', language)}
                             </span>
                             <span className="text-[10px] text-neutral-400">
                               {folders.find(f => f.id === st.folderId)?.name || t('uncategorized', language)}
                             </span>
                           </div>
-                          <span className="text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full shrink-0 font-medium">
+                          <span className="text-[10px] bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 px-2 py-0.5 rounded-full shrink-0 font-medium">
                             {st.status === 'published' ? t('published', language) : st.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
                           </span>
                         </button>
@@ -780,21 +900,21 @@ export default function EditorPage() {
               </div>
 
               {/* Secondary buttons */}
-              <div className="flex items-center gap-2 pt-1 border-t border-neutral-100">
+              <div className="flex items-center gap-2 pt-1 border-t border-neutral-100 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => {
                     setShowFloatModal(false);
                     router.push('/content');
                   }}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                 >
                   {t('contentManager', language)}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowFloatModal(false)}
-                  className="flex-1 bg-white hover:bg-neutral-100 text-neutral-600 border border-neutral-200 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                  className="flex-1 bg-white hover:bg-neutral-100 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                 >
                   {t('stayHere', language)}
                 </button>
@@ -805,18 +925,18 @@ export default function EditorPage() {
       )}
 
       {/* Header - Apple macOS Titlebar Style */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-black/8 px-4 py-2.5 flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 shrink-0 shadow-2xs">
+      <header className="bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-black/8 dark:border-white/10 px-4 py-2.5 flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 shrink-0 shadow-2xs">
         <div className="flex items-center gap-2.5 w-full xl:w-auto">
           {/* macOS Traffic Lights decoration */}
           <div className="hidden sm:flex items-center gap-1.5 me-1">
-            <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-black/10 inline-block shadow-2xs"></span>
-            <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-black/10 inline-block shadow-2xs"></span>
-            <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-black/10 inline-block shadow-2xs"></span>
+            <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-black/10 dark:border-white/10 inline-block shadow-2xs"></span>
+            <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-black/10 dark:border-white/10 inline-block shadow-2xs"></span>
+            <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-black/10 dark:border-white/10 inline-block shadow-2xs"></span>
           </div>
 
           <button
             onClick={handleBackClick}
-            className="p-1.5 hover:bg-neutral-200/70 rounded-xl border border-black/5 text-neutral-800 transition-all active:scale-95 shrink-0 cursor-pointer shadow-2xs"
+            className="p-1.5 hover:bg-neutral-200/70 dark:hover:bg-white/10 rounded-xl border border-black/5 dark:border-white/10 text-neutral-800 dark:text-neutral-200 transition-all active:scale-95 shrink-0 cursor-pointer shadow-2xs"
             title="رجوع"
           >
             <ArrowRight className="w-4 h-4" />
@@ -826,12 +946,12 @@ export default function EditorPage() {
               onClick={() => toggleFavorite(existingStory.id)}
               className={`p-1.5 rounded-xl border transition-all active:scale-95 shrink-0 cursor-pointer shadow-2xs ${
                 existingStory.isFavorite
-                  ? 'bg-black text-white border-black'
-                  : 'bg-neutral-100 text-neutral-400 hover:text-black hover:border-black/20 border-black/5'
+                  ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
+                  : 'bg-neutral-100 dark:bg-white/10 text-neutral-400 hover:text-black dark:hover:text-white hover:border-black/20 dark:hover:border-white/20 border-black/5 dark:border-white/10'
               }`}
               title={existingStory.isFavorite ? t('removeFromFavorites', language) : t('addToFavorites', language)}
             >
-              <Star className={`w-4 h-4 ${existingStory.isFavorite ? 'fill-white text-white' : ''}`} />
+              <Star className={`w-4 h-4 ${existingStory.isFavorite ? 'fill-white text-white dark:fill-black dark:text-black' : ''}`} />
             </button>
           )}
           <input
@@ -840,44 +960,44 @@ export default function EditorPage() {
             onChange={(e) => setTitle(e.target.value)}
             disabled={isReadOnly}
             placeholder={t('storyTitlePlaceholder', language)}
-            className="text-sm md:text-base font-bold text-neutral-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-neutral-400 w-full disabled:opacity-70 font-sans tracking-tight"
+            className="text-sm md:text-base font-bold text-neutral-900 dark:text-white bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 w-full disabled:opacity-70 font-sans tracking-tight"
           />
         </div>
         <div className="flex flex-wrap items-center gap-1.5 justify-start xl:justify-end w-full xl:w-auto">
           {/* Status */}
-          <div className={`flex items-center gap-1.5 bg-neutral-100/90 border border-black/5 rounded-xl px-2.5 py-1 shadow-2xs ${isReadOnly ? 'opacity-70' : ''}`}>
-            <span className="text-[10px] text-neutral-500 font-semibold whitespace-nowrap">{t('statusLabel', language)}:</span>
+          <div className={`flex items-center gap-1.5 bg-neutral-100/90 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-2.5 py-1 shadow-2xs ${isReadOnly ? 'opacity-70' : ''}`}>
+            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-semibold whitespace-nowrap">{t('statusLabel', language)}:</span>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as StoryStatus)}
               disabled={isReadOnly}
-              className="bg-transparent border-none text-xs font-bold text-neutral-900 focus:ring-0 cursor-pointer outline-none disabled:cursor-not-allowed"
+              className="bg-transparent border-none text-xs font-bold text-neutral-900 dark:text-white focus:ring-0 cursor-pointer outline-none disabled:cursor-not-allowed dark:bg-[#1C1C1E]"
             >
-              <option value="draft">{t('draft', language)}</option>
-              <option value="ready">{t('readyToPublish', language)}</option>
-              <option value="published">{t('published', language)}</option>
+              <option value="draft" className="dark:bg-[#1C1C1E] dark:text-white">{t('draft', language)}</option>
+              <option value="ready" className="dark:bg-[#1C1C1E] dark:text-white">{t('readyToPublish', language)}</option>
+              <option value="published" className="dark:bg-[#1C1C1E] dark:text-white">{t('published', language)}</option>
             </select>
           </div>
 
           {/* Folder */}
-          <div className={`flex items-center gap-1.5 bg-neutral-100/90 border border-black/5 rounded-xl px-2.5 py-1 shadow-2xs ${isReadOnly ? 'opacity-70' : ''}`}>
-            <span className="text-[10px] text-neutral-500 font-semibold whitespace-nowrap">{t('folderLabel', language)}:</span>
+          <div className={`flex items-center gap-1.5 bg-neutral-100/90 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-2.5 py-1 shadow-2xs ${isReadOnly ? 'opacity-70' : ''}`}>
+            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-semibold whitespace-nowrap">{t('folderLabel', language)}:</span>
             <select
               value={folderId}
               onChange={(e) => setFolderId(e.target.value)}
               disabled={isReadOnly}
-              className="bg-transparent border-none text-xs font-bold text-neutral-900 focus:ring-0 cursor-pointer outline-none max-w-[110px] truncate disabled:cursor-not-allowed"
+              className="bg-transparent border-none text-xs font-bold text-neutral-900 dark:text-white focus:ring-0 cursor-pointer outline-none max-w-[110px] truncate disabled:cursor-not-allowed dark:bg-[#1C1C1E]"
             >
-              <option value="" disabled>{t('choosePlaceholder', language)}</option>
+              <option value="" disabled className="dark:bg-[#1C1C1E] dark:text-white">{t('choosePlaceholder', language)}</option>
               {folders.map(f => (
-                <option key={f.id} value={f.id}>{f.name}</option>
+                <option key={f.id} value={f.id} className="dark:bg-[#1C1C1E] dark:text-white">{f.name}</option>
               ))}
             </select>
           </div>
 
           {/* Target Date & Auto-date indicator */}
-          <div className={`flex items-center gap-1.5 bg-neutral-100/90 border border-black/5 rounded-xl px-2.5 py-1 shadow-2xs ${isReadOnly ? 'opacity-70' : ''}`}>
-            <span className="text-[10px] text-neutral-500 font-semibold whitespace-nowrap">{t('dateLabel', language)}:</span>
+          <div className={`flex items-center gap-1.5 bg-neutral-100/90 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-2.5 py-1 shadow-2xs ${isReadOnly ? 'opacity-70' : ''}`}>
+            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-semibold whitespace-nowrap">{t('dateLabel', language)}:</span>
             <input
               type="date"
               value={targetDate}
@@ -886,7 +1006,7 @@ export default function EditorPage() {
                 setIsCustomDateSet(true);
               }}
               disabled={isReadOnly}
-              className="bg-transparent border-none text-xs font-bold text-neutral-900 focus:ring-0 outline-none cursor-pointer p-0 w-[110px] disabled:cursor-not-allowed font-sans"
+              className="bg-transparent border-none text-xs font-bold text-neutral-900 dark:text-white focus:ring-0 outline-none cursor-pointer p-0 w-[110px] disabled:cursor-not-allowed font-sans dark:[color-scheme:dark]"
             />
             {/* Quick Set to Now / Current Moment button */}
             <button
@@ -901,7 +1021,7 @@ export default function EditorPage() {
               className={`text-[10px] px-2 py-0.5 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
                 !isCustomDateSet
                   ? 'bg-blue-500 text-white font-bold shadow-2xs'
-                  : 'bg-white hover:bg-neutral-200 text-neutral-700 border border-black/5'
+                  : 'bg-white dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/15 text-neutral-700 dark:text-neutral-300 border border-black/5 dark:border-white/10'
               }`}
             >
               <span>{t('setNowDate', language)}</span>
@@ -915,8 +1035,8 @@ export default function EditorPage() {
               onClick={() => setIsSideBySideOpen(!isSideBySideOpen)}
               className={`border px-2.5 py-1 rounded-xl font-medium flex items-center gap-1.5 transition-all text-xs cursor-pointer active:scale-95 shadow-2xs ${
                 isSideBySideOpen
-                  ? 'bg-black text-white border-black shadow-xs font-bold'
-                  : 'bg-white hover:bg-neutral-100 text-neutral-800 border-black/5'
+                  ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-xs font-bold'
+                  : 'bg-white dark:bg-white/10 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 border-black/5 dark:border-white/10'
               }`}
               title={t('sideBySideWorkspace', language)}
             >
@@ -930,8 +1050,8 @@ export default function EditorPage() {
               onClick={handleFloatCurrentStory}
               className={`border px-2.5 py-1 rounded-xl font-medium flex items-center gap-1.5 transition-all text-xs cursor-pointer active:scale-95 shadow-2xs ${
                 floatingStory?.id === id
-                  ? 'bg-neutral-900 text-white border-black font-bold'
-                  : 'bg-white hover:bg-neutral-100 text-neutral-800 border-black/5'
+                  ? 'bg-neutral-900 dark:bg-white text-white dark:text-black border-black dark:border-white font-bold'
+                  : 'bg-white dark:bg-white/10 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 border-black/5 dark:border-white/10'
               }`}
               title={t('floatStoryTooltip', language)}
             >
@@ -942,7 +1062,7 @@ export default function EditorPage() {
             <button
               onClick={() => setIsReadOnly(!isReadOnly)}
               className={`border px-2 py-1 rounded-xl font-medium flex items-center gap-1 transition-all text-xs active:scale-95 shadow-2xs cursor-pointer ${
-                isReadOnly ? 'bg-black text-white border-black' : 'bg-white text-neutral-800 border-black/5 hover:bg-neutral-100'
+                isReadOnly ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' : 'bg-white dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border-black/5 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/15'
               }`}
               title={isReadOnly ? t('exitReadOnlyMode', language) : t('readOnlyMode', language)}
             >
@@ -951,7 +1071,7 @@ export default function EditorPage() {
             <button
               onClick={() => setIsFocusMode(!isFocusMode)}
               className={`border px-2 py-1 rounded-xl font-medium flex items-center gap-1 transition-all text-xs active:scale-95 shadow-2xs cursor-pointer ${
-                isFocusMode ? 'bg-black text-white border-black' : 'bg-white text-neutral-800 border-black/5 hover:bg-neutral-100'
+                isFocusMode ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' : 'bg-white dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border-black/5 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/15'
               }`}
               title={isFocusMode ? t('exitFocusMode', language) : t('focusMode', language)}
             >
@@ -959,25 +1079,25 @@ export default function EditorPage() {
             </button>
             <button
               onClick={handleExportWord}
-              className="bg-white hover:bg-neutral-100 text-neutral-800 border border-black/5 px-2.5 py-1 rounded-xl font-medium flex items-center gap-1.5 transition-all text-xs active:scale-95 shadow-2xs cursor-pointer"
+              className="bg-white dark:bg-white/10 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 border border-black/5 dark:border-white/10 px-2.5 py-1 rounded-xl font-medium flex items-center gap-1.5 transition-all text-xs active:scale-95 shadow-2xs cursor-pointer"
               title={t('downloadWord', language)}
             >
-              <FileText className="w-3.5 h-3.5 text-neutral-800" />
+              <FileText className="w-3.5 h-3.5 text-neutral-800 dark:text-neutral-200" />
               <span className="hidden sm:inline">Word</span>
             </button>
             <button
               onClick={handleExportPDF}
-              className="bg-white hover:bg-neutral-100 text-neutral-800 border border-black/5 px-2.5 py-1 rounded-xl font-medium flex items-center gap-1.5 transition-all text-xs active:scale-95 shadow-2xs cursor-pointer"
+              className="bg-white dark:bg-white/10 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 border border-black/5 dark:border-white/10 px-2.5 py-1 rounded-xl font-medium flex items-center gap-1.5 transition-all text-xs active:scale-95 shadow-2xs cursor-pointer"
               title={t('downloadPdf', language)}
             >
-              <FileDown className="w-3.5 h-3.5 text-neutral-800" />
+              <FileDown className="w-3.5 h-3.5 text-neutral-800 dark:text-neutral-200" />
               <span className="hidden sm:inline">PDF</span>
             </button>
             {!isNew && existingStory && (
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(true)}
-                className="bg-white hover:bg-red-50 text-neutral-600 hover:text-red-600 border border-black/5 px-2.5 py-1 rounded-xl font-medium flex items-center gap-1 transition-all text-xs active:scale-95 shadow-2xs cursor-pointer"
+                className="bg-white dark:bg-white/10 hover:bg-red-50 dark:hover:bg-red-950/40 text-neutral-600 dark:text-neutral-300 hover:text-red-600 dark:hover:text-red-400 border border-black/5 dark:border-white/10 px-2.5 py-1 rounded-xl font-medium flex items-center gap-1 transition-all text-xs active:scale-95 shadow-2xs cursor-pointer"
                 title={language === 'ar' ? 'حذف القصة' : 'Delete Story'}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -987,7 +1107,7 @@ export default function EditorPage() {
             {!isReadOnly && (
               <button
                 onClick={handleSave}
-                className="bg-black hover:bg-neutral-800 text-white px-3.5 py-1 rounded-xl font-bold flex items-center gap-1.5 transition-all text-xs shadow-xs active:scale-95 cursor-pointer"
+                className="bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-3.5 py-1 rounded-xl font-bold flex items-center gap-1.5 transition-all text-xs shadow-xs active:scale-95 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />{t('save', language)}
               </button>
@@ -999,13 +1119,70 @@ export default function EditorPage() {
       {/* Main Content - Apple Document Canvas with Side-by-side Support */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto bg-[#F5F5F7] transition-colors relative"
+        className="flex-1 overflow-y-auto bg-[#F5F5F7] dark:bg-[#121214] transition-colors relative"
       >
         <div
           className={`mx-auto p-3 md:p-6 transition-all duration-200 ${
             isSideBySideOpen ? 'max-w-[1600px]' : isFocusMode ? 'max-w-5xl' : 'max-w-4xl'
           }`}
         >
+          {/* Search Highlight Floating Control Banner */}
+          {highlightTerm && totalMatches > 0 && (
+            <div className="mb-4 bg-neutral-900/95 dark:bg-black/90 backdrop-blur-xl text-white rounded-2xl p-3 px-4 shadow-xl border border-white/10 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-400 text-neutral-950 flex items-center justify-center font-bold shadow-xs">
+                  <Search className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs md:text-sm font-bold">
+                      {language === 'ar' ? `نتائج البحث عن «${highlightTerm}»:` : `Search highlights for "${highlightTerm}":`}
+                    </span>
+                    <span className="text-xs font-bold bg-amber-400 text-neutral-950 px-2 py-0.2 rounded-full">
+                      {totalMatches} {language === 'ar' ? 'كلمة محددة في القصة' : 'matches in story'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">
+                    {language === 'ar' ? 'تم تحديد الكلمات باللون الأصفر في النص، يمكنك التنقل بينها أو إلغاء التحديد' : 'Matching words are highlighted in amber. Use buttons to navigate.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-neutral-300 font-mono bg-white/10 px-2.5 py-1 rounded-xl">
+                  {currentMatchIndex + 1} / {totalMatches}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => scrollToMatch(currentMatchIndex - 1)}
+                  className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors cursor-pointer"
+                  title={t('prevMatch', language)}
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollToMatch(currentMatchIndex + 1)}
+                  className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors cursor-pointer"
+                  title={t('nextMatch', language)}
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearHighlights();
+                    setHighlightTerm('');
+                  }}
+                  className="text-xs bg-white/15 hover:bg-white/25 text-white font-medium px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>{t('clearHighlight', language)}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {isSideBySideOpen ? (
             /* DUAL PANE WORKSPACE */
             <div
@@ -1015,13 +1192,13 @@ export default function EditorPage() {
             >
               {/* PRIMARY ACTIVE EDITOR PANE */}
               <div
-                className={`flex-1 transition-all rounded-3xl border border-black/8 bg-white shadow-sm overflow-hidden flex flex-col ${
+                className={`flex-1 transition-all rounded-3xl border border-black/8 dark:border-white/10 bg-white dark:bg-[#1C1C1E] shadow-sm overflow-hidden flex flex-col ${
                   sideWidth === 'compact' ? 'lg:flex-[3]' : 'lg:flex-1'
                 }`}
               >
-                <div className="bg-neutral-100/60 border-b border-black/5 px-4 py-2 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 font-bold text-neutral-900">
-                    <span className="w-2 h-2 rounded-full bg-black"></span>
+                <div className="bg-neutral-100/60 dark:bg-white/5 border-b border-black/5 dark:border-white/10 px-4 py-2 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 font-bold text-neutral-900 dark:text-white">
+                    <span className="w-2 h-2 rounded-full bg-black dark:bg-white"></span>
                     <span className="truncate">{title || t('untitledStory', language)}</span>
                     <span className="text-[10px] text-neutral-400">({t('writtenStories', language)})</span>
                   </div>
@@ -1029,7 +1206,7 @@ export default function EditorPage() {
                     <button
                       type="button"
                       onClick={() => setIsSideSwapped(!isSideSwapped)}
-                      className="p-1 hover:bg-neutral-200/60 text-neutral-600 rounded-lg transition-colors text-[11px] flex items-center gap-1 cursor-pointer"
+                      className="p-1 hover:bg-neutral-200/60 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300 rounded-lg transition-colors text-[11px] flex items-center gap-1 cursor-pointer"
                       title={t('sideBySideSwap', language)}
                     >
                       <ArrowLeftRight className="w-3.5 h-3.5" />
@@ -1039,25 +1216,25 @@ export default function EditorPage() {
                 </div>
 
                 {!isReadOnly && <MenuBar editor={editor} />}
-                <div className="text-neutral-900 bg-white min-h-[550px] p-4 md:p-8 flex-1">
+                <div className="text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#1C1C1E] min-h-[550px] p-4 md:p-8 flex-1">
                   <EditorContent editor={editor} />
                 </div>
               </div>
 
               {/* SECONDARY SIDE REFERENCE PANE */}
               <div
-                className={`transition-all rounded-3xl border border-black/8 bg-white shadow-sm overflow-hidden flex flex-col ${
+                className={`transition-all rounded-3xl border border-black/8 dark:border-white/10 bg-white dark:bg-[#1C1C1E] shadow-sm overflow-hidden flex flex-col ${
                   sideWidth === 'compact' ? 'lg:flex-[2]' : 'lg:flex-1'
                 }`}
               >
                 {/* Side Header Bar */}
-                <div className="bg-neutral-100/60 border-b border-black/5 px-3.5 py-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1 bg-neutral-200/60 p-0.5 rounded-xl">
+                <div className="bg-neutral-100/60 dark:bg-white/5 border-b border-black/5 dark:border-white/10 px-3.5 py-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1 bg-neutral-200/60 dark:bg-white/10 p-0.5 rounded-xl">
                     <button
                       type="button"
                       onClick={() => setSideTab('story')}
                       className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                        sideTab === 'story' ? 'bg-white text-black shadow-xs font-bold' : 'text-neutral-600 hover:text-black'
+                        sideTab === 'story' ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-xs font-bold' : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                       }`}
                     >
                       {t('sideBySideSelectStory', language)}
@@ -1066,7 +1243,7 @@ export default function EditorPage() {
                       type="button"
                       onClick={() => setSideTab('notes')}
                       className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                        sideTab === 'notes' ? 'bg-white text-black shadow-xs font-bold' : 'text-neutral-600 hover:text-black'
+                        sideTab === 'notes' ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-xs font-bold' : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                       }`}
                     >
                       {t('sideBySideCustomNotes', language)}
@@ -1078,7 +1255,7 @@ export default function EditorPage() {
                     <button
                       type="button"
                       onClick={() => setSideFontSize(Math.max(12, sideFontSize - 1))}
-                      className="px-2 py-0.5 text-[11px] font-medium text-neutral-600 hover:bg-neutral-200/80 border border-black/5 rounded-lg cursor-pointer"
+                      className="px-2 py-0.5 text-[11px] font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200/80 dark:hover:bg-white/10 border border-black/5 dark:border-white/10 rounded-lg cursor-pointer"
                       title="تصغير الخط"
                     >
                       A-
@@ -1086,7 +1263,7 @@ export default function EditorPage() {
                     <button
                       type="button"
                       onClick={() => setSideFontSize(Math.min(22, sideFontSize + 1))}
-                      className="px-2 py-0.5 text-[11px] font-medium text-neutral-600 hover:bg-neutral-200/80 border border-black/5 rounded-lg cursor-pointer"
+                      className="px-2 py-0.5 text-[11px] font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200/80 dark:hover:bg-white/10 border border-black/5 dark:border-white/10 rounded-lg cursor-pointer"
                       title="تكبير الخط"
                     >
                       A+
@@ -1096,7 +1273,7 @@ export default function EditorPage() {
                     <button
                       type="button"
                       onClick={() => setSideWidth(sideWidth === 'equal' ? 'compact' : 'equal')}
-                      className="p-1.5 text-neutral-600 hover:bg-neutral-200/80 rounded-lg cursor-pointer"
+                      className="p-1.5 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200/80 dark:hover:bg-white/10 rounded-lg cursor-pointer"
                       title={t('sideBySideWidthToggle', language)}
                     >
                       <Columns2 className="w-3.5 h-3.5" />
@@ -1106,7 +1283,7 @@ export default function EditorPage() {
                     <button
                       type="button"
                       onClick={() => setIsSideBySideOpen(false)}
-                      className="p-1.5 text-neutral-500 hover:text-black hover:bg-neutral-200/80 rounded-lg cursor-pointer"
+                      className="p-1.5 text-neutral-500 hover:text-black dark:hover:text-white hover:bg-neutral-200/80 dark:hover:bg-white/10 rounded-lg cursor-pointer"
                       title={t('sideBySideClose', language)}
                     >
                       <X className="w-4 h-4" />
@@ -1116,12 +1293,12 @@ export default function EditorPage() {
 
                 {/* Sub-bar with Story Selector & Insert Actions */}
                 {sideTab === 'story' ? (
-                  <div className="p-2.5 border-b border-black/5 bg-neutral-50/70 flex flex-wrap items-center justify-between gap-2">
+                  <div className="p-2.5 border-b border-black/5 dark:border-white/10 bg-neutral-50/70 dark:bg-white/5 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex-1 min-w-[180px]">
                       <select
                         value={activeSideStoryId}
                         onChange={(e) => setSideStoryId(e.target.value)}
-                        className="w-full text-xs font-semibold bg-white border border-neutral-200 px-3 py-1.5 text-neutral-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/10 cursor-pointer shadow-2xs"
+                        className="w-full text-xs font-semibold bg-white dark:bg-[#2C2C2E] border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 text-neutral-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 cursor-pointer shadow-2xs"
                       >
                         <option value="" disabled>{t('choosePlaceholder', language)}</option>
                         {stories
@@ -1138,7 +1315,7 @@ export default function EditorPage() {
                       <button
                         type="button"
                         onClick={handleInsertSideContent}
-                        className="bg-black hover:bg-neutral-800 text-white px-2.5 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
+                        className="bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-2.5 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
                         title={t('sideBySideCopyContent', language)}
                       >
                         {sideCopied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Plus className="w-3.5 h-3.5" />}
@@ -1148,7 +1325,7 @@ export default function EditorPage() {
                       <button
                         type="button"
                         onClick={handleCopySideText}
-                        className="bg-white hover:bg-neutral-100 text-neutral-800 border border-black/5 px-2.5 py-1.5 text-xs font-medium rounded-xl flex items-center gap-1 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                        className="bg-white dark:bg-white/10 hover:bg-neutral-100 dark:hover:bg-white/15 text-neutral-800 dark:text-neutral-200 border border-black/5 dark:border-white/10 px-2.5 py-1.5 text-xs font-medium rounded-xl flex items-center gap-1 transition-all active:scale-95 shadow-2xs cursor-pointer"
                         title={t('sideBySideCopied', language)}
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -1156,14 +1333,14 @@ export default function EditorPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-2.5 border-b border-black/5 bg-neutral-50/70 flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-neutral-500 font-medium">
+                  <div className="p-2.5 border-b border-black/5 dark:border-white/10 bg-neutral-50/70 dark:bg-white/5 flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
                       {t('sideBySideSubtitle', language)}
                     </span>
                     <button
                       type="button"
                       onClick={handleInsertSideContent}
-                      className="bg-black hover:bg-neutral-800 text-white px-2.5 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
+                      className="bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-2.5 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
                     >
                       {sideCopied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Plus className="w-3.5 h-3.5" />}
                       <span>{t('sideBySideCopyContent', language)}</span>
@@ -1174,14 +1351,14 @@ export default function EditorPage() {
                 {/* Side Pane Content Body */}
                 <div
                   ref={sideScrollRef}
-                  className="p-5 overflow-y-auto flex-1 max-h-[700px] min-h-[450px] bg-white"
+                  className="p-5 overflow-y-auto flex-1 max-h-[700px] min-h-[450px] bg-white dark:bg-[#1C1C1E]"
                   style={{ fontSize: `${sideFontSize}px` }}
                 >
                   {sideTab === 'story' ? (
                     selectedSideStory ? (
                       <div>
-                        <div className="border-b border-neutral-100 pb-3 mb-4">
-                          <h3 className="font-bold text-neutral-900 text-base">
+                        <div className="border-b border-neutral-100 dark:border-white/10 pb-3 mb-4">
+                          <h3 className="font-bold text-neutral-900 dark:text-white text-base">
                             {selectedSideStory.title || t('untitledStory', language)}
                           </h3>
                           <div className="flex items-center gap-2 mt-1 text-[11px] text-neutral-400">
@@ -1195,7 +1372,7 @@ export default function EditorPage() {
                           </div>
                         </div>
                         <div
-                          className="prose prose-neutral max-w-none text-right font-sans leading-relaxed text-neutral-800"
+                          className="prose prose-neutral dark:prose-invert max-w-none text-right font-sans leading-relaxed text-neutral-800 dark:text-neutral-200"
                           dir="rtl"
                           dangerouslySetInnerHTML={{
                             __html: selectedSideStory.content || `<p class="text-neutral-400">${t('noContentYet', language)}</p>`
@@ -1213,7 +1390,7 @@ export default function EditorPage() {
                       value={sideCustomNotes}
                       onChange={(e) => setSideCustomNotes(e.target.value)}
                       placeholder={t('sideBySideNotesPlaceholder', language)}
-                      className="w-full h-full min-h-[450px] border-none focus:outline-none resize-none font-sans text-right leading-relaxed text-neutral-800"
+                      className="w-full h-full min-h-[450px] border-none focus:outline-none resize-none font-sans text-right leading-relaxed text-neutral-800 dark:text-neutral-200 bg-transparent placeholder:text-neutral-400 dark:placeholder:text-neutral-600"
                       dir="rtl"
                     />
                   )}
@@ -1222,9 +1399,9 @@ export default function EditorPage() {
             </div>
           ) : (
             /* STANDARD SINGLE WORKSPACE */
-            <div className="rounded-3xl border border-black/8 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-3xl border border-black/8 dark:border-white/10 bg-white dark:bg-[#1C1C1E] shadow-sm overflow-hidden">
               {!isReadOnly && <MenuBar editor={editor} />}
-              <div className="text-neutral-900 bg-white min-h-[550px] p-4 md:p-8">
+              <div className="text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#1C1C1E] min-h-[550px] p-4 md:p-8">
                 <EditorContent editor={editor} />
               </div>
             </div>

@@ -41,6 +41,10 @@ interface AppState {
   language: 'ar' | 'en';
   setLanguage: (lang: 'ar' | 'en') => void;
 
+  theme: 'light' | 'dark' | 'system';
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  toggleTheme: () => void;
+
   // Floating Story Window State
   floatingStory: Story | null;
   isFloatingStoryMinimized: boolean;
@@ -104,6 +108,12 @@ export const useStore = create<AppState>()(
       stories: [],
       language: 'ar',
       setLanguage: (lang) => set({ language: lang }),
+
+      theme: 'light',
+      setTheme: (theme) => set({ theme }),
+      toggleTheme: () => set((state) => ({
+        theme: state.theme === 'dark' ? 'light' : 'dark'
+      })),
 
       floatingStory: null,
       isFloatingStoryMinimized: false,
@@ -264,6 +274,7 @@ export const useStore = create<AppState>()(
         folders: state.folders,
         stories: state.stories,
         language: state.language,
+        theme: state.theme,
         floatingStory: state.floatingStory,
         isFloatingStoryMinimized: state.isFloatingStoryMinimized,
         hasCompletedSupportGate: state.hasCompletedSupportGate,

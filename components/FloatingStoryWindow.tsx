@@ -77,7 +77,7 @@ export default function FloatingStoryWindow() {
     return (
       <aside
         aria-label={t('floatingStoryActive', language)}
-        className="fixed bottom-4 end-4 z-50 flex items-center gap-3 bg-white/95 backdrop-blur-xl border border-neutral-300 shadow-2xl rounded-2xl p-2 px-3.5 transition-all duration-200 select-none group"
+        className="fixed bottom-4 end-4 z-50 flex items-center gap-3 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl border border-black/10 dark:border-white/10 shadow-2xl rounded-2xl p-2 px-3.5 transition-all duration-200 select-none group"
         style={{
           fontFamily: 'var(--font-apple, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif)',
         }}
@@ -110,11 +110,11 @@ export default function FloatingStoryWindow() {
           onClick={() => setIsFloatingStoryMinimized(false)}
           className="flex items-center gap-2 cursor-pointer max-w-[200px] truncate"
         >
-          <BookOpen className="w-3.5 h-3.5 text-neutral-600 shrink-0" />
-          <span className="text-xs font-semibold text-neutral-900 truncate">
+          <BookOpen className="w-3.5 h-3.5 text-neutral-600 dark:text-neutral-300 shrink-0" />
+          <span className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
             {floatingStory.title || t('untitled', language)}
           </span>
-          <span className="text-[10px] text-neutral-400 font-mono bg-neutral-100 px-1.5 py-0.5 rounded-full shrink-0">
+          <span className="text-[10px] text-neutral-400 dark:text-neutral-300 font-mono bg-neutral-100 dark:bg-white/10 px-1.5 py-0.5 rounded-full shrink-0">
             {wordCount} {t('floatingWindowWordCount', language)}
           </span>
         </div>
@@ -122,7 +122,7 @@ export default function FloatingStoryWindow() {
         <button
           type="button"
           onClick={() => setIsFloatingStoryMinimized(false)}
-          className="p-1 text-neutral-400 hover:text-black rounded-lg hover:bg-neutral-100 transition-colors"
+          className="p-1 text-neutral-400 hover:text-black dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors"
           title={t('expandFloating', language)}
         >
           <Maximize2 className="w-3.5 h-3.5" />
@@ -134,13 +134,13 @@ export default function FloatingStoryWindow() {
   return (
     <aside
       aria-label={t('floatingStoryActive', language)}
-      className="fixed bottom-4 end-4 z-50 w-[92vw] sm:w-[460px] md:w-[500px] max-h-[82vh] flex flex-col bg-white/95 backdrop-blur-xl border border-neutral-300/90 shadow-2xl rounded-2xl overflow-hidden transition-all duration-200"
+      className="fixed bottom-4 end-4 z-50 w-[92vw] sm:w-[460px] md:w-[500px] max-h-[82vh] flex flex-col bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl border border-black/10 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden transition-all duration-200"
       style={{
         fontFamily: 'var(--font-apple, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif)',
       }}
     >
       {/* Apple Window Titlebar */}
-      <div className="bg-neutral-100/90 border-b border-neutral-200/80 px-3.5 py-2.5 flex items-center justify-between gap-2 select-none">
+      <div className="bg-neutral-100/80 dark:bg-white/5 border-b border-black/5 dark:border-white/10 px-3.5 py-2.5 flex items-center justify-between gap-2 select-none">
         {/* Apple Traffic Lights */}
         <div className="flex items-center gap-2 shrink-0">
           <button
@@ -174,16 +174,16 @@ export default function FloatingStoryWindow() {
 
         {/* Center Title & Badge */}
         <div className="flex items-center gap-1.5 min-w-0 flex-1 justify-center px-1">
-          <span className="text-xs font-bold text-neutral-900 truncate">
+          <span className="text-xs font-bold text-neutral-900 dark:text-white truncate">
             {floatingStory.title || t('untitled', language)}
           </span>
           <span
             className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase shrink-0 ${
               floatingStory.status === 'published'
-                ? 'bg-neutral-900 text-white'
+                ? 'bg-neutral-900 dark:bg-white text-white dark:text-black'
                 : floatingStory.status === 'ready'
-                ? 'bg-neutral-200 text-neutral-800'
-                : 'bg-neutral-100 text-neutral-600'
+                ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200'
+                : 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-300'
             }`}
           >
             {floatingStory.status === 'published'
@@ -199,7 +199,7 @@ export default function FloatingStoryWindow() {
           <button
             type="button"
             onClick={handleCopy}
-            className="p-1 rounded-md text-neutral-500 hover:text-black hover:bg-neutral-200/70 transition-colors"
+            className="p-1 rounded-md text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-200/70 dark:hover:bg-white/10 transition-colors"
             title={t('sideBySideCopyContent', language)}
           >
             {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -208,7 +208,7 @@ export default function FloatingStoryWindow() {
             type="button"
             onClick={() => setIsEditing(!isEditing)}
             className={`p-1 rounded-md transition-colors ${
-              isEditing ? 'bg-black text-white' : 'text-neutral-500 hover:text-black hover:bg-neutral-200/70'
+              isEditing ? 'bg-black dark:bg-white text-white dark:text-black' : 'text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-200/70 dark:hover:bg-white/10'
             }`}
             title={isEditing ? t('viewAndEditStory', language) : t('edit', language)}
           >
@@ -217,7 +217,7 @@ export default function FloatingStoryWindow() {
           <button
             type="button"
             onClick={handleOpenInFullEditor}
-            className="p-1 rounded-md text-neutral-500 hover:text-black hover:bg-neutral-200/70 transition-colors"
+            className="p-1 rounded-md text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-200/70 dark:hover:bg-white/10 transition-colors"
             title={t('returnToFullEditor', language)}
           >
             <ExternalLink className="w-3.5 h-3.5" />
@@ -226,8 +226,8 @@ export default function FloatingStoryWindow() {
       </div>
 
       {/* Multitasking Bar: Allows opening another story right away */}
-      <div className="bg-neutral-50 border-b border-neutral-200 px-3 py-1.5 flex items-center justify-between gap-2 text-xs">
-        <span className="text-[11px] text-neutral-500 font-medium">
+      <div className="bg-neutral-50 dark:bg-white/5 border-b border-neutral-200 dark:border-white/10 px-3 py-1.5 flex items-center justify-between gap-2 text-xs">
+        <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
           {wordCount} {t('floatingWindowWordCount', language)}
         </span>
 
@@ -235,7 +235,7 @@ export default function FloatingStoryWindow() {
           <button
             type="button"
             onClick={() => setShowStoryPicker(!showStoryPicker)}
-            className="flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs transition-colors"
+            className="flex items-center gap-1.5 bg-black dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-black px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs transition-colors"
           >
             <Plus className="w-3 h-3" />
             <span>{t('openAnotherStory', language)}</span>
@@ -244,15 +244,15 @@ export default function FloatingStoryWindow() {
 
           {/* Story Selector Dropdown Modal */}
           {showStoryPicker && (
-            <div className="absolute end-0 top-full mt-1.5 w-72 bg-white rounded-xl shadow-2xl border border-neutral-200 p-2 z-50">
-              <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-neutral-100">
-                <span className="text-xs font-bold text-neutral-900">
+            <div className="absolute end-0 top-full mt-1.5 w-72 bg-white dark:bg-[#2C2C2E] rounded-xl shadow-2xl border border-neutral-200 dark:border-neutral-700 p-2 z-50">
+              <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-neutral-100 dark:border-neutral-700">
+                <span className="text-xs font-bold text-neutral-900 dark:text-white">
                   {t('chooseStoryToOpen', language)}
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowStoryPicker(false)}
-                  className="text-neutral-400 hover:text-black p-0.5"
+                  className="text-neutral-400 hover:text-black dark:hover:text-white p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -262,9 +262,9 @@ export default function FloatingStoryWindow() {
               <button
                 type="button"
                 onClick={handleCreateNewStory}
-                className="w-full text-start flex items-center gap-2 p-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-900 text-xs font-semibold mb-2 transition-colors"
+                className="w-full text-start flex items-center gap-2 p-2 rounded-lg bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/15 text-neutral-900 dark:text-white text-xs font-semibold mb-2 transition-colors"
               >
-                <Plus className="w-3.5 h-3.5 text-black" />
+                <Plus className="w-3.5 h-3.5 text-black dark:text-white" />
                 <span>{t('createNewStoryInEditor', language)}</span>
               </button>
 
@@ -274,7 +274,7 @@ export default function FloatingStoryWindow() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('sideBySideSearch', language)}
-                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-black mb-2"
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-800 text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white mb-2"
               />
 
               {/* List of other stories */}
@@ -285,9 +285,9 @@ export default function FloatingStoryWindow() {
                       key={story.id}
                       type="button"
                       onClick={() => handleOpenAnotherStory(story.id)}
-                      className="w-full text-start p-2 rounded-lg hover:bg-neutral-100 transition-colors flex flex-col gap-0.5"
+                      className="w-full text-start p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors flex flex-col gap-0.5"
                     >
-                      <span className="text-xs font-medium text-neutral-900 truncate">
+                      <span className="text-xs font-medium text-neutral-900 dark:text-white truncate">
                         {story.title || t('untitled', language)}
                       </span>
                       <span className="text-[10px] text-neutral-400">
@@ -311,7 +311,7 @@ export default function FloatingStoryWindow() {
       </div>
 
       {/* Floating Story Content Body */}
-      <div className="flex-1 overflow-y-auto p-4 max-h-[50vh] min-h-[160px] bg-white text-neutral-900 text-sm leading-relaxed">
+      <div className="flex-1 overflow-y-auto p-4 max-h-[50vh] min-h-[160px] bg-white dark:bg-[#1C1C1E] text-neutral-900 dark:text-neutral-100 text-sm leading-relaxed">
         {isEditing ? (
           <textarea
             value={rawText}
@@ -320,12 +320,12 @@ export default function FloatingStoryWindow() {
               updateFloatingStoryContent(html);
             }}
             placeholder={t('noContentYet', language)}
-            className="w-full h-full min-h-[200px] border-none focus:outline-none resize-none font-sans text-right text-sm leading-relaxed"
+            className="w-full h-full min-h-[200px] border-none focus:outline-none resize-none font-sans text-right text-sm leading-relaxed bg-transparent text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-600"
             dir="rtl"
           />
         ) : (
           <div
-            className="prose prose-neutral prose-sm max-w-none text-right font-sans"
+            className="prose prose-neutral dark:prose-invert prose-sm max-w-none text-right font-sans"
             dir="rtl"
             dangerouslySetInnerHTML={{
               __html: floatingStory.content || `<p class="text-neutral-400">${t('noContentYet', language)}</p>`,
@@ -335,13 +335,13 @@ export default function FloatingStoryWindow() {
       </div>
 
       {/* Floating Window Footer */}
-      <div className="bg-neutral-50/90 border-t border-neutral-200/80 px-3.5 py-2 flex items-center justify-between text-[11px] text-neutral-500">
+      <div className="bg-neutral-50/90 dark:bg-white/5 border-t border-neutral-200/80 dark:border-white/10 px-3.5 py-2 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
         <span>{t('floatingStoryActive', language)}</span>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleOpenInFullEditor}
-            className="font-bold text-neutral-900 hover:underline flex items-center gap-1 cursor-pointer"
+            className="font-bold text-neutral-900 dark:text-white hover:underline flex items-center gap-1 cursor-pointer"
           >
             <span>{t('returnToFullEditor', language)}</span>
             <ExternalLink className="w-3 h-3" />

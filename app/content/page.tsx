@@ -451,7 +451,7 @@ function ContentManager() {
   };
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden bg-[#F5F5F7] text-neutral-900">
+    <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden bg-[#F5F5F7] dark:bg-[#121214] text-neutral-900 dark:text-neutral-100">
       
       {/* Toast Notification - Apple Pill */}
       <AnimatePresence>
@@ -460,7 +460,7 @@ function ContentManager() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/90 backdrop-blur-xl text-white border border-white/10 px-4 py-2 text-xs font-semibold shadow-xl rounded-full flex items-center gap-2"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/90 dark:bg-[#1C1C1E]/95 backdrop-blur-xl text-white border border-white/10 px-4 py-2 text-xs font-semibold shadow-xl rounded-full flex items-center gap-2"
           >
             <span>{toastNotification.message}</span>
             <button onClick={() => setToastNotification(null)} className="text-neutral-400 hover:text-white cursor-pointer">
@@ -471,12 +471,12 @@ function ContentManager() {
       </AnimatePresence>
 
       {/* Desktop Left/Right Hierarchy Panel - Apple macOS Finder Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-white/80 backdrop-blur-xl border-e border-black/5 shrink-0 select-none">
+      <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-e border-black/5 dark:border-white/10 shrink-0 select-none">
         
         {/* Panel Header */}
-        <div className="p-3 border-b border-black/5 space-y-2.5">
+        <div className="p-3 border-b border-black/5 dark:border-white/10 space-y-2.5">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold text-xs text-neutral-900 flex items-center gap-2 uppercase tracking-tight">
+            <h2 className="font-bold text-xs text-neutral-900 dark:text-white flex items-center gap-2 uppercase tracking-tight">
               {/* Traffic lights decoration */}
               <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] inline-block"></span>
               <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] inline-block"></span>
@@ -485,7 +485,7 @@ function ContentManager() {
             </h2>
             <button
               onClick={() => openAddFolder()}
-              className="p-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl transition-all border border-black/5 active:scale-95 cursor-pointer"
+              className="p-1.5 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-800 dark:text-neutral-200 rounded-xl transition-all border border-black/5 dark:border-white/10 active:scale-95 cursor-pointer"
               title={t('createFolder', language)}
             >
               <FolderPlus className="w-3.5 h-3.5" />
@@ -493,11 +493,11 @@ function ContentManager() {
           </div>
 
           {/* Apple Segmented Tabs */}
-          <div className="grid grid-cols-3 gap-1 bg-neutral-200/60 p-1 rounded-xl text-xs font-medium">
+          <div className="grid grid-cols-3 gap-1 bg-neutral-200/60 dark:bg-black/40 p-1 rounded-xl text-xs font-medium">
             <button
               onClick={() => setViewMode('folders')}
               className={`py-1 px-1.5 rounded-lg text-center truncate transition-all cursor-pointer ${
-                viewMode === 'folders' ? 'bg-white text-neutral-900 shadow-xs font-bold' : 'text-neutral-600 hover:text-black'
+                viewMode === 'folders' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs font-bold' : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
               }`}
             >
               {t('viewFoldersMode', language)}
@@ -505,7 +505,7 @@ function ContentManager() {
             <button
               onClick={() => setViewMode('all')}
               className={`py-1 px-1.5 rounded-lg text-center truncate transition-all cursor-pointer ${
-                viewMode === 'all' ? 'bg-white text-neutral-900 shadow-xs font-bold' : 'text-neutral-600 hover:text-black'
+                viewMode === 'all' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs font-bold' : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
               }`}
             >
               {t('allStories', language)}
@@ -513,7 +513,7 @@ function ContentManager() {
             <button
               onClick={() => setViewMode('favorites')}
               className={`py-1 px-1.5 rounded-lg text-center truncate transition-all cursor-pointer ${
-                viewMode === 'favorites' ? 'bg-white text-neutral-900 shadow-xs font-bold' : 'text-neutral-600 hover:text-black'
+                viewMode === 'favorites' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs font-bold' : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
               }`}
             >
               ⭐ ({favoriteStories.length})
@@ -522,34 +522,34 @@ function ContentManager() {
 
           {/* Quick Search - Apple Input */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-neutral-400 absolute right-2.5 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500 absolute right-2.5 top-2.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={language === 'ar' ? 'بحث سريع...' : 'Search...'}
-              className="w-full bg-neutral-100/80 border border-black/5 rounded-xl pr-8 pl-3 py-1.5 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+              className="w-full bg-neutral-100/80 dark:bg-[#252528] border border-black/5 dark:border-white/10 rounded-xl pr-8 pl-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:bg-white dark:focus:bg-[#1C1C1E] focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
 
         {/* Folder Tree List */}
-        <div className="flex-1 overflow-y-auto p-2.5 space-y-1">
+        <div className="flex-1 overflow-y-auto p-2.5 pb-28 md:pb-8 space-y-1">
           {viewMode === 'folders' && (
             <>
               <button
                 onClick={() => handleSelectFolder(null)}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl transition-all text-xs cursor-pointer ${
                   selectedFolderId === null
-                    ? 'bg-neutral-900 text-white font-bold shadow-xs'
-                    : 'text-neutral-700 hover:bg-black/5'
+                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-black font-bold shadow-xs'
+                    : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10'
                 }`}
               >
                 <div className="flex items-center gap-2 truncate">
                   <LayoutGrid className="w-4 h-4 shrink-0 text-blue-500" />
                   <span className="truncate">{t('allFoldersOverview', language)}</span>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderId === null ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderId === null ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black' : 'bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-neutral-400'}`}>
                   {activeFolders.length}
                 </span>
               </button>
@@ -561,12 +561,12 @@ function ContentManager() {
           )}
 
           {viewMode === 'favorites' && (
-            <div className="p-3 rounded-2xl bg-neutral-50 border border-black/5 text-xs space-y-1.5">
-              <div className="font-bold flex items-center gap-1.5 text-neutral-900">
+            <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252528] border border-black/5 dark:border-white/10 text-xs space-y-1.5">
+              <div className="font-bold flex items-center gap-1.5 text-neutral-900 dark:text-white">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
                 <span>{t('favoritesList', language)}</span>
               </div>
-              <p className="text-[11px] text-neutral-500 leading-relaxed">
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
                 {t('favoritesDesc', language)}
               </p>
             </div>
@@ -577,11 +577,11 @@ function ContentManager() {
               <button
                 onClick={() => setSelectedFolderFilter('all')}
                 className={`w-full text-right px-2.5 py-1.5 text-xs rounded-xl transition-all flex items-center justify-between cursor-pointer ${
-                  selectedFolderFilter === 'all' ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'text-neutral-700 hover:bg-black/5'
+                  selectedFolderFilter === 'all' ? 'bg-neutral-900 dark:bg-white text-white dark:text-black font-bold shadow-xs' : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10'
                 }`}
               >
                 <span>{t('allFolders', language)}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderFilter === 'all' ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderFilter === 'all' ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black' : 'bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-neutral-400'}`}>
                   {activeStories.length}
                 </span>
               </button>
@@ -592,11 +592,11 @@ function ContentManager() {
                     key={f.id}
                     onClick={() => setSelectedFolderFilter(f.id)}
                     className={`w-full text-right px-2.5 py-1.5 text-xs rounded-xl transition-all flex items-center justify-between cursor-pointer ${
-                      selectedFolderFilter === f.id ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'text-neutral-700 hover:bg-black/5'
+                      selectedFolderFilter === f.id ? 'bg-neutral-900 dark:bg-white text-white dark:text-black font-bold shadow-xs' : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                   >
                     <span className="truncate">{f.name}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderFilter === f.id ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${selectedFolderFilter === f.id ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black' : 'bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-neutral-400'}`}>
                       {count}
                     </span>
                   </button>
@@ -611,14 +611,14 @@ function ContentManager() {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         
         {/* Top Control Bar: Apple macOS Finder Toolbar */}
-        <div className="bg-white/80 backdrop-blur-xl border-b border-black/5 px-4 py-2.5 shrink-0 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+        <div className="bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/10 px-4 py-2.5 shrink-0 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
           
           {/* Breadcrumbs / View Title */}
           <div className="flex items-center gap-2 text-xs font-semibold overflow-x-auto min-w-0">
             {/* Mobile Drawer Trigger */}
             <button
               onClick={() => setIsMobileFolderDrawerOpen(true)}
-              className="md:hidden p-1.5 border border-black/5 bg-neutral-100 text-black rounded-xl cursor-pointer"
+              className="md:hidden p-1.5 border border-black/5 dark:border-white/10 bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 rounded-xl cursor-pointer"
               title="القائمة"
             >
               <FolderIcon className="w-4 h-4 text-blue-500" />
@@ -626,7 +626,7 @@ function ContentManager() {
 
             <button
               onClick={() => handleSelectFolder(null)}
-              className="hover:text-blue-600 transition-colors flex items-center gap-1.5 text-neutral-700 cursor-pointer"
+              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300 cursor-pointer"
             >
               <LayoutGrid className="w-4 h-4 text-blue-500" />
               <span>{language === 'ar' ? 'المحتوى' : 'Content'}</span>
@@ -634,14 +634,14 @@ function ContentManager() {
 
             {viewMode === 'folders' && selectedFolder && (
               <>
-                <span className="text-neutral-300">/</span>
+                <span className="text-neutral-300 dark:text-neutral-600">/</span>
                 {breadcrumbs.map((crumb, idx) => (
                   <div key={crumb.id} className="flex items-center gap-1.5">
-                    {idx > 0 && <span className="text-neutral-300">/</span>}
+                    {idx > 0 && <span className="text-neutral-300 dark:text-neutral-600">/</span>}
                     <button
                       onClick={() => handleSelectFolder(crumb.id)}
-                      className={`hover:text-blue-600 transition-colors truncate max-w-[140px] cursor-pointer ${
-                        idx === breadcrumbs.length - 1 ? 'font-bold text-neutral-900' : 'text-neutral-500 font-medium'
+                      className={`hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate max-w-[140px] cursor-pointer ${
+                        idx === breadcrumbs.length - 1 ? 'font-bold text-neutral-900 dark:text-white' : 'text-neutral-500 dark:text-neutral-400 font-medium'
                       }`}
                     >
                       {crumb.name}
@@ -653,20 +653,20 @@ function ContentManager() {
 
             {viewMode === 'all' && (
               <>
-                <span className="text-neutral-300">/</span>
-                <span className="font-bold text-neutral-900">{t('allStories', language)}</span>
+                <span className="text-neutral-300 dark:text-neutral-600">/</span>
+                <span className="font-bold text-neutral-900 dark:text-white">{t('allStories', language)}</span>
               </>
             )}
 
             {viewMode === 'favorites' && (
               <>
-                <span className="text-neutral-300">/</span>
-                <span className="font-bold text-neutral-900">{t('favoritesList', language)}</span>
+                <span className="text-neutral-300 dark:text-neutral-600">/</span>
+                <span className="font-bold text-neutral-900 dark:text-white">{t('favoritesList', language)}</span>
               </>
             )}
 
-            <span className="text-neutral-300">|</span>
-            <span className="text-[11px] text-neutral-500 font-medium bg-neutral-100 px-2 py-0.5 rounded-full">
+            <span className="text-neutral-300 dark:text-neutral-600">|</span>
+            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium bg-neutral-100 dark:bg-white/10 px-2 py-0.5 rounded-full">
               {filteredStories.length} {language === 'ar' ? 'نص' : 'texts'}
             </span>
           </div>
@@ -676,7 +676,7 @@ function ContentManager() {
             {/* New Story Button */}
             <Link
               href={selectedFolderId ? `/editor/new?folderId=${encodeURIComponent(selectedFolderId)}` : '/editor/new'}
-              className="px-3.5 py-1.5 bg-neutral-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              className="px-3.5 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-neutral-200 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{t('newStory', language)}</span>
@@ -685,19 +685,19 @@ function ContentManager() {
             {/* New Folder Button */}
             <button
               onClick={() => openAddFolder(selectedFolderId || undefined)}
-              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-800 font-semibold text-xs rounded-xl border border-black/5 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              className="px-3 py-1.5 bg-white dark:bg-[#2C2C2E] hover:bg-neutral-100 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 font-semibold text-xs rounded-xl border border-black/5 dark:border-white/10 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
             >
-              <FolderPlus className="w-3.5 h-3.5 text-blue-600" />
+              <FolderPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span>{t('createFolder', language)}</span>
             </button>
 
             {/* Smart Clipboard Paste Button */}
             <button
               onClick={handlePasteStory}
-              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-800 font-semibold text-xs rounded-xl border border-black/5 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              className="px-3 py-1.5 bg-white dark:bg-[#2C2C2E] hover:bg-neutral-100 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 font-semibold text-xs rounded-xl border border-black/5 dark:border-white/10 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
               title={language === 'ar' ? 'إنشاء قصة مباشرة من نص الحافظة' : 'Create from clipboard'}
             >
-              <Clipboard className="w-3.5 h-3.5 text-neutral-600" />
+              <Clipboard className="w-3.5 h-3.5 text-neutral-600 dark:text-neutral-400" />
               <span className="hidden sm:inline">{language === 'ar' ? 'لصق قصة' : 'Paste'}</span>
             </button>
 
@@ -705,20 +705,20 @@ function ContentManager() {
             <button
               onClick={handleExportFolderWord}
               disabled={filteredStories.length === 0}
-              className="px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-800 disabled:opacity-40 font-semibold text-xs rounded-xl border border-black/5 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              className="px-3 py-1.5 bg-white dark:bg-[#2C2C2E] hover:bg-neutral-100 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 disabled:opacity-40 font-semibold text-xs rounded-xl border border-black/5 dark:border-white/10 shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
               title={t('downloadWord', language)}
             >
-              <FileDown className="w-3.5 h-3.5 text-neutral-600" />
+              <FileDown className="w-3.5 h-3.5 text-neutral-600 dark:text-neutral-400" />
               <span className="hidden sm:inline">Word</span>
             </button>
           </div>
         </div>
 
         {/* Filter Strip: Apple macOS Filter Controls */}
-        <div className="bg-neutral-100/70 border-b border-black/5 px-4 py-2 shrink-0 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+        <div className="bg-neutral-100/70 dark:bg-[#252528] border-b border-black/5 dark:border-white/10 px-4 py-2 shrink-0 flex flex-wrap items-center justify-between gap-2.5 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-bold text-neutral-500 flex items-center gap-1">
-              <Filter className="w-3 h-3 text-neutral-500" />
+            <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+              <Filter className="w-3 h-3 text-neutral-500 dark:text-neutral-400" />
               <span>{language === 'ar' ? 'تصفية:' : 'Filter:'}</span>
             </span>
 
@@ -726,7 +726,7 @@ function ContentManager() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-white border border-black/5 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+              className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
             >
               <option value="all">{t('allStatuses', language)}</option>
               <option value="draft">{t('draft', language)}</option>
@@ -742,7 +742,7 @@ function ContentManager() {
                   setSelectedYear(e.target.value);
                   setSelectedMonth('all');
                 }}
-                className="bg-white border border-black/5 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+                className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
               >
                 <option value="all">{t('allYears', language)}</option>
                 {availableYears.map(year => (
@@ -756,7 +756,7 @@ function ContentManager() {
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-white border border-black/5 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+                className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-xl px-2.5 py-1 text-xs font-semibold text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
               >
                 <option value="all">{t('allMonths', language)}</option>
                 {availableMonths.map(month => (
@@ -767,11 +767,11 @@ function ContentManager() {
           </div>
 
           {/* Layout Toggle: Apple Segmented Pill */}
-          <div className="flex items-center gap-0.5 bg-neutral-200/60 p-0.5 rounded-xl">
+          <div className="flex items-center gap-0.5 bg-neutral-200/60 dark:bg-black/40 p-0.5 rounded-xl">
             <button
               onClick={() => setDisplayLayout('grid')}
               className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                displayLayout === 'grid' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-black'
+                displayLayout === 'grid' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white'
               }`}
               title="عرض شبكة"
             >
@@ -780,7 +780,7 @@ function ContentManager() {
             <button
               onClick={() => setDisplayLayout('table')}
               className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                displayLayout === 'table' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-black'
+                displayLayout === 'table' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white'
               }`}
               title="عرض جدول / قائمة"
             >
@@ -789,46 +789,49 @@ function ContentManager() {
           </div>
         </div>
 
-        {/* Workspace Body: Compact Padding & Sharp Lines */}
-        <div className="p-3 md:p-4 space-y-3 flex-1">
+        {/* Workspace Body: Apple macOS Space with Bottom Dock Clearance */}
+        <div className="p-3 md:p-6 pb-36 md:pb-16 space-y-4 flex-1">
           
           {/* VIEW MODE: FOLDERS OVERVIEW (when no specific folder is selected) */}
           {viewMode === 'folders' && !selectedFolderId && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {/* Overview Subheader */}
-              <div className="flex items-center justify-between border-b border-neutral-300 pb-2">
+              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-3">
                 <div>
-                  <h1 className="text-base font-bold text-neutral-900 font-serif">
+                  <h1 className="text-base md:text-lg font-bold text-neutral-900 dark:text-white tracking-tight">
                     {t('allFoldersOverview', language)}
                   </h1>
-                  <p className="text-neutral-500 text-xs">
+                  <p className="text-neutral-500 dark:text-neutral-400 text-xs">
                     {t('foldersGridSub', language)}
                   </p>
                 </div>
                 <button
                   onClick={() => openAddFolder()}
-                  className="px-2.5 py-1 bg-black text-white text-xs font-bold rounded-none hover:bg-neutral-800 flex items-center gap-1"
+                  className="px-3.5 py-1.5 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>{t('addNewFolder', language)}</span>
                 </button>
               </div>
 
-              {/* Folders Grid - Sharp rectangular cards, compact spacing */}
+              {/* Folders Display in BOTH Styles: Grid and Table/List */}
               {activeFolders.length === 0 ? (
-                <div className="text-center py-10 bg-white border border-neutral-300 border-dashed p-4 space-y-2">
-                  <FolderIcon className="w-8 h-8 text-neutral-400 mx-auto" />
-                  <h3 className="text-sm font-bold text-neutral-800">{t('noFoldersYet', language)}</h3>
-                  <p className="text-xs text-neutral-500">{t('noFoldersSub', language)}</p>
+                <div className="text-center py-12 bg-white dark:bg-[#1C1C1E] rounded-3xl border border-black/5 dark:border-white/10 border-dashed p-6 space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-500 flex items-center justify-center mx-auto">
+                    <FolderIcon className="w-6 h-6 fill-blue-500/20" />
+                  </div>
+                  <h3 className="text-sm font-bold text-neutral-800 dark:text-neutral-200">{t('noFoldersYet', language)}</h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">{t('noFoldersSub', language)}</p>
                   <button
                     onClick={() => openAddFolder()}
-                    className="mt-2 px-3 py-1.5 bg-black text-white text-xs font-bold rounded-none hover:bg-neutral-800"
+                    className="mt-2 px-4 py-2 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
                   >
                     {t('addFolderNow', language)}
                   </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+              ) : displayLayout === 'grid' ? (
+                /* STYLE 1: APPLE MACOS FINDER GRID / ICONS STYLE */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
                   {activeFolders.map((folder) => {
                     const storyCount = activeStories.filter(s => s.folderId === folder.id).length;
                     const subCount = activeFolders.filter(f => f.parentId === folder.id).length;
@@ -836,30 +839,37 @@ function ContentManager() {
                     return (
                       <div
                         key={folder.id}
-                        className="bg-white border border-neutral-300 hover:border-black rounded-none transition-colors p-3 flex flex-col justify-between space-y-2.5 group"
+                        onClick={() => handleSelectFolder(folder.id)}
+                        className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 p-4 flex flex-col justify-between space-y-3 shadow-2xs hover:shadow-md transition-all group cursor-pointer"
                       >
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 bg-neutral-100 border border-neutral-300 rounded-none flex items-center justify-center text-black">
-                                <FolderIcon className="w-4 h-4" />
+                        <div className="space-y-2.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                                <FolderIcon className="w-5 h-5 fill-blue-500/20" />
                               </div>
-                              <span className="font-bold text-xs text-neutral-900 truncate max-w-[140px] font-serif">
-                                {folder.name}
-                              </span>
+                              <div className="min-w-0">
+                                <h3 className="font-bold text-sm text-neutral-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                  {folder.name}
+                                </h3>
+                                <span className="text-[11px] text-neutral-400 dark:text-neutral-500 font-medium">
+                                  {subCount > 0 ? `${subCount} ${language === 'ar' ? 'مجلد فرعي' : 'subfolders'}` : (language === 'ar' ? 'مجلد رئيسي' : 'Root folder')}
+                                </span>
+                              </div>
                             </div>
 
-                            <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100">
+                            {/* Actions on folder */}
+                            <div className="flex items-center gap-0.5 shrink-0 opacity-80 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
                               <button
                                 onClick={() => openEditFolder(folder)}
-                                className="p-1 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-none"
+                                className="p-1.5 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                                 title={t('editFolder', language)}
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => setItemToDelete({ id: folder.id, type: 'folder' })}
-                                className="p-1 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-none"
+                                className="p-1.5 text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer"
                                 title={t('deleteFolder', language)}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -867,26 +877,33 @@ function ContentManager() {
                             </div>
                           </div>
 
-                          {/* Unboxed Metadata */}
-                          <div className="text-[11px] text-neutral-500 flex items-center gap-2">
-                            <span>{storyCount} {language === 'ar' ? 'قصة' : 'stories'}</span>
-                            <span>·</span>
-                            <span>{subCount} {language === 'ar' ? 'فرعي' : 'sub'}</span>
+                          {/* Statistics Badges */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
+                              <span>{storyCount}</span>
+                              <span className="text-[10px] text-neutral-500 dark:text-neutral-400">{language === 'ar' ? 'قصة' : 'stories'}</span>
+                            </span>
+                            {subCount > 0 && (
+                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                                <span>{subCount}</span>
+                                <span className="text-[10px] text-blue-500 dark:text-blue-400">{language === 'ar' ? 'فرعي' : 'sub'}</span>
+                              </span>
+                            )}
                           </div>
                         </div>
 
                         {/* Card Action Footer */}
-                        <div className="pt-2 border-t border-neutral-200 flex items-center justify-between text-xs">
+                        <div className="pt-2.5 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-xs" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => handleSelectFolder(folder.id)}
-                            className="font-bold text-black hover:underline flex items-center gap-1"
+                            className="font-bold text-neutral-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 transition-colors cursor-pointer"
                           >
                             <span>{language === 'ar' ? 'فتح المجلد' : 'Open'}</span>
                             <ChevronIcon className="w-3 h-3" />
                           </button>
                           <Link
                             href={`/editor/new?folderId=${encodeURIComponent(folder.id)}`}
-                            className="text-neutral-500 hover:text-black flex items-center gap-1 text-[11px]"
+                            className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 px-2 py-1 rounded-lg flex items-center gap-1 text-[11px] transition-colors cursor-pointer"
                             title={t('writeNewStoryInFolder', language)}
                           >
                             <Plus className="w-3 h-3" />
@@ -897,22 +914,120 @@ function ContentManager() {
                     );
                   })}
                 </div>
+              ) : (
+                /* STYLE 2: APPLE MACOS FINDER TABLE / LIST STYLE */
+                <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 shadow-2xs overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-neutral-50/80 dark:bg-[#252528] text-neutral-500 dark:text-neutral-400 border-b border-black/5 dark:border-white/10 font-semibold">
+                        <tr>
+                          <th className="p-3.5">{language === 'ar' ? 'اسم المجلد' : 'Folder Name'}</th>
+                          <th className="p-3.5 text-center">{language === 'ar' ? 'عدد النصوص والقصص' : 'Stories'}</th>
+                          <th className="p-3.5 text-center">{language === 'ar' ? 'المجلدات الفرعية' : 'Subfolders'}</th>
+                          <th className="p-3.5 text-center">{language === 'ar' ? 'النوع / المستوى' : 'Type'}</th>
+                          <th className="p-3.5 text-left">{language === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5 dark:divide-white/10">
+                        {activeFolders.map((folder) => {
+                          const storyCount = activeStories.filter(s => s.folderId === folder.id).length;
+                          const subCount = activeFolders.filter(f => f.parentId === folder.id).length;
+                          const isSub = !!folder.parentId;
+                          const parentFolder = folder.parentId ? folderMap.get(folder.parentId) : null;
+
+                          return (
+                            <tr
+                              key={folder.id}
+                              className="hover:bg-neutral-50/80 dark:hover:bg-white/5 transition-colors group cursor-pointer"
+                              onClick={() => handleSelectFolder(folder.id)}
+                            >
+                              <td className="p-3.5">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <FolderIcon className="w-4 h-4 fill-blue-500/20" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="font-bold text-sm text-neutral-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors block truncate">
+                                      {folder.name}
+                                    </span>
+                                    {parentFolder && (
+                                      <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                                        {language === 'ar' ? `داخل: ${parentFolder.name}` : `Inside: ${parentFolder.name}`}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-3.5 text-center">
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300">
+                                  {storyCount} {language === 'ar' ? 'قصة' : 'stories'}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-center">
+                                <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${subCount > 0 ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300' : 'text-neutral-400 dark:text-neutral-500'}`}>
+                                  {subCount} {language === 'ar' ? 'فرعي' : 'sub'}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-center">
+                                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                                  {isSub ? (language === 'ar' ? 'مجلد فرعي' : 'Subfolder') : (language === 'ar' ? 'رئيسي' : 'Root')}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-left" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => handleSelectFolder(folder.id)}
+                                    className="px-2.5 py-1 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-900 dark:text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <span>{language === 'ar' ? 'فتح' : 'Open'}</span>
+                                    <ChevronIcon className="w-3 h-3" />
+                                  </button>
+                                  <Link
+                                    href={`/editor/new?folderId=${encodeURIComponent(folder.id)}`}
+                                    className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+                                    title={t('writeNewStoryInFolder', language)}
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </Link>
+                                  <button
+                                    onClick={() => openEditFolder(folder)}
+                                    className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+                                    title={t('editFolder', language)}
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setItemToDelete({ id: folder.id, type: 'folder' })}
+                                    className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors cursor-pointer"
+                                    title={t('deleteFolder', language)}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               )}
             </div>
           )}
 
           {/* VIEW MODE: SPECIFIC FOLDER SELECTED */}
           {viewMode === 'folders' && selectedFolder && (
-            <div className="space-y-3">
-              {/* Folder Banner: Sharp Box, Compact */}
-              <div className="bg-white border border-neutral-300 rounded-none p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-neutral-100 border border-neutral-300 rounded-none flex items-center justify-center text-black shrink-0">
-                    <FolderOpen className="w-5 h-5" />
+            <div className="space-y-4">
+              {/* Folder Banner: Apple macOS Card */}
+              <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
+                    <FolderOpen className="w-5 h-5 fill-blue-500/20" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-neutral-900 font-serif leading-tight">{selectedFolder.name}</h2>
-                    <p className="text-[11px] text-neutral-500 mt-0.5">
+                    <h2 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight leading-tight">{selectedFolder.name}</h2>
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                       <span>{filteredStories.length} {language === 'ar' ? 'نص مكتوب' : 'written texts'}</span>
                       {currentSubFolders.length > 0 && <span> · {currentSubFolders.length} {language === 'ar' ? 'مجلد فرعي' : 'subfolders'}</span>}
                     </p>
@@ -922,50 +1037,85 @@ function ContentManager() {
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <button
                     onClick={() => openAddFolder(selectedFolder.id)}
-                    className="px-2.5 py-1 bg-white hover:bg-neutral-100 text-black border border-neutral-300 rounded-none text-xs font-bold flex items-center gap-1"
+                    className="px-3 py-1.5 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                   >
-                    <FolderPlus className="w-3 h-3" />
+                    <FolderPlus className="w-3.5 h-3.5" />
                     <span>{t('createSubFolder', language)}</span>
                   </button>
                   <button
                     onClick={() => openEditFolder(selectedFolder)}
-                    className="px-2.5 py-1 bg-white hover:bg-neutral-100 text-neutral-700 hover:text-black border border-neutral-300 rounded-none text-xs font-bold flex items-center gap-1"
+                    className="px-3 py-1.5 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-800 dark:text-neutral-200 text-xs font-semibold rounded-xl border border-black/5 dark:border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Edit2 className="w-3 h-3" />
+                    <Edit2 className="w-3.5 h-3.5" />
                     <span>{t('renameFolder', language)}</span>
                   </button>
                   <button
                     onClick={() => setItemToDelete({ id: selectedFolder.id, type: 'folder' })}
-                    className="px-2.5 py-1 bg-white hover:bg-neutral-100 text-neutral-700 hover:text-black border border-neutral-300 rounded-none text-xs font-bold flex items-center gap-1"
+                    className="px-3 py-1.5 bg-neutral-100 dark:bg-white/10 hover:bg-red-50 dark:hover:bg-red-950/30 text-neutral-700 dark:text-neutral-300 hover:text-red-600 dark:hover:text-red-400 text-xs font-semibold rounded-xl border border-black/5 dark:border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                     <span>{t('deleteFolder', language)}</span>
                   </button>
                 </div>
               </div>
 
-              {/* Subfolders row if any */}
+              {/* Subfolders section if any - adapts to displayLayout */}
               {currentSubFolders.length > 0 && (
-                <div className="bg-neutral-50 border border-neutral-200 p-2.5 space-y-1.5">
-                  <div className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider flex items-center gap-1">
-                    <FolderIcon className="w-3 h-3 text-black" />
-                    <span>{t('subFolders', language)}</span>
+                <div className="bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/10 p-3.5 space-y-2.5 shadow-2xs">
+                  <div className="text-xs font-bold text-neutral-700 dark:text-neutral-300 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <FolderIcon className="w-3.5 h-3.5 text-blue-500" />
+                      <span>{t('subFolders', language)} ({currentSubFolders.length})</span>
+                    </div>
+                    <button
+                      onClick={() => openAddFolder(selectedFolder.id)}
+                      className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>{t('createSubFolder', language)}</span>
+                    </button>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {currentSubFolders.map(sub => (
-                      <button
-                        key={sub.id}
-                        onClick={() => handleSelectFolder(sub.id)}
-                        className="px-2.5 py-1 bg-white hover:bg-black hover:text-white text-neutral-900 border border-neutral-300 rounded-none text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                      >
-                        <FolderIcon className="w-3 h-3" />
-                        <span>{sub.name}</span>
-                        <span className="text-[10px] opacity-70 font-mono">
-                          ({activeStories.filter(s => s.folderId === sub.id).length})
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+
+                  {displayLayout === 'grid' ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                      {currentSubFolders.map(sub => (
+                        <button
+                          key={sub.id}
+                          onClick={() => handleSelectFolder(sub.id)}
+                          className="p-2.5 bg-neutral-50 dark:bg-[#252528] hover:bg-blue-50/60 dark:hover:bg-blue-950/40 hover:border-blue-200 dark:hover:border-blue-800 border border-black/5 dark:border-white/10 rounded-xl text-xs font-medium flex items-center justify-between gap-2 transition-all cursor-pointer group text-right"
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <FolderIcon className="w-4 h-4 text-blue-500 shrink-0" />
+                            <span className="truncate group-hover:text-blue-700 dark:group-hover:text-blue-400 font-semibold text-neutral-900 dark:text-white">{sub.name}</span>
+                          </div>
+                          <span className="text-[10px] font-bold bg-neutral-200/70 dark:bg-white/10 group-hover:bg-blue-200/70 text-neutral-700 dark:text-neutral-300 group-hover:text-blue-800 px-1.5 py-0.2 rounded-full shrink-0">
+                            {activeStories.filter(s => s.folderId === sub.id).length}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-black/5 dark:divide-white/10 bg-neutral-50 dark:bg-[#252528] rounded-xl overflow-hidden border border-black/5 dark:border-white/10">
+                      {currentSubFolders.map(sub => (
+                        <div
+                          key={sub.id}
+                          onClick={() => handleSelectFolder(sub.id)}
+                          className="p-2.5 flex items-center justify-between hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-xs"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <FolderIcon className="w-4 h-4 text-blue-500" />
+                            <span className="font-semibold text-neutral-900 dark:text-white">{sub.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                              {activeStories.filter(s => s.folderId === sub.id).length} {language === 'ar' ? 'قصة' : 'stories'}
+                            </span>
+                            <ChevronIcon className="w-3.5 h-3.5 text-neutral-400" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -989,16 +1139,16 @@ function ContentManager() {
           {/* VIEW MODE: ALL FILES (ARCHIVE) OR FAVORITES */}
           {(viewMode === 'all' || viewMode === 'favorites') && (
             <div className="space-y-3">
-              <div className="bg-white border border-neutral-300 rounded-none p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-neutral-100 border border-neutral-300 rounded-none flex items-center justify-center text-black">
-                    {viewMode === 'favorites' ? <Star className="w-4 h-4 fill-black text-black" /> : <Layers className="w-4 h-4" />}
+              <div className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-neutral-100 dark:bg-white/10 border border-black/5 dark:border-white/10 rounded-xl flex items-center justify-center text-neutral-900 dark:text-white">
+                    {viewMode === 'favorites' ? <Star className="w-4 h-4 fill-amber-400 text-amber-500" /> : <Layers className="w-4 h-4" />}
                   </div>
                   <div>
-                    <h2 className="text-sm md:text-base font-bold text-neutral-900 font-serif">
+                    <h2 className="text-sm md:text-base font-bold text-neutral-900 dark:text-white">
                       {viewMode === 'favorites' ? t('favoritesList', language) : t('browseAllFiles', language)}
                     </h2>
-                    <p className="text-[11px] text-neutral-500">
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                       {viewMode === 'favorites' ? t('favoritesDesc', language) : (language === 'ar' ? 'أرشيف جميع النصوص والقصص المكتوبة' : 'Complete archive of all written texts')}
                     </p>
                   </div>
@@ -1006,7 +1156,7 @@ function ContentManager() {
 
                 <Link
                   href="/editor/new"
-                  className="px-3 py-1 bg-black text-white rounded-none text-xs font-bold hover:bg-neutral-800 flex items-center gap-1"
+                  className="px-3.5 py-1.5 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>{t('newStory', language)}</span>
@@ -1033,25 +1183,25 @@ function ContentManager() {
         </div>
       </main>
 
-      {/* Manual Paste Modal (Smart Clipboard Fallback) - Sharp edges */}
+      {/* Manual Paste Modal (Smart Clipboard Fallback) - Apple Modal Style */}
       {isPasteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white border-2 border-black rounded-none shadow-2xl p-4 w-full max-w-lg space-y-3">
-            <div className="flex items-center justify-between border-b border-black/5 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl p-5 w-full max-w-lg space-y-3.5 text-neutral-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                   <Clipboard className="w-4 h-4" />
                 </div>
-                <h3 className="font-bold text-sm text-neutral-900">
+                <h3 className="font-bold text-sm text-neutral-900 dark:text-white">
                   {language === 'ar' ? 'إنشاء قصة من نص الحافظة' : 'Create Story from Clipboard'}
                 </h3>
               </div>
-              <button onClick={() => setIsPasteModalOpen(false)} className="text-neutral-400 hover:text-black p-1 rounded-lg transition-colors cursor-pointer">
+              <button onClick={() => setIsPasteModalOpen(false)} className="text-neutral-400 hover:text-black dark:hover:text-white p-1 rounded-lg transition-colors cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-neutral-600 leading-relaxed">
+            <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
               {language === 'ar' ? 'الصق النص المنسوخ أدناه لإنشاء قصة جديدة فوراً (السطر الأول سيكون العنوان):' : 'Paste your text below to create a new story immediately:'}
             </p>
 
@@ -1060,7 +1210,7 @@ function ContentManager() {
               value={manualPasteText}
               onChange={(e) => setManualPasteText(e.target.value)}
               placeholder={language === 'ar' ? 'الصق النص هنا...' : 'Paste text here...'}
-              className="w-full bg-neutral-50 border border-black/10 rounded-2xl p-3 text-xs text-neutral-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 font-sans leading-relaxed"
+              className="w-full bg-neutral-50 dark:bg-[#2C2C2E] border border-black/10 dark:border-white/10 rounded-2xl p-3 text-xs text-neutral-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#2C2C2E] focus:ring-2 focus:ring-blue-500/20 font-sans leading-relaxed"
               autoFocus
             />
 
@@ -1073,13 +1223,13 @@ function ContentManager() {
                   }
                 }}
                 disabled={!manualPasteText.trim()}
-                className="flex-1 bg-neutral-900 hover:bg-black disabled:opacity-50 text-white py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
+                className="flex-1 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 disabled:opacity-50 text-white dark:text-black py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
               >
                 {language === 'ar' ? 'إنشاء القصة الآن' : 'Create Story Now'}
               </button>
               <button
                 onClick={() => setIsPasteModalOpen(false)}
-                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2.5 text-xs font-semibold rounded-xl border border-black/5 transition-all cursor-pointer"
+                className="flex-1 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-800 dark:text-neutral-200 py-2.5 text-xs font-semibold rounded-xl border border-black/5 dark:border-white/10 transition-all cursor-pointer"
               >
                 {language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
@@ -1091,15 +1241,15 @@ function ContentManager() {
       {/* Story Reader Modal - Apple macOS Reading Window */}
       {readingStory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden text-neutral-900 border border-black/8 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden text-neutral-900 dark:text-white border border-black/8 dark:border-white/10 animate-in fade-in zoom-in-95 duration-150">
             {/* Header */}
-            <div className="px-5 py-3.5 border-b border-black/5 flex items-center justify-between bg-neutral-50/70">
+            <div className="px-5 py-3.5 border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-neutral-50/70 dark:bg-[#252528]/80">
               <div className="min-w-0 flex-1 pr-3">
-                <div className="flex items-center gap-2 text-xs text-neutral-500 mb-1">
+                <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 mb-1">
                   <span className={`font-semibold px-2 py-0.5 rounded-full border text-[10px] ${
-                    readingStory.status === 'published' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' :
-                    readingStory.status === 'ready' ? 'bg-amber-50 text-amber-700 border-amber-200/60' :
-                    'bg-neutral-100 text-neutral-600 border-neutral-200/60'
+                    readingStory.status === 'published' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/40' :
+                    readingStory.status === 'ready' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-800/40' :
+                    'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-400 border-neutral-200/60 dark:border-white/10'
                   }`}>
                     {readingStory.status === 'published' ? t('published', language) : readingStory.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
                   </span>
@@ -1110,7 +1260,7 @@ function ContentManager() {
                     <span>· {readingStory.targetDate}</span>
                   )}
                 </div>
-                <h2 className="text-base font-bold text-neutral-900 truncate">
+                <h2 className="text-base font-bold text-neutral-900 dark:text-white truncate">
                   {readingStory.title || t('untitledStory', language)}
                 </h2>
               </div>
@@ -1118,14 +1268,14 @@ function ContentManager() {
               <div className="flex items-center gap-2 shrink-0">
                 <Link
                   href={`/editor/${readingStory.id}`}
-                  className="px-3 py-1.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+                  className="px-3 py-1.5 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                   <span>{t('editStory', language)}</span>
                 </Link>
                 <button
                   onClick={() => setReadingStory(null)}
-                  className="p-1.5 hover:bg-neutral-200/70 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-neutral-200/70 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1133,18 +1283,18 @@ function ContentManager() {
             </div>
 
             {/* Reading Story Text Content */}
-            <div className="p-6 md:p-8 overflow-y-auto flex-1 leading-relaxed text-sm max-w-none text-neutral-900 font-sans" dir="rtl">
+            <div className="p-6 md:p-8 overflow-y-auto flex-1 leading-relaxed text-sm max-w-none text-neutral-900 dark:text-neutral-100 font-sans" dir="rtl">
               <div dangerouslySetInnerHTML={{ __html: readingStory.content || `<p class="opacity-40">${t('noContentYet', language)}</p>` }} />
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 bg-neutral-50/70 border-t border-black/5 flex items-center justify-between text-xs">
-              <span className="text-[11px] text-neutral-500 font-medium">
+            <div className="px-5 py-3 bg-neutral-50/70 dark:bg-[#252528]/80 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-xs">
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
                 {readingStory.content ? readingStory.content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length : 0} {t('words', language)}
               </span>
               <button
                 onClick={() => setReadingStory(null)}
-                className="px-4 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-semibold rounded-xl text-xs border border-black/5 transition-all cursor-pointer"
+                className="px-4 py-1.5 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-800 dark:text-neutral-200 font-semibold rounded-xl text-xs border border-black/5 dark:border-white/10 transition-all cursor-pointer"
               >
                 {language === 'ar' ? 'إغلاق' : 'Close'}
               </button>
@@ -1156,41 +1306,41 @@ function ContentManager() {
       {/* Add / Edit Folder Modal - Apple macOS Window Style */}
       {isFolderModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-          <form onSubmit={handleSaveFolder} className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-md space-y-4 border border-black/8 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-black/5 pb-3">
+          <form onSubmit={handleSaveFolder} className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-md space-y-4 border border-black/8 dark:border-white/10 text-neutral-900 dark:text-white animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                   <FolderIcon className="w-4 h-4" />
                 </div>
-                <h3 className="font-bold text-neutral-900 text-sm">
+                <h3 className="font-bold text-neutral-900 dark:text-white text-sm">
                   {editingFolderId ? (language === 'ar' ? 'تعديل تسمية المجلد' : 'Edit Folder Name') : t('createFolder', language)}
                 </h3>
               </div>
-              <button type="button" onClick={() => setIsFolderModalOpen(false)} className="text-neutral-400 hover:text-black p-1 rounded-lg transition-colors cursor-pointer">
+              <button type="button" onClick={() => setIsFolderModalOpen(false)} className="text-neutral-400 hover:text-black dark:hover:text-white p-1 rounded-lg transition-colors cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-neutral-700 mb-1.5">{t('folderName', language)}</label>
+                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">{t('folderName', language)}</label>
                 <input
                   type="text"
                   required
                   value={folderForm.name}
                   onChange={(e) => setFolderForm({ ...folderForm, name: e.target.value })}
-                  className="w-full bg-neutral-50 border border-black/10 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full bg-neutral-50 dark:bg-[#2C2C2E] border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#2C2C2E] focus:ring-2 focus:ring-blue-500/20"
                   placeholder={t('folderNamePlaceholder', language)}
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 mb-1.5">{t('parentFolder', language)}</label>
+                <label className="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">{t('parentFolder', language)}</label>
                 <select
                   value={folderForm.parentId}
                   onChange={(e) => setFolderForm({ ...folderForm, parentId: e.target.value })}
-                  className="w-full bg-neutral-50 border border-black/10 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                  className="w-full bg-neutral-50 dark:bg-[#2C2C2E] border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#2C2C2E] focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
                 >
                   <option value="">{t('none', language)}</option>
                   {activeFolders.filter(f => f.id !== editingFolderId).map(f => (
@@ -1203,14 +1353,14 @@ function ContentManager() {
             <div className="flex items-center gap-2 pt-2">
               <button
                 type="submit"
-                className="flex-1 bg-neutral-900 hover:bg-black text-white py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
+                className="flex-1 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
               >
                 {t('save', language)}
               </button>
               <button
                 type="button"
                 onClick={() => setIsFolderModalOpen(false)}
-                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2.5 text-xs font-semibold rounded-xl border border-black/5 transition-all cursor-pointer"
+                className="flex-1 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-800 dark:text-neutral-200 py-2.5 text-xs font-semibold rounded-xl border border-black/5 dark:border-white/10 transition-all cursor-pointer"
               >
                 {language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
@@ -1226,26 +1376,26 @@ function ContentManager() {
         const targetStory = !isFolder ? stories.find(s => s.id === itemToDelete.id) : null;
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-            <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-sm space-y-4 border border-black/8 text-center animate-in fade-in zoom-in-95 duration-150">
-              <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-black border border-black/5 mx-auto flex items-center justify-center shadow-2xs">
+            <div className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-sm space-y-4 border border-black/8 dark:border-white/10 text-center animate-in fade-in zoom-in-95 duration-150">
+              <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-white/10 text-neutral-900 dark:text-white border border-black/5 dark:border-white/10 mx-auto flex items-center justify-center shadow-2xs">
                 <Trash2 className="w-6 h-6" />
               </div>
 
               <div>
-                <h3 className="font-bold text-neutral-900 text-base">
+                <h3 className="font-bold text-neutral-900 dark:text-white text-base">
                   {isFolder ? t('deleteFolder', language) : t('moveToTrash', language)}
                 </h3>
                 {isFolder && targetFolder && (
-                  <p className="font-semibold text-neutral-900 bg-neutral-100/80 rounded-xl p-2 mt-2 text-xs">
+                  <p className="font-semibold text-neutral-900 dark:text-white bg-neutral-100/80 dark:bg-white/10 rounded-xl p-2 mt-2 text-xs">
                     📁 {targetFolder.name}
                   </p>
                 )}
                 {!isFolder && targetStory && (
-                  <p className="font-semibold text-neutral-900 bg-neutral-100/80 rounded-xl p-2 mt-2 text-xs">
+                  <p className="font-semibold text-neutral-900 dark:text-white bg-neutral-100/80 dark:bg-white/10 rounded-xl p-2 mt-2 text-xs">
                     📄 {targetStory.title || t('untitledStory', language)}
                   </p>
                 )}
-                <p className="text-xs text-neutral-500 mt-2">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
                   {language === 'ar' ? 'سيتم نقل هذا العنصر إلى سلة المهملات، ويمكنك استعادته لاحقاً من الإعدادات.' : 'This item will be moved to the trash bin.'}
                 </p>
               </div>
@@ -1253,13 +1403,13 @@ function ContentManager() {
               <div className="flex items-center gap-2 pt-2">
                 <button
                   onClick={handleDeleteConfirm}
-                  className="flex-1 bg-black hover:bg-neutral-800 text-white py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 text-xs font-bold rounded-xl transition-all shadow-xs active:scale-95 cursor-pointer"
                 >
                   {language === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'}
                 </button>
                 <button
                   onClick={() => setItemToDelete(null)}
-                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 py-2.5 text-xs font-semibold rounded-xl border border-black/5 transition-all cursor-pointer"
+                  className="flex-1 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-800 dark:text-neutral-200 py-2.5 text-xs font-semibold rounded-xl border border-black/5 dark:border-white/10 transition-all cursor-pointer"
                 >
                   {language === 'ar' ? 'إلغاء' : 'Cancel'}
                 </button>
@@ -1272,25 +1422,25 @@ function ContentManager() {
       {/* Mobile Folder Drawer Modal - Apple Bottom Sheet */}
       {isMobileFolderDrawerOpen && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 backdrop-blur-sm md:hidden">
-          <div className="bg-white rounded-t-3xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border-t border-black/10">
-            <div className="p-4 border-b border-black/5 flex items-center justify-between">
-              <h3 className="font-bold text-sm text-neutral-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#1C1C1E] rounded-t-3xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border-t border-black/10 dark:border-white/10">
+            <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
+              <h3 className="font-bold text-sm text-neutral-900 dark:text-white flex items-center gap-2">
                 <FolderIcon className="w-4 h-4 text-blue-500" />
                 <span>{language === 'ar' ? 'اختيار مجلد' : 'Select Folder'}</span>
               </h3>
-              <button onClick={() => setIsMobileFolderDrawerOpen(false)} className="p-1.5 text-neutral-400 hover:text-black rounded-xl">
+              <button onClick={() => setIsMobileFolderDrawerOpen(false)} className="p-1.5 text-neutral-400 hover:text-black dark:hover:text-white rounded-xl">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-3 overflow-y-auto space-y-1 flex-1 text-xs">
+            <div className="p-3 pb-16 overflow-y-auto space-y-1.5 flex-1 text-xs">
               <button
                 onClick={() => {
                   handleSelectFolder(null);
                   setIsMobileFolderDrawerOpen(false);
                 }}
                 className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all ${
-                  selectedFolderId === null ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
+                  selectedFolderId === null ? 'bg-neutral-900 dark:bg-white text-white dark:text-black font-bold shadow-xs' : 'bg-neutral-50 dark:bg-white/5 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -1308,7 +1458,7 @@ function ContentManager() {
                     setIsMobileFolderDrawerOpen(false);
                   }}
                   className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all ${
-                    selectedFolderId === f.id ? 'bg-neutral-900 text-white font-bold shadow-xs' : 'bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
+                    selectedFolderId === f.id ? 'bg-neutral-900 dark:bg-white text-white dark:text-black font-bold shadow-xs' : 'bg-neutral-50 dark:bg-white/5 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/10'
                   }`}
                 >
                   <div className="flex items-center gap-2 truncate">
@@ -1322,13 +1472,13 @@ function ContentManager() {
               ))}
             </div>
 
-            <div className="p-3 border-t border-black/5 bg-neutral-50">
+            <div className="p-3 border-t border-black/5 dark:border-white/10 bg-neutral-50 dark:bg-[#252528]">
               <button
                 onClick={() => {
                   setIsMobileFolderDrawerOpen(false);
                   openAddFolder();
                 }}
-                className="w-full py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-xs"
+                className="w-full py-2.5 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{t('createNewFolder', language)}</span>
@@ -1374,15 +1524,15 @@ function StoryContentSection({
 }: StorySectionProps) {
   if (stories.length === 0) {
     return (
-      <div className="text-center py-12 bg-white border border-black/5 border-dashed rounded-3xl p-6 space-y-2.5">
-        <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-400 mx-auto flex items-center justify-center">
+      <div className="text-center py-12 bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 border-dashed rounded-3xl p-6 space-y-2.5">
+        <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-white/10 text-neutral-400 dark:text-neutral-500 mx-auto flex items-center justify-center">
           <FileText className="w-6 h-6" />
         </div>
-        <h3 className="text-sm font-bold text-neutral-900">{emptyMessage}</h3>
-        <p className="text-xs text-neutral-500 max-w-sm mx-auto leading-relaxed">{emptySubText}</p>
+        <h3 className="text-sm font-bold text-neutral-900 dark:text-white">{emptyMessage}</h3>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto leading-relaxed">{emptySubText}</p>
         <Link
           href={newStoryUrl}
-          className="inline-flex items-center gap-1.5 bg-neutral-900 hover:bg-black text-white px-4 py-2 text-xs font-bold rounded-xl shadow-xs active:scale-95 transition-all mt-2 cursor-pointer"
+          className="inline-flex items-center gap-1.5 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black px-4 py-2 text-xs font-bold rounded-xl shadow-xs active:scale-95 transition-all mt-2 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t('newStory', language)}</span>
@@ -1394,9 +1544,9 @@ function StoryContentSection({
   // 1. Table / List View - Apple macOS List Style
   if (displayLayout === 'table') {
     return (
-      <div className="bg-white border border-black/5 rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl overflow-hidden shadow-2xs">
         <table className="w-full text-right text-xs">
-          <thead className="bg-neutral-50/80 text-neutral-500 border-b border-black/5 font-semibold">
+          <thead className="bg-neutral-50/80 dark:bg-[#252528] text-neutral-500 dark:text-neutral-400 border-b border-black/5 dark:border-white/10 font-semibold">
             <tr>
               <th className="p-3 w-10 text-center">⭐</th>
               <th className="p-3">{language === 'ar' ? 'العنوان' : 'Title'}</th>
@@ -1407,41 +1557,41 @@ function StoryContentSection({
               <th className="p-3 text-left">{language === 'ar' ? 'إجراءات' : 'Actions'}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-black/5">
+          <tbody className="divide-y divide-black/5 dark:divide-white/10">
             {stories.map((story) => {
               const folder = story.folderId ? folderMap.get(story.folderId) : null;
               const wordCount = story.content ? story.content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length : 0;
               const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
 
               const statusBadgeClass = story.status === 'published'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/40'
                 : story.status === 'ready'
-                ? 'bg-amber-50 text-amber-700 border-amber-200/60'
-                : 'bg-neutral-100 text-neutral-600 border-neutral-200/60';
+                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-800/40'
+                : 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-400 border-neutral-200/60 dark:border-white/10';
 
               return (
-                <tr key={story.id} className="hover:bg-neutral-50/80 transition-colors">
+                <tr key={story.id} className="hover:bg-neutral-50/80 dark:hover:bg-white/5 transition-colors">
                   <td className="p-3 text-center">
                     <button
                       onClick={() => onToggleFavorite(story.id)}
-                      className="text-neutral-300 hover:text-amber-500 transition-colors cursor-pointer"
+                      className="text-neutral-300 dark:text-neutral-600 hover:text-amber-500 transition-colors cursor-pointer"
                       title={story.isFavorite ? t('removeFromFavorites', language) : t('addToFavorites', language)}
                     >
                       <Star className={`w-3.5 h-3.5 ${story.isFavorite ? 'fill-amber-400 text-amber-500' : ''}`} />
                     </button>
                   </td>
-                  <td className="p-3 font-bold text-neutral-900">
-                    <Link href={`/editor/${story.id}`} className="hover:text-blue-600 transition-colors">
+                  <td className="p-3 font-bold text-neutral-900 dark:text-white">
+                    <Link href={`/editor/${story.id}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                       {story.title || t('untitledStory', language)}
                     </Link>
                   </td>
-                  <td className="p-3 text-neutral-600">
+                  <td className="p-3 text-neutral-600 dark:text-neutral-400">
                     {folder ? (
-                      <span className="bg-neutral-100 text-neutral-700 px-2 py-0.5 rounded-full text-[11px] font-medium">
+                      <span className="bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded-full text-[11px] font-medium">
                         📁 {folder.name}
                       </span>
                     ) : (
-                      <span className="text-neutral-400">---</span>
+                      <span className="text-neutral-400 dark:text-neutral-500">---</span>
                     )}
                   </td>
                   <td className="p-3">
@@ -1449,17 +1599,17 @@ function StoryContentSection({
                       {statusText}
                     </span>
                   </td>
-                  <td className="p-3 text-neutral-500 font-medium text-[11px] whitespace-nowrap">
+                  <td className="p-3 text-neutral-500 dark:text-neutral-400 font-medium text-[11px] whitespace-nowrap">
                     {story.targetDate || '---'}
                   </td>
-                  <td className="p-3 text-neutral-500 font-medium text-[11px]">
+                  <td className="p-3 text-neutral-500 dark:text-neutral-400 font-medium text-[11px]">
                     {wordCount}
                   </td>
                   <td className="p-3 text-left whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => onRead(story)}
-                        className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                        className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
                         title="قراءة سريعة"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -1467,7 +1617,7 @@ function StoryContentSection({
                       {onFloatStory && (
                         <button
                           onClick={() => onFloatStory(story)}
-                          className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                          className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
                           title={t('quickFloatStory', language)}
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -1475,14 +1625,14 @@ function StoryContentSection({
                       )}
                       <Link
                         href={`/editor/${story.id}`}
-                        className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                        className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
                         title={t('editStory', language)}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </Link>
                       <button
                         onClick={() => onDelete(story.id)}
-                        className="p-1.5 hover:bg-red-50 text-neutral-400 hover:text-red-600 rounded-xl transition-colors cursor-pointer"
+                        className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-colors cursor-pointer"
                         title={t('moveToTrash', language)}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1507,15 +1657,15 @@ function StoryContentSection({
         const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
 
         const statusBadgeClass = story.status === 'published'
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/40'
           : story.status === 'ready'
-          ? 'bg-amber-50 text-amber-700 border-amber-200/60'
-          : 'bg-neutral-100 text-neutral-600 border-neutral-200/60';
+          ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-800/40'
+          : 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-400 border-neutral-200/60 dark:border-white/10';
 
         return (
           <div
             key={story.id}
-            className="bg-white border border-black/5 hover:border-black/15 rounded-2xl p-4 flex flex-col justify-between space-y-3 transition-all shadow-2xs hover:shadow-xs group"
+            className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 hover:border-black/15 dark:hover:border-white/20 rounded-2xl p-4 flex flex-col justify-between space-y-3 transition-all shadow-2xs hover:shadow-xs group"
           >
             <div className="space-y-2">
               {/* Card Meta Row */}
@@ -1525,7 +1675,7 @@ function StoryContentSection({
                     {statusText}
                   </span>
                   {folder && (
-                    <span className="text-[11px] text-neutral-500 truncate max-w-[100px] bg-neutral-100 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate max-w-[100px] bg-neutral-100 dark:bg-white/10 px-2 py-0.5 rounded-full font-medium">
                       📁 {folder.name}
                     </span>
                   )}
@@ -1534,7 +1684,7 @@ function StoryContentSection({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => onToggleFavorite(story.id)}
-                    className="p-1 text-neutral-300 hover:text-amber-500 transition-colors cursor-pointer"
+                    className="p-1 text-neutral-300 dark:text-neutral-600 hover:text-amber-500 transition-colors cursor-pointer"
                     title={story.isFavorite ? t('removeFromFavorites', language) : t('addToFavorites', language)}
                   >
                     <Star className={`w-3.5 h-3.5 ${story.isFavorite ? 'fill-amber-400 text-amber-500' : ''}`} />
@@ -1543,7 +1693,7 @@ function StoryContentSection({
               </div>
 
               {/* Title */}
-              <h3 className="font-bold text-sm text-neutral-900 line-clamp-1 leading-snug group-hover:text-blue-600 transition-colors">
+              <h3 className="font-bold text-sm text-neutral-900 dark:text-white line-clamp-1 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 <Link href={`/editor/${story.id}`}>
                   {story.title || t('untitledStory', language)}
                 </Link>
@@ -1551,19 +1701,19 @@ function StoryContentSection({
 
               {/* Preview */}
               <div
-                className="text-xs text-neutral-500 line-clamp-2 leading-relaxed font-sans"
+                className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed font-sans"
                 dangerouslySetInnerHTML={{ __html: story.content || `<span class="italic opacity-40">${t('noContentYet', language)}</span>` }}
               />
             </div>
 
             {/* Card Footer: Metadata + Actions */}
-            <div className="pt-2.5 border-t border-black/5 flex items-center justify-between text-[11px] text-neutral-500 font-medium">
+            <div className="pt-2.5 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
               <span>{wordCount} {t('words', language)}</span>
               
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => onRead(story)}
-                  className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
                   title="قراءة"
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -1571,7 +1721,7 @@ function StoryContentSection({
                 {onFloatStory && (
                   <button
                     onClick={() => onFloatStory(story)}
-                    className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                    className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
                     title={t('quickFloatStory', language)}
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -1579,14 +1729,14 @@ function StoryContentSection({
                 )}
                 <Link
                   href={`/editor/${story.id}`}
-                  className="p-1.5 hover:bg-neutral-100 text-neutral-500 hover:text-black rounded-xl transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
                   title={t('editStory', language)}
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </Link>
                 <button
                   onClick={() => onDelete(story.id)}
-                  className="p-1.5 hover:bg-red-50 text-neutral-400 hover:text-red-600 rounded-xl transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-colors cursor-pointer"
                   title={t('moveToTrash', language)}
                 >
                   <Trash2 className="w-3.5 h-3.5" />

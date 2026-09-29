@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css'; // Global styles
 import Sidebar from '@/components/Sidebar';
 import ClientLayout from '@/components/ClientLayout';
+import GlobalSearchHeader from '@/components/GlobalSearchHeader';
 
 export const metadata: Metadata = {
   title: 'Sarda CMS',
@@ -11,12 +12,40 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body suppressHydrationWarning className="font-sans bg-[#F5F5F7] text-neutral-900 antialiased flex flex-col md:flex-row h-[100dvh] overflow-hidden selection:bg-black selection:text-white">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var raw = localStorage.getItem('sarda-storage');
+                  if (raw) {
+                    var parsed = JSON.parse(raw);
+                    var theme = parsed.state && parsed.state.theme;
+                    var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    if (isDark) {
+                      document.documentElement.classList.add('dark');
+                      document.documentElement.style.colorScheme = 'dark';
+                    } else if (theme === 'light') {
+                      document.documentElement.classList.remove('dark');
+                      document.documentElement.style.colorScheme = 'light';
+                    }
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body suppressHydrationWarning className="font-sans bg-[#F5F5F7] dark:bg-[#121214] text-neutral-900 dark:text-neutral-100 antialiased flex flex-col md:flex-row h-[100dvh] overflow-hidden selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         <ClientLayout>
           <Sidebar />
-          <main className="flex-1 h-full min-h-0 overflow-y-auto">
-            {children}
-          </main>
+          <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 overflow-hidden bg-[#F5F5F7] dark:bg-[#121214]">
+            <GlobalSearchHeader />
+            <main className="flex-1 h-full min-h-0 overflow-y-auto">
+              {children}
+            </main>
+          </div>
         </ClientLayout>
       </body>
     </html>

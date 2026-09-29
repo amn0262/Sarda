@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro Arabic", "SF Pro", "Geeza Pro", "Helvetica Neue", system-ui, sans-serif;
   --font-serif: "New York", -apple-system-ui-serif, ui-serif, Georgia, serif;
@@ -43,6 +45,13 @@ input, button, select, textarea, .ProseMirror {
   background-clip: content-box;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
 /* Tiptap Editor Styles */
 .ProseMirror {
   outline: none;
@@ -53,6 +62,9 @@ input, button, select, textarea, .ProseMirror {
   float: right;
   height: 0;
   pointer-events: none;
+}
+.dark .ProseMirror p.is-editor-empty:first-child::before {
+  color: #636366;
 }
 .ProseMirror h1 {
   font-size: 2.25rem;
