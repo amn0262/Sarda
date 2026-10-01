@@ -13,6 +13,7 @@ import { ar, enUS } from 'date-fns/locale';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
+import StoryReaderModal from '@/components/StoryReaderModal';
 
 type ViewMode = 'detailed' | 'compact' | 'calendar' | 'folder';
 type SortOption = 'dateAsc' | 'dateDesc' | 'title' | 'status';
@@ -411,11 +412,11 @@ export default function SchedulePlanner() {
                 const isOverdue = isBefore(d, new Date()) && !isToday(d) && story.status !== 'published';
                 const isDueToday = isToday(d);
 
-                const badgeClass = isDueToday
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/40'
+                const timingColor = isDueToday
+                  ? 'text-emerald-700 dark:text-emerald-400 font-bold'
                   : isOverdue
-                  ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200/60 dark:border-red-800/40'
-                  : 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-400 border-neutral-200/60 dark:border-white/10';
+                  ? 'text-red-700 dark:text-red-400 font-bold'
+                  : 'text-neutral-500 dark:text-neutral-400 font-medium';
 
                 return (
                   <div
@@ -427,18 +428,20 @@ export default function SchedulePlanner() {
                     <div className="space-y-3">
                       {/* Top Header Row */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold border ${badgeClass}`}>
+                        <div className="flex items-center gap-2 flex-wrap text-xs">
+                          <span className={timingColor}>
                             {isDueToday ? t('dueToday', language) : isOverdue ? t('overdue', language) : t('upcoming', language)}
                           </span>
 
-                          <span className="text-xs font-semibold text-neutral-900 dark:text-white flex items-center gap-1.5">
+                          <span className="opacity-40">·</span>
+
+                          <span className="font-semibold text-neutral-900 dark:text-white flex items-center gap-1.5">
                             <CalendarIcon className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
                             <span>{format(d, 'EEEE d MMMM yyyy', { locale })}</span>
                           </span>
                         </div>
 
-                        {/* Quick Status Setter - Apple Pill Buttons */}
+                        {/* Quick Status Setter - Apple Segmented Control */}
                         <div className="flex items-center gap-0.5 bg-neutral-100 dark:bg-black/40 p-0.5 rounded-xl border border-black/5 dark:border-white/10 text-xs">
                           <button
                             onClick={() => handleQuickStatusChange(story.id, 'draft')}
@@ -469,18 +472,17 @@ export default function SchedulePlanner() {
 
                       <div className="bg-neutral-50 dark:bg-[#252528] rounded-xl p-3.5 border border-black/5 dark:border-white/10 space-y-2">
                         <div className="flex items-start justify-between gap-3">
-                          <Link href={`/editor/${story.id}`} className="font-bold text-neutral-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm truncate">
+                          <button
+                            type="button"
+                            onClick={() => setReadingStory(story)}
+                            className="font-bold text-neutral-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm truncate text-right cursor-pointer"
+                            title={language === 'ar' ? 'عرض القصة في وضع القراءة' : 'Read Story'}
+                          >
                             {story.title || t('untitledStory', language)}
-                          </Link>
+                          </button>
 
+                          {/* Contextual actions: Reschedule & Dedicated Edit (NO DUPLICATE EYE BUTTON) */}
                           <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              onClick={() => setReadingStory(story)}
-                              className="p-1.5 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
-                              title={language === 'ar' ? 'معاينة' : 'Preview'}
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
                             <button
                               onClick={() => openRescheduleModal(story)}
                               className="p-1.5 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
@@ -489,8 +491,8 @@ export default function SchedulePlanner() {
                               <Clock className="w-3.5 h-3.5" />
                             </button>
                             <Link
-                              href={`/editor/${story.id}`}
-                              className="p-1.5 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                              href={`/editor/${story.id}?mode=edit`}
+                              className="p-1.5 text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
                               title={t('editStory', language)}
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -498,19 +500,22 @@ export default function SchedulePlanner() {
                           </div>
                         </div>
 
+                        {/* Clean unboxed metadata with dot separators */}
                         <div className="flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-neutral-400 pt-1.5 border-t border-black/5 dark:border-white/10 font-medium">
                           {folder && (
-                            <div className="flex items-center gap-1 text-neutral-700 dark:text-neutral-300 bg-neutral-200/60 dark:bg-white/10 px-2 py-0.5 rounded-full">
-                              <FolderIcon className="w-3 h-3 text-blue-500" />
+                            <span className="flex items-center gap-1 text-neutral-700 dark:text-neutral-300">
+                              <FolderIcon className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                               <span>{folder.name}</span>
-                            </div>
+                            </span>
                           )}
 
+                          {folder && story.publishTime && <span className="opacity-40">·</span>}
+
                           {story.publishTime && (
-                            <div className="flex items-center gap-1 bg-neutral-200/60 dark:bg-white/10 px-2 py-0.5 rounded-full">
-                              <Clock className="w-3 h-3 text-neutral-400" />
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                               <span>{story.publishTime}</span>
-                            </div>
+                            </span>
                           )}
                         </div>
                       </div>
@@ -537,11 +542,11 @@ export default function SchedulePlanner() {
                 <tbody className="divide-y divide-black/5 dark:divide-white/10">
                   {processedStories.map(story => {
                     const folder = story.folderId ? folderMap.get(story.folderId) : null;
-                    const statusBadgeClass = story.status === 'published'
-                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/40'
+                    const statusColor = story.status === 'published'
+                      ? 'text-emerald-700 dark:text-emerald-400 font-semibold'
                       : story.status === 'ready'
-                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-800/40'
-                      : 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-400 border-neutral-200/60 dark:border-white/10';
+                      ? 'text-amber-700 dark:text-amber-400 font-semibold'
+                      : 'text-neutral-500 dark:text-neutral-400';
 
                     return (
                       <tr key={story.id} className="hover:bg-neutral-50/80 dark:hover:bg-white/5 transition-colors">
@@ -549,31 +554,31 @@ export default function SchedulePlanner() {
                           {story.targetDate} {story.publishTime && <span className="text-neutral-400 dark:text-neutral-500">({story.publishTime})</span>}
                         </td>
                         <td className="p-3 font-bold text-neutral-900 dark:text-white max-w-[220px] truncate">
-                          <Link href={`/editor/${story.id}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                          <button
+                            type="button"
+                            onClick={() => setReadingStory(story)}
+                            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-right cursor-pointer truncate max-w-[220px]"
+                            title={language === 'ar' ? 'عرض القصة في وضع القراءة' : 'Read Story'}
+                          >
                             {story.title || t('untitledStory', language)}
-                          </Link>
+                          </button>
                         </td>
                         <td className="p-3 text-neutral-600 dark:text-neutral-400">
                           {folder ? (
-                            <span className="bg-neutral-100 dark:bg-white/10 px-2 py-0.5 rounded-full text-[11px] font-medium text-neutral-700 dark:text-neutral-300">
-                              📁 {folder.name}
+                            <span className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400 flex items-center gap-1">
+                              <FolderIcon className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                              <span>{folder.name}</span>
                             </span>
                           ) : '---'}
                         </td>
                         <td className="p-3">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusBadgeClass}`}>
+                          <span className={`text-[11px] ${statusColor}`}>
                             {story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
                           </span>
                         </td>
                         <td className="p-3 text-left whitespace-nowrap">
+                          {/* Dedicated actions: Reschedule & Edit (NO DUPLICATE EYE BUTTON) */}
                           <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => setReadingStory(story)}
-                              className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
-                              title="معاينة"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
                             <button
                               onClick={() => openRescheduleModal(story)}
                               className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
@@ -582,8 +587,8 @@ export default function SchedulePlanner() {
                               <Clock className="w-3.5 h-3.5" />
                             </button>
                             <Link
-                              href={`/editor/${story.id}`}
-                              className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
+                              href={`/editor/${story.id}?mode=edit`}
+                              className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
                               title={t('editStory', language)}
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -664,14 +669,15 @@ export default function SchedulePlanner() {
 
                         <div className="space-y-1 mt-1.5 overflow-hidden">
                           {postsOnDay.map(post => (
-                            <Link
+                            <button
                               key={post.id}
-                              href={`/editor/${post.id}`}
-                              className="block text-[10px] px-1.5 py-0.5 rounded-lg bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-900 dark:text-white truncate font-medium leading-tight transition-colors"
-                              title={post.title}
+                              type="button"
+                              onClick={() => setReadingStory(post)}
+                              className="block w-full text-right text-[10px] px-1.5 py-0.5 rounded-lg bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-900 dark:text-white truncate font-medium leading-tight transition-colors cursor-pointer"
+                              title={post.title || t('untitledStory', language)}
                             >
                               {post.title || t('untitledStory', language)}
-                            </Link>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -705,25 +711,30 @@ export default function SchedulePlanner() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                       {folderPosts.map(story => {
-                        const statusBadgeClass = story.status === 'published'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/40'
+                        const statusColor = story.status === 'published'
+                          ? 'text-emerald-700 dark:text-emerald-400 font-semibold'
                           : story.status === 'ready'
-                          ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-800/40'
-                          : 'bg-neutral-100 dark:bg-white/10 text-neutral-600 dark:text-neutral-400 border-neutral-200/60 dark:border-white/10';
+                          ? 'text-amber-700 dark:text-amber-400 font-semibold'
+                          : 'text-neutral-500 dark:text-neutral-400';
 
                         return (
-                          <div key={story.id} className="bg-neutral-50 dark:bg-[#252528] p-3 rounded-xl border border-black/5 dark:border-white/10 flex items-center justify-between gap-2">
+                          <div key={story.id} className="bg-neutral-50 dark:bg-[#252528] p-3 rounded-xl border border-black/5 dark:border-white/10 flex items-center justify-between gap-3">
                             <div className="min-w-0 flex-1">
-                              <Link href={`/editor/${story.id}`} className="font-bold text-xs text-neutral-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 block truncate transition-colors">
+                              <button
+                                type="button"
+                                onClick={() => setReadingStory(story)}
+                                className="font-bold text-xs text-neutral-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 block truncate transition-colors text-right cursor-pointer w-full"
+                                title={language === 'ar' ? 'عرض القصة في وضع القراءة' : 'Read Story'}
+                              >
                                 {story.title || t('untitledStory', language)}
-                              </Link>
+                              </button>
                               <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 font-medium">
                                 <span>{story.targetDate}</span>
                                 {story.publishTime && <span> · {story.publishTime}</span>}
                               </div>
                             </div>
 
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border shrink-0 ${statusBadgeClass}`}>
+                            <span className={`text-[11px] shrink-0 ${statusColor}`}>
                               {story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language)}
                             </span>
                           </div>
@@ -798,48 +809,11 @@ export default function SchedulePlanner() {
       )}
 
       {/* Quick Story Reader Modal - Apple macOS Reading Window */}
-      {readingStory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-          <div className="bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl w-full max-w-xl rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden border border-black/8 dark:border-white/10 text-neutral-900 dark:text-white animate-in fade-in zoom-in-95 duration-150">
-            <div className="px-5 py-3.5 border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-neutral-50/70 dark:bg-[#252528]/80">
-              <h3 className="font-bold text-neutral-900 dark:text-white text-sm truncate">{readingStory.title || t('untitledStory', language)}</h3>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <Link
-                  href={`/editor/${readingStory.id}`}
-                  className="px-3 py-1.5 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs active:scale-95 cursor-pointer"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  <span>{t('editStory', language)}</span>
-                </Link>
-                <button
-                  onClick={() => setReadingStory(null)}
-                  className="p-1.5 hover:bg-neutral-200/70 dark:hover:bg-white/10 text-neutral-400 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 overflow-y-auto flex-1 leading-relaxed text-neutral-900 dark:text-neutral-100 text-xs sm:text-sm font-sans" dir="rtl">
-              <div dangerouslySetInnerHTML={{ __html: readingStory.content || `<p class="opacity-40">${t('noContentYet', language)}</p>` }} />
-            </div>
-
-            <div className="px-5 py-3 bg-neutral-50/70 dark:bg-[#252528]/80 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400 font-medium">
-                <CalendarIcon className="w-3.5 h-3.5" />
-                <span>{readingStory.targetDate || '---'}</span>
-              </div>
-              <button
-                onClick={() => setReadingStory(null)}
-                className="px-4 py-1.5 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-900 dark:text-white rounded-xl font-semibold border border-black/5 dark:border-white/10 text-xs transition-colors cursor-pointer"
-              >
-                {language === 'ar' ? 'إغلاق' : 'Close'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <StoryReaderModal
+        story={readingStory}
+        onClose={() => setReadingStory(null)}
+        folderName={readingStory?.folderId ? folderMap.get(readingStory.folderId)?.name : undefined}
+      />
 
       {/* Floating Scroll to Top button */}
       <ScrollToTopButton />

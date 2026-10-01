@@ -21,7 +21,7 @@ import {
   Laptop,
   Palette
 } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function SettingsPage() {
@@ -41,7 +41,14 @@ export default function SettingsPage() {
   } = useStore();
   const [showConfirmEmpty, setShowConfirmEmpty] = useState(false);
   const [itemToPermanentDelete, setItemToPermanentDelete] = useState<{id: string, type: 'story' | 'folder'} | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const deletedFolders = folders.filter(f => f.isDeleted);
   const deletedStories = stories.filter(s => s.isDeleted);
@@ -66,6 +73,11 @@ export default function SettingsPage() {
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', filename);
     linkElement.click();
+
+    setToast({
+      type: 'success',
+      message: language === 'ar' ? 'تم تنزيل النسخة الاحتياطية بنجاح' : 'Backup exported successfully'
+    });
   };
 
   const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,20 +90,51 @@ export default function SettingsPage() {
         const json = JSON.parse(event.target?.result as string);
         if (json.folders && json.stories) {
           importData(json);
-          alert(t('backupImportSuccess', language));
+          setToast({
+            type: 'success',
+            message: t('backupImportSuccess', language)
+          });
         } else {
-          alert(t('backupImportInvalid', language));
+          setToast({
+            type: 'error',
+            message: t('backupImportInvalid', language)
+          });
         }
       } catch {
-        alert(t('backupImportError', language));
+        setToast({
+          type: 'error',
+          message: t('backupImportError', language)
+        });
       }
     };
     reader.readAsText(file);
+    e.target.value = '';
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto w-full bg-[#F5F5F7] dark:bg-[#121214] min-h-screen text-neutral-900 dark:text-neutral-100 space-y-6 pb-36 md:pb-16 select-none">
+    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto w-full bg-[#F5F5F7] dark:bg-[#121214] min-h-screen text-neutral-900 dark:text-neutral-100 space-y-6 pb-36 md:pb-16 select-none relative">
       
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-xs font-semibold shadow-xl flex items-center gap-2 backdrop-blur-xl border ${
+              toast.type === 'success'
+                ? 'bg-neutral-900/90 dark:bg-black/90 text-white border-white/10'
+                : 'bg-red-600 text-white border-red-500'
+            }`}
+          >
+            <span>{toast.message}</span>
+            <button onClick={() => setToast(null)} className="opacity-60 hover:opacity-100 ms-1 cursor-pointer">
+              <span className="text-xs">✕</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Settings Page Header */}
       <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-4">
         <div>

@@ -59,12 +59,12 @@ export default function FloatingStoryWindow() {
   };
 
   const handleOpenInFullEditor = () => {
-    router.push(`/editor/${floatingStory.id}`);
+    router.push(`/editor/${floatingStory.id}?mode=edit`);
   };
 
   const handleOpenAnotherStory = (targetId: string) => {
     setShowStoryPicker(false);
-    router.push(`/editor/${targetId}`);
+    router.push(`/editor/${targetId}?mode=edit`);
   };
 
   const handleCreateNewStory = () => {

@@ -228,7 +228,7 @@ export default function EditorPage() {
     editable: !isReadOnly,
     editorProps: {
       attributes: {
-        class: 'prose prose-neutral max-w-none focus:outline-none min-h-[500px] p-6 md:p-10 text-right text-neutral-900',
+        class: 'prose prose-neutral dark:prose-invert max-w-none focus:outline-none min-h-[500px] p-6 md:p-10 text-right text-neutral-900 dark:text-neutral-50',
         dir: 'rtl',
       },
     },
@@ -463,12 +463,13 @@ export default function EditorPage() {
 
   const selectedSideStory = stories.find(s => s.id === activeSideStoryId);
 
-  const handleFloatCurrentStory = () => {
+  const handleFloatCurrentStory = useCallback(() => {
     const currentContent = editor?.getHTML() || '';
     const currentTargetDate = targetDate || getTodayFormattedDate();
     const currentPublishTime = publishTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     let currentStoryObj: Story;
 
+    const timestamp = Date.now();
     if (!isNew && existingStory) {
       const updatedStory: Story = {
         ...existingStory,
@@ -478,7 +479,7 @@ export default function EditorPage() {
         targetDate: currentTargetDate,
         publishTime: currentPublishTime,
         folderId: folderId || existingStory.folderId,
-        updatedAt: Date.now(),
+        updatedAt: timestamp,
       };
       updateStory(existingStory.id, updatedStory);
       currentStoryObj = updatedStory;
@@ -501,15 +502,15 @@ export default function EditorPage() {
         targetDate: currentTargetDate,
         publishTime: currentPublishTime,
         folderId: targetFolderId,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        createdAt: timestamp,
+        updatedAt: timestamp,
         style: 'classic',
       };
     }
 
     setFloatingStory(currentStoryObj);
     setShowFloatModal(true);
-  };
+  }, [editor, targetDate, publishTime, isNew, existingStory, title, language, status, folderId, updateStory, addStory, folders, setFloatingStory]);
 
   const handleInsertSideContent = () => {
     if (!editor) return;
@@ -751,6 +752,121 @@ export default function EditorPage() {
     fileDownload.click();
     document.body.removeChild(fileDownload);
   };
+
+  const isViewMode = !isNew && searchParams.get('mode') !== 'edit';
+
+  if (isViewMode && existingStory) {
+    const folder = existingStory.folderId ? folders.find(f => f.id === existingStory.folderId) : null;
+    const cleanText = existingStory.content ? existingStory.content.replace(/<[^>]*>/g, '').trim() : '';
+    const wordCount = cleanText ? cleanText.split(/\s+/).filter(Boolean).length : 0;
+    const readingMinutes = Math.max(1, Math.ceil(wordCount / 180));
+    const readingTimeText = language === 'ar' 
+      ? (readingMinutes === 1 ? 'دقيقة واحدة' : readingMinutes === 2 ? 'دقيقتان' : `${readingMinutes} دقائق للقراءة`)
+      : `${readingMinutes} min read`;
+    const statusText = existingStory.status === 'published' ? t('published', language) : existingStory.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
+    const statusColor = existingStory.status === 'published'
+      ? 'text-emerald-700 dark:text-emerald-400 font-semibold'
+      : existingStory.status === 'ready'
+      ? 'text-amber-700 dark:text-amber-400 font-semibold'
+      : 'text-neutral-500 dark:text-neutral-400';
+
+    const handleClosePresentation = () => {
+      if (typeof window !== 'undefined' && window.history.length > 1) {
+        router.back();
+      } else {
+        router.push('/content');
+      }
+    };
+
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F5F5F7] dark:bg-[#121214] text-neutral-900 dark:text-white">
+        {/* Header - Apple macOS Titlebar with ONLY ONE TOOL: CLOSE */}
+        <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-black/8 dark:border-white/10 px-4 md:px-8 py-3.5 flex items-center justify-between gap-4 shadow-2xs select-none">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* macOS Traffic Lights decoration */}
+            <div className="hidden sm:flex items-center gap-1.5 me-2 shrink-0">
+              <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-black/10 dark:border-white/10 inline-block shadow-2xs"></span>
+              <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-black/10 dark:border-white/10 inline-block shadow-2xs"></span>
+              <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-black/10 dark:border-white/10 inline-block shadow-2xs"></span>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 mb-0.5 truncate">
+                <span className={statusColor}>
+                  {statusText}
+                </span>
+                {folder && (
+                  <>
+                    <span className="opacity-40">·</span>
+                    <span className="font-medium text-neutral-600 dark:text-neutral-300">📁 {folder.name}</span>
+                  </>
+                )}
+                {existingStory.targetDate && (
+                  <>
+                    <span className="opacity-40">·</span>
+                    <span className="font-medium">{existingStory.targetDate}</span>
+                  </>
+                )}
+              </div>
+              <h1 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white truncate">
+                {existingStory.title || t('untitledStory', language)}
+              </h1>
+            </div>
+          </div>
+
+          {/* ONLY ONE TOOL: CLOSE */}
+          <div className="flex items-center shrink-0">
+            <button
+              type="button"
+              onClick={handleClosePresentation}
+              className="px-4 py-2 bg-neutral-900 dark:bg-white hover:bg-black dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs active:scale-95 transition-all cursor-pointer"
+              title={language === 'ar' ? 'إغلاق' : 'Close'}
+            >
+              <X className="w-4 h-4" />
+              <span>{language === 'ar' ? 'إغلاق' : 'Close'}</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Story Reading Content */}
+        <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 md:p-10">
+          <div className="bg-white dark:bg-[#1C1C1E] border border-black/8 dark:border-white/10 rounded-3xl shadow-sm p-6 sm:p-10 md:p-14 space-y-8">
+            <div className="border-b border-black/5 dark:border-white/10 pb-6 space-y-4 text-right">
+              <div className="flex items-center justify-end gap-3 text-xs text-neutral-500 dark:text-neutral-400 font-medium flex-wrap">
+                <span>{readingTimeText}</span>
+                <span className="opacity-40">·</span>
+                <span>{wordCount} {t('words', language)}</span>
+                {existingStory.targetDate && (
+                  <>
+                    <span className="opacity-40">·</span>
+                    <span>{existingStory.targetDate} {existingStory.publishTime ? `(${existingStory.publishTime})` : ''}</span>
+                  </>
+                )}
+              </div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-neutral-900 dark:text-white leading-tight tracking-tight">
+                {existingStory.title || t('untitledStory', language)}
+              </h1>
+            </div>
+
+            <div
+              className="prose prose-neutral dark:prose-invert max-w-none text-right leading-[2.2] text-base sm:text-lg text-neutral-800 dark:text-neutral-100 font-sans"
+              dir="rtl"
+              dangerouslySetInnerHTML={{ __html: existingStory.content || `<p class="italic opacity-40">${t('noContentYet', language)}</p>` }}
+            />
+
+            {/* Bottom Status bar - NO DUPLICATE BUTTONS */}
+            <div className="pt-8 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-xs text-neutral-400 dark:text-neutral-500">
+              <span>
+                SARDA CMS · {language === 'ar' ? 'وضع القراءة والعرض' : 'Reading & Display Mode'}
+              </span>
+              <span>
+                {language === 'ar' ? 'انقر على زر إغلاق في الأعلى للرجوع' : 'Click Close above to return'}
+              </span>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#F5F5F7] dark:bg-[#121214] relative">
@@ -1216,7 +1332,7 @@ export default function EditorPage() {
                 </div>
 
                 {!isReadOnly && <MenuBar editor={editor} />}
-                <div className="text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#1C1C1E] min-h-[550px] p-4 md:p-8 flex-1">
+                <div className="text-neutral-900 dark:text-neutral-50 bg-white dark:bg-[#1C1C1E] min-h-[550px] p-4 md:p-8 flex-1">
                   <EditorContent editor={editor} />
                 </div>
               </div>
@@ -1401,7 +1517,7 @@ export default function EditorPage() {
             /* STANDARD SINGLE WORKSPACE */
             <div className="rounded-3xl border border-black/8 dark:border-white/10 bg-white dark:bg-[#1C1C1E] shadow-sm overflow-hidden">
               {!isReadOnly && <MenuBar editor={editor} />}
-              <div className="text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#1C1C1E] min-h-[550px] p-4 md:p-8">
+              <div className="text-neutral-900 dark:text-neutral-50 bg-white dark:bg-[#1C1C1E] min-h-[550px] p-4 md:p-8">
                 <EditorContent editor={editor} />
               </div>
             </div>

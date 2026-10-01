@@ -63,7 +63,7 @@ export default function ScrollToTopButton({
       onClick={scrollToTop}
       aria-label={t('scrollToTop', language)}
       title={t('scrollToTop', language)}
-      className={`fixed bottom-6 start-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-md border border-neutral-300/80 dark:border-white/10 text-neutral-800 dark:text-neutral-200 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-[#2C2C2E] shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 text-xs font-semibold select-none group cursor-pointer ${className}`}
+      className={`fixed bottom-20 md:bottom-6 start-6 z-30 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-md border border-neutral-300/80 dark:border-white/10 text-neutral-800 dark:text-neutral-200 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-[#2C2C2E] shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 text-xs font-semibold select-none group cursor-pointer ${className}`}
       style={{
         fontFamily: 'var(--font-apple, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif)',
       }}

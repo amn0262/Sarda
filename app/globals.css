@@ -55,7 +55,33 @@ input, button, select, textarea, .ProseMirror {
 /* Tiptap Editor Styles */
 .ProseMirror {
   outline: none;
+  color: #111827;
 }
+
+.dark .ProseMirror {
+  color: #F9FAFB !important;
+}
+
+.dark .ProseMirror p,
+.dark .ProseMirror div,
+.dark .ProseMirror li {
+  color: #F3F4F6 !important;
+}
+
+.dark .ProseMirror h1,
+.dark .ProseMirror h2,
+.dark .ProseMirror h3,
+.dark .ProseMirror h4,
+.dark .ProseMirror strong,
+.dark .ProseMirror b {
+  color: #FFFFFF !important;
+}
+
+.dark .ProseMirror blockquote {
+  color: #E5E7EB !important;
+  border-right-color: #4B5563 !important;
+}
+
 .ProseMirror p.is-editor-empty:first-child::before {
   color: #adb5bd;
   content: attr(data-placeholder);
@@ -64,7 +90,7 @@ input, button, select, textarea, .ProseMirror {
   pointer-events: none;
 }
 .dark .ProseMirror p.is-editor-empty:first-child::before {
-  color: #636366;
+  color: #8E8E93;
 }
 .ProseMirror h1 {
   font-size: 2.25rem;
