@@ -5,8 +5,8 @@ import ClientLayout from '@/components/ClientLayout';
 import GlobalSearchHeader from '@/components/GlobalSearchHeader';
 
 export const metadata: Metadata = {
-  title: 'Sarda CMS',
-  description: 'Integrated system for audio and story content creators',
+  title: 'سـردة (Sarda) - استوديو الحكواتي وصناعة المحتوى القصصي والصوتي',
+  description: 'نظام متكامل (CMS) مخصص لصناع المحتوى الصوتي والقصصي لرقمنة فن الحكواتي وصناعة القصص الملهمة',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
@@ -42,7 +42,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           <Sidebar />
           <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 overflow-hidden bg-[#F5F5F7] dark:bg-[#121214]">
             <GlobalSearchHeader />
-            <main className="flex-1 h-full min-h-0 overflow-y-auto">
+            <main className="flex-1 h-full min-h-0 overflow-y-auto pb-28 md:pb-0">
               {children}
             </main>
           </div>

@@ -501,6 +501,9 @@ export default function DevInfo() {
         </div>
       )}
 
+      {/* Mobile Bottom Dock Safety Spacer */}
+      <div className="h-12 md:hidden w-full pointer-events-none" aria-hidden="true" />
+
     </div>
   );
 }

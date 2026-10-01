@@ -209,7 +209,7 @@ export default function Dashboard() {
     : (currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening');
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 pb-32 md:pb-16 max-w-7xl mx-auto space-y-6 bg-[#F5F5F7] dark:bg-[#121214] min-h-screen text-neutral-900 dark:text-neutral-100">
+    <div className="p-4 md:p-6 lg:p-8 pb-40 md:pb-16 max-w-7xl mx-auto space-y-6 bg-[#F5F5F7] dark:bg-[#121214] min-h-screen text-neutral-900 dark:text-neutral-100">
       
       {/* 1. Welcome Hero Panel - Apple macOS Frosted Glass */}
       <div className="bg-neutral-900 dark:bg-[#18181B] text-white rounded-3xl p-6 md:p-8 border border-white/10 shadow-sm relative overflow-hidden">
@@ -634,6 +634,9 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Mobile Bottom Dock Safety Spacer - Guarantees zero element overlap */}
+      <div className="h-12 md:hidden w-full pointer-events-none" aria-hidden="true" />
 
       {/* Story Presentation View Modal - With Single Close Button */}
       <StoryReaderModal
