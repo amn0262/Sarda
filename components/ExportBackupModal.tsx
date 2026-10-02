@@ -43,8 +43,8 @@ export default function ExportBackupModal({
   const backupData = {
     version: '1.0',
     exportedAt: new Date().toISOString(),
-    folders: folders.filter(f => !f.isDeleted),
-    stories: stories.filter(s => !s.isDeleted),
+    folders: (folders || []).filter(f => f && !f.isDeleted),
+    stories: (stories || []).filter(s => s && !s.isDeleted),
   };
   const jsonStr = JSON.stringify(backupData, null, 2);
   const blobSizeKb = (new Blob([jsonStr]).size / 1024).toFixed(1);
@@ -52,61 +52,67 @@ export default function ExportBackupModal({
   // 1. Choose Location / Save to Files (Mobile Share Sheet or Desktop Save File Picker)
   const handleSaveToLocation = async () => {
     setSaving(true);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const file = new File([blob], filename, { type: 'application/json' });
+    try {
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const file = new File([blob], filename, { type: 'application/json' });
 
-    // A. Desktop File System Access API (Opens native Save As file picker)
-    if ('showSaveFilePicker' in window) {
-      try {
-        const handle = await (window as any).showSaveFilePicker({
-          suggestedName: filename,
-          types: [
-            {
-              description: language === 'ar' ? 'ملف نسخة احتياطية سـردة (JSON)' : 'Sarda Backup File (JSON)',
-              accept: { 'application/json': ['.json'] },
-            },
-          ],
-        });
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        setSaving(false);
-        onSuccess?.(language === 'ar' ? 'تم حفظ النسخة الاحتياطية في المجلد المختار بنجاح' : 'Backup saved to selected folder successfully');
-        onClose();
-        return;
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      // A. Desktop File System Access API (Opens native Save As file picker)
+      if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+        try {
+          const handle = await (window as any).showSaveFilePicker({
+            suggestedName: filename,
+            types: [
+              {
+                description: language === 'ar' ? 'ملف نسخة احتياطية سـردة (JSON)' : 'Sarda Backup File (JSON)',
+                accept: { 'application/json': ['.json'] },
+              },
+            ],
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
           setSaving(false);
-          return; // User canceled the picker
-        }
-        console.warn('showSaveFilePicker failed or unpermitted', err);
-      }
-    }
-
-    // B. Mobile Web Share API with File (Native OS Action Sheet -> "Save to Files" / Drive / File Manager)
-    if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: language === 'ar' ? 'نسخة سـردة الاحتياطية' : 'Sarda Backup',
-          text: language === 'ar' ? `نسخة احتياطية لبيانات سـردة (${dateStr})` : `Sarda CMS Backup (${dateStr})`,
-        });
-        setSaving(false);
-        onSuccess?.(language === 'ar' ? 'تم توجيه الملف للحفظ بنجاح' : 'File dispatched for saving successfully');
-        onClose();
-        return;
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          setSaving(false);
+          onSuccess?.(language === 'ar' ? 'تم حفظ النسخة الاحتياطية في المجلد المختار بنجاح' : 'Backup saved to selected folder successfully');
+          onClose();
           return;
+        } catch (err: any) {
+          if (err.name === 'AbortError') {
+            setSaving(false);
+            return; // User canceled the picker
+          }
+          console.warn('showSaveFilePicker failed or unpermitted', err);
         }
-        console.warn('File share failed', err);
       }
-    }
 
-    // Fallback: Direct Download
-    handleDirectDownload();
-    setSaving(false);
+      // B. Mobile Web Share API with File (Native OS Action Sheet -> "Save to Files" / Drive / File Manager)
+      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: language === 'ar' ? 'نسخة سـردة الاحتياطية' : 'Sarda Backup',
+            text: language === 'ar' ? `نسخة احتياطية لبيانات سـردة (${dateStr})` : `Sarda CMS Backup (${dateStr})`,
+          });
+          setSaving(false);
+          onSuccess?.(language === 'ar' ? 'تم توجيه الملف للحفظ بنجاح' : 'File dispatched for saving successfully');
+          onClose();
+          return;
+        } catch (err: any) {
+          if (err.name === 'AbortError') {
+            setSaving(false);
+            return;
+          }
+          console.warn('File share failed', err);
+        }
+      }
+
+      // Fallback: Direct Download
+      handleDirectDownload();
+    } catch (err) {
+      console.warn('Save to location error', err);
+      handleDirectDownload();
+    } finally {
+      setSaving(false);
+    }
   };
 
   // 2. Share with Apps (WhatsApp, Telegram, Cloud Drive, etc.)
@@ -141,17 +147,22 @@ export default function ExportBackupModal({
 
   // 3. Direct Browser Download
   const handleDirectDownload = () => {
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    onSuccess?.(language === 'ar' ? 'تم تنزيل النسخة الاحتياطية إلى جهازك' : 'Backup downloaded to device');
-    onClose();
+    try {
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      onSuccess?.(language === 'ar' ? 'تم تنزيل النسخة الاحتياطية إلى جهازك' : 'Backup downloaded to device');
+      onClose();
+    } catch (err) {
+      console.warn('Direct download error', err);
+      handleCopy();
+    }
   };
 
   // 4. Copy JSON to Clipboard

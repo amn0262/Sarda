@@ -817,6 +817,8 @@ export const translations = {
   }
 };
 export type AppLanguage = 'ar' | 'en';
-export const t = (key: keyof typeof translations['ar'], lang: AppLanguage) => {
-  return translations[lang][key] || key;
+export const t = (key: keyof typeof translations['ar'], lang?: AppLanguage | string | null) => {
+  const safeLang = (lang === 'en' ? 'en' : 'ar') as AppLanguage;
+  const langDict = translations[safeLang] || translations.ar;
+  return langDict[key as keyof typeof translations['ar']] || translations.ar[key as keyof typeof translations['ar']] || (key as string);
 };

@@ -18,6 +18,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { language, isFocusMode } = useStore();
+  const currentLang = language === 'en' ? 'en' : 'ar';
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (isFocusMode) return null;
@@ -41,7 +42,7 @@ export default function Sidebar() {
                 )}
               >
                 <item.icon className="w-4 h-4 shrink-0" />
-                <span className="text-[10px] whitespace-nowrap mt-1 font-medium">{item.name[language]}</span>
+                <span className="text-[10px] whitespace-nowrap mt-1 font-medium">{item.name[currentLang]}</span>
               </Link>
             );
           })}
@@ -123,11 +124,11 @@ export default function Sidebar() {
                     : 'hover:bg-white/10 text-neutral-400 hover:text-white',
                   isCollapsed && 'justify-center px-0'
                 )}
-                title={isCollapsed ? item.name[language] : undefined}
+                title={isCollapsed ? item.name[currentLang] : undefined}
               >
                 <item.icon className="w-4 h-4 shrink-0" />
                 {!isCollapsed && (
-                  <span className="whitespace-nowrap tracking-tight">{item.name[language]}</span>
+                  <span className="whitespace-nowrap tracking-tight">{item.name[currentLang]}</span>
                 )}
               </Link>
             );

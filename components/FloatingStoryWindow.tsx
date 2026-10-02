@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useSyncExternalStore } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useStore, Story } from '@/lib/store';
 import { t } from '@/lib/i18n';
@@ -18,7 +18,10 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+const emptySubscribe = () => () => {};
+
 export default function FloatingStoryWindow() {
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const router = useRouter();
   const pathname = usePathname();
   const {
@@ -37,25 +40,31 @@ export default function FloatingStoryWindow() {
   const [showStoryPicker, setShowStoryPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  if (!floatingStory) return null;
+  if (!isClient || !floatingStory || typeof floatingStory !== 'object') return null;
 
-  // Filter available other stories
-  const otherStories = stories.filter(
-    (s) => !s.isDeleted && s.id !== floatingStory.id
+  // Filter available other stories safely
+  const otherStories = (stories || []).filter(
+    (s) => s && !s.isDeleted && s.id !== floatingStory.id
   );
 
   const filteredOtherStories = otherStories.filter((s) =>
-    (s.title || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (s.title || '').toLowerCase().includes((searchQuery || '').toLowerCase())
   );
 
-  // Compute word count
-  const rawText = floatingStory.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  // Compute word count safely
+  const rawText = (floatingStory?.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   const wordCount = rawText ? rawText.split(' ').filter(Boolean).length : 0;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(rawText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        navigator.clipboard.writeText(rawText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (e) {
+      console.warn('Copy error in floating window', e);
+    }
   };
 
   const handleOpenInFullEditor = () => {

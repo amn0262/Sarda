@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { useStore, Story } from '@/lib/store';
 import { t } from '@/lib/i18n';
 
@@ -12,30 +12,33 @@ import {
   FileDown, 
   Edit, 
   Calendar, 
-  FileSpreadsheet,
-  BookOpen,
+  FileSpreadsheet, 
+  BookOpen, 
   Trash2, 
   FolderPlus, 
-  ExternalLink,
-  MoreHorizontal,
-  Clock,
-  Sparkles,
-  ArrowUpRight
+  ExternalLink, 
+  MoreHorizontal, 
+  Clock, 
+  Sparkles, 
+  ArrowUpRight 
 } from 'lucide-react';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import StoryReaderModal from '@/components/StoryReaderModal';
 import { AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 
+const emptySubscribe = () => () => {};
+
 export default function Dashboard() {
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const { folders, stories, addFolder, moveToTrash, language, setFloatingStory } = useStore();
   const [newFolderName, setNewFolderName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [readingStory, setReadingStory] = useState<Story | null>(null);
   const [menuOpenStoryId, setMenuOpenStoryId] = useState<string | null>(null);
 
-  const activeFolders = folders.filter(f => !f.isDeleted);
-  const activeStories = stories.filter(s => !s.isDeleted);
+  const activeFolders = isClient ? folders.filter(f => !f.isDeleted) : [];
+  const activeStories = isClient ? stories.filter(s => !s.isDeleted) : [];
 
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'story' | 'folder' } | null>(null);
 
@@ -63,12 +66,13 @@ export default function Dashboard() {
   const totalWords = activeStories.reduce((acc, story) => acc + countWords(story.content), 0);
 
   const scheduledStories = activeStories
-    .filter(s => s.targetDate && s.status !== 'published')
-    .sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime())
+    .filter(s => s && s.targetDate && s.status !== 'published')
+    .sort((a, b) => (new Date(a.targetDate).getTime() || 0) - (new Date(b.targetDate).getTime() || 0))
     .slice(0, 3);
 
   const recentStories = [...activeStories]
-    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .filter(Boolean)
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
     .slice(0, 4);
 
   const handleCreateFolder = (e: React.FormEvent) => {
@@ -203,10 +207,10 @@ export default function Dashboard() {
   };
 
   // Time-aware greeting
-  const currentHour = new Date().getHours();
+  const currentHour = isClient ? new Date().getHours() : null;
   const timeGreeting = language === 'ar'
-    ? (currentHour < 12 ? 'صباح الخير' : currentHour < 17 ? 'أهلاً بك' : 'مساء الخير')
-    : (currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening');
+    ? (currentHour === null ? 'أهلاً بك' : currentHour < 12 ? 'صباح الخير' : currentHour < 17 ? 'أهلاً بك' : 'مساء الخير')
+    : (currentHour === null ? 'Welcome' : currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening');
 
   return (
     <div className="p-4 md:p-6 lg:p-8 pb-40 md:pb-16 max-w-7xl mx-auto space-y-6 bg-[#F5F5F7] dark:bg-[#121214] min-h-screen text-neutral-900 dark:text-neutral-100">
@@ -226,7 +230,7 @@ export default function Dashboard() {
               <Sparkles className="w-3.5 h-3.5" />
               <span>SARDA CMS · {t('systemBadge', language)}</span>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
+            <h1 suppressHydrationWarning className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
               {timeGreeting}، {t('welcomeSarda', language)}
             </h1>
             <p className="text-neutral-400 text-xs sm:text-sm max-w-xl leading-relaxed">
