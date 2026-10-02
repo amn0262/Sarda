@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
+import ExportBackupModal from '@/components/ExportBackupModal';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none">
@@ -52,6 +53,7 @@ export default function DevInfo() {
 
   // Custom Toast State (No window.alert)
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
   
   // Custom Import Confirmation Modal State (No window.confirm)
   const [pendingImportData, setPendingImportData] = useState<any | null>(null);
@@ -420,7 +422,7 @@ export default function DevInfo() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
           <button
             type="button"
-            onClick={handleExport}
+            onClick={() => setShowExportModal(true)}
             className="p-4 bg-neutral-50 dark:bg-white/5 hover:bg-neutral-100/80 dark:hover:bg-white/10 rounded-2xl border border-black/5 dark:border-white/10 flex items-center justify-between gap-3 text-right transition-all cursor-pointer group shadow-2xs"
           >
             <div className="flex items-center gap-3">
@@ -500,6 +502,15 @@ export default function DevInfo() {
           </div>
         </div>
       )}
+
+      {/* Export Backup Destination Options Modal */}
+      <ExportBackupModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        folders={folders}
+        stories={stories}
+        onSuccess={(msg) => setToast({ type: 'success', message: msg })}
+      />
 
       {/* Mobile Bottom Dock Safety Spacer */}
       <div className="h-12 md:hidden w-full pointer-events-none" aria-hidden="true" />

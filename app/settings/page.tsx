@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import ExportBackupModal from '@/components/ExportBackupModal';
 
 export default function SettingsPage() {
   const { 
@@ -40,6 +41,7 @@ export default function SettingsPage() {
     setIsSupportGateOpen
   } = useStore();
   const [showConfirmEmpty, setShowConfirmEmpty] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [itemToPermanentDelete, setItemToPermanentDelete] = useState<{id: string, type: 'story' | 'folder'} | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -361,7 +363,7 @@ export default function SettingsPage() {
           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={handleExportBackup}
+              onClick={() => setShowExportModal(true)}
               className="p-3.5 bg-neutral-50 dark:bg-[#252528] hover:bg-neutral-100/80 dark:hover:bg-[#2C2C2E] border border-black/5 dark:border-white/10 rounded-xl flex items-center gap-3 transition-all cursor-pointer group text-right"
             >
               <div className="w-8 h-8 rounded-lg bg-emerald-100/70 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -605,6 +607,15 @@ export default function SettingsPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Export Backup Destination Options Modal */}
+      <ExportBackupModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        folders={folders}
+        stories={stories}
+        onSuccess={(msg) => setToast({ type: 'success', message: msg })}
+      />
 
       {/* Mobile Bottom Dock Safety Spacer */}
       <div className="h-12 md:hidden w-full pointer-events-none" aria-hidden="true" />

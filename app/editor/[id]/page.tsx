@@ -11,7 +11,7 @@ import {
   Save, ArrowRight, Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
   Heading1, Heading2, Heading3, FileDown, FileText, Star, Eye, EyeOff, Maximize, Minimize,
   Trash2, Columns2, ExternalLink, Copy, Check, ArrowLeftRight, X, Search, Plus, BookOpen, Layers,
-  ChevronUp, ChevronDown
+  ChevronUp, ChevronDown, ClipboardPaste
 } from 'lucide-react';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import Link from 'next/link';
@@ -19,9 +19,27 @@ import { normalizeArabicText } from '@/lib/searchUtils';
 
 const MenuBar = ({ editor }: { editor: any }) => {
   const { language } = useStore();
+  const [pasted, setPasted] = useState(false);
+
   if (!editor) {
     return null;
   }
+
+  const handlePaste = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          editor.chain().focus().insertContent(text).run();
+          setPasted(true);
+          setTimeout(() => setPasted(false), 1500);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Clipboard read failed or permission required', err);
+    }
+  };
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 p-2 bg-neutral-100/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/10 m-3 shadow-2xs">
@@ -127,6 +145,29 @@ const MenuBar = ({ editor }: { editor: any }) => {
         ) : (
           <AlignRight className="w-4 h-4 text-black dark:text-white" />
         )}
+      </button>
+
+      <div className="w-px h-5 bg-neutral-300/80 dark:bg-neutral-700 mx-1" />
+
+      {/* Paste Button - Mobile & Desktop Clipboard Integration */}
+      <button
+        type="button"
+        onClick={handlePaste}
+        className={`p-1.5 px-2.5 rounded-xl transition-all border text-xs cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+          pasted
+            ? 'bg-emerald-600 text-white border-emerald-600 font-bold shadow-xs'
+            : 'hover:bg-white dark:hover:bg-white/10 text-neutral-800 dark:text-neutral-200 border-transparent hover:border-black/5 dark:hover:border-white/10 hover:shadow-2xs'
+        }`}
+        title={language === 'ar' ? 'لصق النص من الحافظة في القصة' : 'Paste text from clipboard'}
+      >
+        {pasted ? (
+          <Check className="w-4 h-4 text-white" />
+        ) : (
+          <ClipboardPaste className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        )}
+        <span className="font-bold text-xs">
+          {pasted ? (language === 'ar' ? 'تم اللصق' : 'Pasted') : (language === 'ar' ? 'لصق' : 'Paste')}
+        </span>
       </button>
     </div>
   );
