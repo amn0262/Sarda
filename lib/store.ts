@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { StoryStyleId } from './storyStyles';
+import { sardaStateStorage } from './idbStorage';
 
 export type StoryStatus = 'draft' | 'ready' | 'published';
 
@@ -267,6 +268,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'sarda-storage',
+      storage: createJSONStorage(() => sardaStateStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

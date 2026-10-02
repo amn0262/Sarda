@@ -18,18 +18,21 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             __html: `
               (function() {
                 try {
-                  var raw = localStorage.getItem('sarda-storage');
-                  if (raw) {
-                    var parsed = JSON.parse(raw);
-                    var theme = parsed.state && parsed.state.theme;
-                    var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                    if (isDark) {
-                      document.documentElement.classList.add('dark');
-                      document.documentElement.style.colorScheme = 'dark';
-                    } else if (theme === 'light') {
-                      document.documentElement.classList.remove('dark');
-                      document.documentElement.style.colorScheme = 'light';
+                  var theme = localStorage.getItem('sarda-theme');
+                  if (!theme) {
+                    var raw = localStorage.getItem('sarda-storage');
+                    if (raw) {
+                      var parsed = JSON.parse(raw);
+                      theme = (parsed.state && parsed.state.theme) || parsed.theme;
                     }
+                  }
+                  var isDark = theme === 'dark' || ((theme === 'system' || !theme) && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                  } else if (theme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
                   }
                 } catch (e) {}
               })();
