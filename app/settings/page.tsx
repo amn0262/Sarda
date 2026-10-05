@@ -19,10 +19,16 @@ import {
   Sun,
   Moon,
   Laptop,
-  Palette
+  Palette,
+  Type,
+  Grid3X3,
+  Sliders,
+  PanelLeftClose,
+  PanelLeftOpen,
+  LayoutGrid,
+  Zap
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import ExportBackupModal from '@/components/ExportBackupModal';
 
 export default function SettingsPage() {
@@ -37,6 +43,18 @@ export default function SettingsPage() {
     setLanguage,
     theme,
     setTheme,
+    fontFamilyPreference,
+    setFontFamilyPreference,
+    fontSizePreference,
+    setFontSizePreference,
+    isSidebarCollapsed,
+    toggleSidebarCollapsed,
+    isContentFolderSidebarCollapsed,
+    toggleContentFolderSidebar,
+    gridPageSize,
+    setGridPageSize,
+    gridColumns,
+    setGridColumns,
     startTour,
     setIsSupportGateOpen
   } = useStore();
@@ -117,25 +135,20 @@ export default function SettingsPage() {
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto w-full bg-[#F5F5F7] dark:bg-[#121214] min-h-screen text-neutral-900 dark:text-neutral-100 space-y-6 pb-36 md:pb-16 select-none relative">
       
       {/* Toast Notification */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-xs font-semibold shadow-xl flex items-center gap-2 backdrop-blur-xl border ${
-              toast.type === 'success'
-                ? 'bg-neutral-900/90 dark:bg-black/90 text-white border-white/10'
-                : 'bg-red-600 text-white border-red-500'
-            }`}
-          >
-            <span>{toast.message}</span>
-            <button onClick={() => setToast(null)} className="opacity-60 hover:opacity-100 ms-1 cursor-pointer">
-              <span className="text-xs">✕</span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {toast && (
+        <div
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-xs font-semibold shadow-xl flex items-center gap-2 backdrop-blur-xl border ${
+            toast.type === 'success'
+              ? 'bg-neutral-900/90 dark:bg-black/90 text-white border-white/10'
+              : 'bg-red-600 text-white border-red-500'
+          }`}
+        >
+          <span>{toast.message}</span>
+          <button onClick={() => setToast(null)} className="opacity-60 hover:opacity-100 ms-1 cursor-pointer">
+            <span className="text-xs">✕</span>
+          </button>
+        </div>
+      )}
 
       {/* Settings Page Header */}
       <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-4">
@@ -225,7 +238,243 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Section 2: Language & Preferences */}
+        {/* Section 2: Font & Typography Customization (نوع الخط وحجم العرض) */}
+        <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 shadow-2xs overflow-hidden">
+          <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                <Type className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-xs md:text-sm font-bold text-neutral-900 dark:text-white">
+                  {t('fontSettings', language)}
+                </h2>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {t('fontSettingsSub', language)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-4">
+            {/* Font Family Selection */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 dark:bg-[#252528] rounded-xl border border-black/5 dark:border-white/10">
+              <div>
+                <span className="font-bold text-xs md:text-sm text-neutral-900 dark:text-white block">
+                  {t('fontFamily', language)}
+                </span>
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {t('fontFamilySub', language)}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1 bg-neutral-200/60 dark:bg-black/40 p-1 rounded-xl">
+                {[
+                  { id: 'ibm-plex', label: 'IBM Plex Sans' },
+                  { id: 'readex', label: 'Readex Pro' },
+                  { id: 'cairo', label: 'Cairo' },
+                  { id: 'tajawal', label: 'Tajawal' },
+                  { id: 'system', label: language === 'ar' ? 'خط النظام' : 'System' }
+                ].map((f) => {
+                  const isSelected = (fontFamilyPreference || 'ibm-plex') === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setFontFamilyPreference(f.id as any)}
+                      className={`px-2.5 py-1.5 text-xs rounded-lg transition-colors font-semibold cursor-pointer ${
+                        isSelected
+                          ? 'bg-white dark:bg-[#3A3A3C] text-neutral-900 dark:text-white shadow-xs font-bold'
+                          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Font Size Scale Selection */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 dark:bg-[#252528] rounded-xl border border-black/5 dark:border-white/10">
+              <div>
+                <span className="font-bold text-xs md:text-sm text-neutral-900 dark:text-white block">
+                  {t('fontSize', language)}
+                </span>
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {t('fontSizeSub', language)}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1 bg-neutral-200/60 dark:bg-black/40 p-1 rounded-xl">
+                {[
+                  { id: 'compact', label: t('fontSizeCompact', language) },
+                  { id: 'normal', label: t('fontSizeNormal', language) },
+                  { id: 'large', label: t('fontSizeLarge', language) },
+                  { id: 'extralarge', label: t('fontSizeExtraLarge', language) }
+                ].map((s) => {
+                  const isSelected = (fontSizePreference || 'normal') === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setFontSizePreference(s.id as any)}
+                      className={`px-2.5 py-1.5 text-xs rounded-lg transition-colors font-semibold cursor-pointer ${
+                        isSelected
+                          ? 'bg-white dark:bg-[#3A3A3C] text-neutral-900 dark:text-white shadow-xs font-bold'
+                          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Live Typography Preview Box */}
+            <div className="p-4 rounded-xl bg-neutral-100/70 dark:bg-[#18181A] border border-black/5 dark:border-white/10">
+              <div className="flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 mb-2 font-mono">
+                <span>{language === 'ar' ? 'معاينة حية فورية للخط والحجم المختار:' : 'Live Font & Scale Preview:'}</span>
+                <span className="font-bold uppercase text-neutral-700 dark:text-neutral-300">
+                  {fontFamilyPreference || 'ibm-plex'} • {fontSizePreference || 'normal'}
+                </span>
+              </div>
+              <p className="font-bold text-neutral-900 dark:text-white leading-relaxed">
+                {t('fontPreviewText', language)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3: Sidebars & Grid Display (طي القوائم وعرض الشبكة) */}
+        <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 shadow-2xs overflow-hidden">
+          <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                <Sliders className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-xs md:text-sm font-bold text-neutral-900 dark:text-white">
+                  {t('sidebarSettings', language)} & {t('gridSettings', language)}
+                </h2>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {t('sidebarSettingsSub', language)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-3">
+            {/* Sidebar Collapse: Main Sidebar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 dark:bg-[#252528] rounded-xl border border-black/5 dark:border-white/10">
+              <div>
+                <span className="font-bold text-xs md:text-sm text-neutral-900 dark:text-white block">
+                  {t('mainSidebarStatus', language)}
+                </span>
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {isSidebarCollapsed ? (language === 'ar' ? 'الحالة الحالية: مطوية (شريط أيقونات مدمج)' : 'Current: Collapsed (Icon rail)') : (language === 'ar' ? 'الحالة الحالية: موسعة بالكامل' : 'Current: Fully Expanded')}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={toggleSidebarCollapsed}
+                className="px-3.5 py-1.5 text-xs rounded-xl font-bold bg-white dark:bg-[#3A3A3C] text-neutral-900 dark:text-white border border-black/5 dark:border-white/10 shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-colors"
+              >
+                {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4 text-blue-500" /> : <PanelLeftClose className="w-4 h-4 text-neutral-500" />}
+                <span>{isSidebarCollapsed ? t('expandSidebar', language) : t('collapseSidebar', language)}</span>
+              </button>
+            </div>
+
+            {/* Sidebar Collapse: Content Folders Tree */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 dark:bg-[#252528] rounded-xl border border-black/5 dark:border-white/10">
+              <div>
+                <span className="font-bold text-xs md:text-sm text-neutral-900 dark:text-white block">
+                  {t('foldersSidebarStatus', language)}
+                </span>
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {isContentFolderSidebarCollapsed ? (language === 'ar' ? 'الحالة الحالية: مطوية لتوفير مساحة قصوى' : 'Current: Collapsed for maximum workspace') : (language === 'ar' ? 'الحالة الحالية: ظاهرة في جانب الشاشة' : 'Current: Visible on screen side')}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={toggleContentFolderSidebar}
+                className="px-3.5 py-1.5 text-xs rounded-xl font-bold bg-white dark:bg-[#3A3A3C] text-neutral-900 dark:text-white border border-black/5 dark:border-white/10 shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-colors"
+              >
+                {isContentFolderSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4 text-blue-500" /> : <PanelLeftClose className="w-4 h-4 text-neutral-500" />}
+                <span>{isContentFolderSidebarCollapsed ? t('expandFolders', language) : t('collapseFolders', language)}</span>
+              </button>
+            </div>
+
+            {/* Stories Grid Settings: Columns Count */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 dark:bg-[#252528] rounded-xl border border-black/5 dark:border-white/10">
+              <div>
+                <span className="font-bold text-xs md:text-sm text-neutral-900 dark:text-white block">
+                  {t('gridColumnsCount', language)}
+                </span>
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {language === 'ar' ? 'اختر كثافة عرض بطاقات القصص بالوضع الشبكي' : 'Choose stories grid card density'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1 bg-neutral-200/60 dark:bg-black/40 p-1 rounded-xl">
+                {[2, 3, 4].map((col) => (
+                  <button
+                    key={col}
+                    type="button"
+                    onClick={() => setGridColumns(col)}
+                    className={`px-3 py-1.5 text-xs rounded-lg transition-colors font-bold cursor-pointer ${
+                      (gridColumns || 3) === col
+                        ? 'bg-white dark:bg-[#3A3A3C] text-neutral-900 dark:text-white shadow-xs'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {col} {language === 'ar' ? 'أعمدة' : 'Cols'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Stories Grid Settings: Items Per Page */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 dark:bg-[#252528] rounded-xl border border-black/5 dark:border-white/10">
+              <div>
+                <span className="font-bold text-xs md:text-sm text-neutral-900 dark:text-white block">
+                  {t('gridItemsPerPage', language)}
+                </span>
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {language === 'ar' ? 'تحديد عدد القصص المعروضة في الصفحة الواحدة' : 'Number of stories rendered per view page'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1 bg-neutral-200/60 dark:bg-black/40 p-1 rounded-xl">
+                {[6, 12, 24, 48, -1].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setGridPageSize(size)}
+                    className={`px-2.5 py-1.5 text-xs rounded-lg transition-colors font-bold cursor-pointer ${
+                      (gridPageSize || 12) === size
+                        ? 'bg-white dark:bg-[#3A3A3C] text-neutral-900 dark:text-white shadow-xs'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {size === -1 ? (language === 'ar' ? 'الكل' : 'All') : size}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Fast Mode Performance Badge */}
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 rounded-xl border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-2.5 text-xs font-medium">
+              <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>{t('fastModeActive', language)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Language & Preferences */}
         <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 shadow-2xs overflow-hidden">
           <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -530,83 +779,73 @@ export default function SettingsPage() {
       </div>
 
       {/* Empty Trash Confirmation Modal - macOS Alert Dialog */}
-      <AnimatePresence>
-        {showConfirmEmpty && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-sm p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white/95 dark:bg-[#1C1C1E] backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl p-5 w-full max-w-sm space-y-4"
-            >
-              <div className="w-10 h-10 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
-                <AlertCircle className="w-5 h-5" />
-              </div>
-              <div className="text-center space-y-1">
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">{t('emptyTrashTitle', language)}</h3>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{t('emptyTrashSub', language)}</p>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={handleEmptyTrash}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold text-xs shadow-xs transition-colors cursor-pointer active:scale-95"
-                >
-                  {t('emptyTrash', language)}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmEmpty(false)}
-                  className="flex-1 bg-neutral-100 dark:bg-[#2C2C2E] hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 py-2 rounded-xl font-semibold text-xs border border-black/5 dark:border-white/10 transition-colors cursor-pointer active:scale-95"
-                >
-                  {t('cancel', language)}
-                </button>
-              </div>
-            </motion.div>
+      {showConfirmEmpty && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-sm p-4">
+          <div
+            className="bg-white/95 dark:bg-[#1C1C1E] backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl p-5 w-full max-w-sm space-y-4"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">{t('emptyTrashTitle', language)}</h3>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{t('emptyTrashSub', language)}</p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={handleEmptyTrash}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold text-xs shadow-xs transition-colors cursor-pointer active:scale-95"
+              >
+                {t('emptyTrash', language)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowConfirmEmpty(false)}
+                className="flex-1 bg-neutral-100 dark:bg-[#2C2C2E] hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 py-2 rounded-xl font-semibold text-xs border border-black/5 dark:border-white/10 transition-colors cursor-pointer active:scale-95"
+              >
+                {t('cancel', language)}
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Permanent Delete Confirmation Modal - macOS Alert Dialog */}
-      <AnimatePresence>
-        {itemToPermanentDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-sm p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white/95 dark:bg-[#1C1C1E] backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl p-5 w-full max-w-sm space-y-4"
-            >
-              <div className="w-10 h-10 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
-                <AlertCircle className="w-5 h-5" />
-              </div>
-              <div className="text-center space-y-1">
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">{t('confirmPermanentDeleteTitle', language)}</h3>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{t('confirmPermanentDeleteSub', language)}</p>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    permanentDelete(itemToPermanentDelete.id, itemToPermanentDelete.type);
-                    setItemToPermanentDelete(null);
-                  }}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold text-xs shadow-xs transition-colors cursor-pointer active:scale-95"
-                >
-                  {t('permanentDelete', language)}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setItemToPermanentDelete(null)}
-                  className="flex-1 bg-neutral-100 dark:bg-[#2C2C2E] hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 py-2 rounded-xl font-semibold text-xs border border-black/5 dark:border-white/10 transition-colors cursor-pointer active:scale-95"
-                >
-                  {t('cancel', language)}
-                </button>
-              </div>
-            </motion.div>
+      {itemToPermanentDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-sm p-4">
+          <div
+            className="bg-white/95 dark:bg-[#1C1C1E] backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl p-5 w-full max-w-sm space-y-4"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">{t('confirmPermanentDeleteTitle', language)}</h3>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{t('confirmPermanentDeleteSub', language)}</p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  permanentDelete(itemToPermanentDelete.id, itemToPermanentDelete.type);
+                  setItemToPermanentDelete(null);
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold text-xs shadow-xs transition-colors cursor-pointer active:scale-95"
+              >
+                {t('permanentDelete', language)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setItemToPermanentDelete(null)}
+                className="flex-1 bg-neutral-100 dark:bg-[#2C2C2E] hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 py-2 rounded-xl font-semibold text-xs border border-black/5 dark:border-white/10 transition-colors cursor-pointer active:scale-95"
+              >
+                {t('cancel', language)}
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Export Backup Destination Options Modal */}
       <ExportBackupModal

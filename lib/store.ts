@@ -5,6 +5,8 @@ import { StoryStyleId } from './storyStyles';
 import { sardaStateStorage } from './idbStorage';
 
 export type StoryStatus = 'draft' | 'ready' | 'published';
+export type FontFamilyPreference = 'ibm-plex' | 'readex' | 'cairo' | 'tajawal' | 'system';
+export type FontSizePreference = 'compact' | 'normal' | 'large' | 'extralarge';
 
 export interface Folder {
   id: string;
@@ -30,6 +32,28 @@ export interface Story {
   style?: StoryStyleId;
 }
 
+export interface Bookmark {
+  id: string;
+  storyId: string;
+  page: number;
+  title: string;
+  excerpt?: string;
+  createdAt: number;
+}
+
+export interface LastReadPosition {
+  storyId: string;
+  page: number;
+  updatedAt: number;
+}
+
+export interface ReaderSettings {
+  fontSize: number; // e.g. 19
+  theme: 'white' | 'offwhite' | 'sepia' | 'dark';
+  fontFamily: FontFamilyPreference;
+  lineHeight: 'normal' | 'relaxed' | 'loose';
+}
+
 interface AppState {
   _hasHydrated: boolean;
   setHasHydrated: (val: boolean) => void;
@@ -45,6 +69,36 @@ interface AppState {
   theme: 'light' | 'dark' | 'system';
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   toggleTheme: () => void;
+
+  // Layout & UI Customization Preferences
+  isSidebarCollapsed: boolean;
+  setIsSidebarCollapsed: (collapsed: boolean) => void;
+  toggleSidebarCollapsed: () => void;
+
+  isContentFolderSidebarCollapsed: boolean;
+  setIsContentFolderSidebarCollapsed: (collapsed: boolean) => void;
+  toggleContentFolderSidebar: () => void;
+
+  gridPageSize: number; // e.g. 6, 12, 24, 48, -1 for all
+  setGridPageSize: (size: number) => void;
+
+  gridColumns: number; // 2, 3, or 4 columns
+  setGridColumns: (cols: number) => void;
+
+  fontSizePreference: FontSizePreference;
+  setFontSizePreference: (size: FontSizePreference) => void;
+
+  fontFamilyPreference: FontFamilyPreference;
+  setFontFamilyPreference: (font: FontFamilyPreference) => void;
+
+  // Reader Mode & Bookmarking State
+  bookmarks: Bookmark[];
+  addBookmark: (bookmark: Omit<Bookmark, 'id' | 'createdAt'>) => void;
+  removeBookmark: (id: string) => void;
+  lastRead: LastReadPosition | null;
+  setLastRead: (storyId: string, page: number) => void;
+  readerSettings: ReaderSettings;
+  setReaderSettings: (settings: Partial<ReaderSettings>) => void;
 
   // Floating Story Window State
   floatingStory: Story | null;
@@ -114,6 +168,52 @@ export const useStore = create<AppState>()(
       setTheme: (theme) => set({ theme }),
       toggleTheme: () => set((state) => ({
         theme: state.theme === 'dark' ? 'light' : 'dark'
+      })),
+
+      isSidebarCollapsed: false,
+      setIsSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
+      toggleSidebarCollapsed: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+
+      isContentFolderSidebarCollapsed: false,
+      setIsContentFolderSidebarCollapsed: (collapsed) => set({ isContentFolderSidebarCollapsed: collapsed }),
+      toggleContentFolderSidebar: () => set((state) => ({ isContentFolderSidebarCollapsed: !state.isContentFolderSidebarCollapsed })),
+
+      gridPageSize: 12,
+      setGridPageSize: (size) => set({ gridPageSize: size }),
+
+      gridColumns: 3,
+      setGridColumns: (cols) => set({ gridColumns: cols }),
+
+      fontSizePreference: 'normal',
+      setFontSizePreference: (size) => set({ fontSizePreference: size }),
+
+      fontFamilyPreference: 'ibm-plex',
+      setFontFamilyPreference: (font) => set({ fontFamilyPreference: font }),
+
+      bookmarks: [],
+      addBookmark: (b) => set((state) => ({
+        bookmarks: [
+          { ...b, id: uuidv4(), createdAt: Date.now() },
+          ...state.bookmarks.filter(existing => !(existing.storyId === b.storyId && existing.page === b.page))
+        ]
+      })),
+      removeBookmark: (id) => set((state) => ({
+        bookmarks: state.bookmarks.filter(b => b.id !== id)
+      })),
+
+      lastRead: null,
+      setLastRead: (storyId, page) => set({
+        lastRead: { storyId, page, updatedAt: Date.now() }
+      }),
+
+      readerSettings: {
+        fontSize: 19,
+        theme: 'offwhite',
+        fontFamily: 'ibm-plex',
+        lineHeight: 'relaxed'
+      },
+      setReaderSettings: (settings) => set((state) => ({
+        readerSettings: { ...state.readerSettings, ...settings }
       })),
 
       floatingStory: null,
@@ -277,10 +377,19 @@ export const useStore = create<AppState>()(
         stories: state.stories,
         language: state.language,
         theme: state.theme,
+        isSidebarCollapsed: state.isSidebarCollapsed,
+        isContentFolderSidebarCollapsed: state.isContentFolderSidebarCollapsed,
+        gridPageSize: state.gridPageSize,
+        gridColumns: state.gridColumns,
+        fontSizePreference: state.fontSizePreference,
+        fontFamilyPreference: state.fontFamilyPreference,
         floatingStory: state.floatingStory,
         isFloatingStoryMinimized: state.isFloatingStoryMinimized,
         hasCompletedSupportGate: state.hasCompletedSupportGate,
         hasCompletedTour: state.hasCompletedTour,
+        bookmarks: state.bookmarks,
+        lastRead: state.lastRead,
+        readerSettings: state.readerSettings,
       }),
     }
   )

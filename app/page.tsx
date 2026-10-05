@@ -20,18 +20,19 @@ import {
   MoreHorizontal, 
   Clock, 
   Sparkles, 
-  ArrowUpRight 
+  ArrowUpRight,
+  Bookmark as BookmarkIcon,
+  ChevronLeft
 } from 'lucide-react';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import StoryReaderModal from '@/components/StoryReaderModal';
-import { AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 
 const emptySubscribe = () => () => {};
 
 export default function Dashboard() {
   const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const { folders, stories, addFolder, moveToTrash, language, setFloatingStory } = useStore();
+  const { folders, stories, addFolder, moveToTrash, language, setFloatingStory, lastRead, bookmarks } = useStore();
   const [newFolderName, setNewFolderName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [readingStory, setReadingStory] = useState<Story | null>(null);
@@ -39,6 +40,9 @@ export default function Dashboard() {
 
   const activeFolders = isClient ? folders.filter(f => !f.isDeleted) : [];
   const activeStories = isClient ? stories.filter(s => !s.isDeleted) : [];
+
+  const lastReadStory = isClient && lastRead ? activeStories.find(s => s.id === lastRead.storyId) : null;
+  const lastReadFolder = lastReadStory?.folderId ? activeFolders.find(f => f.id === lastReadStory.folderId) : null;
 
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'story' | 'folder' } | null>(null);
 
@@ -258,6 +262,14 @@ export default function Dashboard() {
             </Link>
 
             <Link
+              href="/reader"
+              className="bg-white/10 hover:bg-white/15 text-white px-4 py-2.5 font-semibold flex items-center justify-center gap-2 transition-all text-xs rounded-xl border border-white/15 active:scale-95 cursor-pointer"
+            >
+              <BookOpen className="w-4 h-4 text-amber-300" />
+              <span>{t('readerTitle', language)}</span>
+            </Link>
+
+            <Link
               href="/schedule"
               className="bg-white/10 hover:bg-white/15 text-white px-4 py-2.5 font-semibold flex items-center justify-center gap-2 transition-all text-xs rounded-xl border border-white/15 active:scale-95 cursor-pointer"
             >
@@ -268,7 +280,76 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 2. Key Metrics & Statistics - Apple Widget Clean Style */}
+      {/* 2. Continue Reading / Reader Memory Quick Access Banner */}
+      <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-5 md:p-6 border border-black/5 dark:border-white/10 shadow-2xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                  {lastReadStory ? t('continueReading', language) : t('readerTitle', language)}
+                </span>
+                {lastReadStory && (
+                  <span className="text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-mono px-2 py-0.5 rounded-full font-bold">
+                    {t('pageOf', language)} {lastRead?.page || 1}
+                  </span>
+                )}
+                {bookmarks.length > 0 && (
+                  <span className="text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-mono px-2 py-0.5 rounded-full font-semibold">
+                    {bookmarks.length} {t('bookmark', language)}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-sm md:text-base font-bold text-neutral-900 dark:text-white">
+                {lastReadStory ? lastReadStory.title : (language === 'ar' ? 'قسم القراءة: قراءة هادئة بملء الشاشة مع حفظ مكان الصفحات' : 'Reader Studio: Read in fullscreen with progress memory')}
+              </h2>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                {lastReadStory
+                  ? (language === 'ar'
+                      ? `آخر موضع وصلت إليه: صفحة ${lastRead?.page || 1}${lastReadFolder ? ` في مجلد ${lastReadFolder.name}` : ''}`
+                      : `Last reached page: Page ${lastRead?.page || 1}${lastReadFolder ? ` in ${lastReadFolder.name}` : ''}`)
+                  : (language === 'ar'
+                      ? 'تصفح محتويات التطبيق كاملة من قصص، مع دعم العلامات المرجعية والتحكم بالخلفية وحجم الخط.'
+                      : 'Browse and read all stories with custom bookmarks, fullscreen mode, and reading themes.')}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+            {lastReadStory ? (
+              <Link
+                href={`/reader?storyId=${encodeURIComponent(lastReadStory.id)}&page=${lastRead?.page || 1}`}
+                className="px-4 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-neutral-200 text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>{language === 'ar' ? `استئناف (صفحة ${lastRead?.page || 1})` : `Resume (Page ${lastRead?.page || 1})`}</span>
+              </Link>
+            ) : (
+              <Link
+                href="/reader"
+                className="px-4 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-neutral-200 text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>{t('startReadingNow', language)}</span>
+              </Link>
+            )}
+
+            <Link
+              href="/reader"
+              className="p-2.5 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-white/10 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title={language === 'ar' ? 'فهرس القراءة' : 'Reading Index'}
+            >
+              <span>{language === 'ar' ? 'الفهرس' : 'Index'}</span>
+              <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Key Metrics & Statistics - Apple Widget Clean Style */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {/* Total Stories */}
         <Link 
@@ -650,40 +731,38 @@ export default function Dashboard() {
       />
 
       {/* Delete Confirmation Modal - Apple macOS Window Style */}
-      <AnimatePresence>
-        {itemToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-md p-4">
-            <div className="bg-white/95 dark:bg-[#1C1C1E] backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-sm space-y-4 border border-black/8 dark:border-white/10 text-center animate-in fade-in zoom-in-95 duration-150">
-              <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-[#252528] text-black dark:text-white border border-black/5 dark:border-white/10 mx-auto flex items-center justify-center shadow-2xs">
-                <Trash2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-neutral-900 dark:text-white">{t('confirmTrashTitle', language)}</h3>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">{t('confirmTrashSub', language)}</p>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    moveToTrash(itemToDelete.id, itemToDelete.type);
-                    setItemToDelete(null);
-                  }}
-                  className="flex-1 bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
-                >
-                  {t('moveToTrash', language)}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setItemToDelete(null)}
-                  className="flex-1 bg-neutral-100 dark:bg-[#2C2C2E] hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 py-2.5 rounded-xl font-semibold text-xs border border-black/5 dark:border-white/10 transition-all cursor-pointer"
-                >
-                  {t('cancel', language)}
-                </button>
-              </div>
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-white/95 dark:bg-[#1C1C1E] backdrop-blur-2xl rounded-3xl shadow-2xl p-6 w-full max-w-sm space-y-4 border border-black/8 dark:border-white/10 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-[#252528] text-black dark:text-white border border-black/5 dark:border-white/10 mx-auto flex items-center justify-center shadow-2xs">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-neutral-900 dark:text-white">{t('confirmTrashTitle', language)}</h3>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">{t('confirmTrashSub', language)}</p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  moveToTrash(itemToDelete.id, itemToDelete.type);
+                  setItemToDelete(null);
+                }}
+                className="flex-1 bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
+              >
+                {t('moveToTrash', language)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setItemToDelete(null)}
+                className="flex-1 bg-neutral-100 dark:bg-[#2C2C2E] hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] text-neutral-800 dark:text-neutral-200 py-2.5 rounded-xl font-semibold text-xs border border-black/5 dark:border-white/10 transition-all cursor-pointer"
+              >
+                {t('cancel', language)}
+              </button>
             </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Floating Scroll to Top button */}
       <ScrollToTopButton />

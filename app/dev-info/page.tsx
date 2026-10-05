@@ -30,7 +30,6 @@ import {
   Check
 } from 'lucide-react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'motion/react';
 import ExportBackupModal from '@/components/ExportBackupModal';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -165,26 +164,21 @@ export default function DevInfo() {
     <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto space-y-6 bg-[#F5F5F7] dark:bg-[#121214] min-h-screen text-neutral-900 dark:text-neutral-100 pb-36 md:pb-16 select-none">
       
       {/* Toast Notification */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-xs font-semibold shadow-xl flex items-center gap-2 backdrop-blur-xl border ${
-              toast.type === 'success'
-                ? 'bg-neutral-900/90 dark:bg-black/90 text-white border-white/10'
-                : 'bg-red-600 text-white border-red-500'
-            }`}
-          >
-            {toast.type === 'success' ? <Check className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4" />}
-            <span>{toast.message}</span>
-            <button onClick={() => setToast(null)} className="opacity-60 hover:opacity-100 ms-1 cursor-pointer">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {toast && (
+        <div
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-xs font-semibold shadow-xl flex items-center gap-2 backdrop-blur-xl border ${
+            toast.type === 'success'
+              ? 'bg-neutral-900/90 dark:bg-black/90 text-white border-white/10'
+              : 'bg-red-600 text-white border-red-500'
+          }`}
+        >
+          {toast.type === 'success' ? <Check className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4" />}
+          <span>{toast.message}</span>
+          <button onClick={() => setToast(null)} className="opacity-60 hover:opacity-100 ms-1 cursor-pointer">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Top Hero Banner - World-Class Apple macOS Style */}
       <div className="bg-neutral-950 text-white rounded-3xl p-6 sm:p-8 md:p-10 border border-white/10 shadow-xl relative overflow-hidden">

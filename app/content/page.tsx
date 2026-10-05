@@ -7,11 +7,11 @@ import {
   FolderPlus, Folder as FolderIcon, Trash2, Edit2, FileText, Plus, 
   Calendar, Clock, FileDown, ChevronLeft, ChevronRight, Search, 
   Filter, LayoutGrid, Layers, Star, X, Eye, 
-  ArrowRight, FolderOpen, ChevronDown, Clipboard, List, Grid3X3, ExternalLink
+  ArrowRight, FolderOpen, ChevronDown, Clipboard, List, Grid3X3, ExternalLink,
+  PanelLeftClose, PanelLeftOpen, BookOpen
 } from 'lucide-react';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import StoryReaderModal from '@/components/StoryReaderModal';
-import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -20,7 +20,12 @@ function ContentManager() {
   const searchParams = useSearchParams();
   const folderParam = searchParams.get('folderId');
 
-  const { folders, stories, addFolder, updateFolder, addStory, updateStory, toggleFavorite, moveToTrash, language, setFloatingStory } = useStore();
+  const { 
+    folders, stories, addFolder, updateFolder, addStory, updateStory, 
+    toggleFavorite, moveToTrash, language, setFloatingStory,
+    isContentFolderSidebarCollapsed, toggleContentFolderSidebar,
+    gridPageSize, setGridPageSize, gridColumns, setGridColumns
+  } = useStore();
   
   const activeFolders = useMemo(() => folders.filter(f => !f.isDeleted), [folders]);
   const activeStories = useMemo(() => stories.filter(s => !s.isDeleted), [stories]);
@@ -28,6 +33,7 @@ function ContentManager() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(folderParam || null);
   const [viewMode, setViewMode] = useState<'folders' | 'all' | 'favorites'>('folders');
   const [displayLayout, setDisplayLayout] = useState<'grid' | 'table'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Sync selectedFolderId if URL parameter changes
   const [prevFolderParam, setPrevFolderParam] = useState(folderParam);
@@ -320,6 +326,57 @@ function ContentManager() {
     folderMap
   ]);
 
+  // Reset pagination on filter or view changes
+  const filterKey = `${selectedFolderId}_${viewMode}_${searchQuery}_${selectedYear}_${selectedMonth}_${selectedStatus}_${selectedFolderFilter}_${gridPageSize}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
+
+  // Compute pagination values
+  const pageSize = (gridPageSize === -1) ? (filteredStories.length || 1) : (gridPageSize || 12);
+  const totalPages = Math.max(1, Math.ceil(filteredStories.length / (pageSize || 1)));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  const paginatedStories = (gridPageSize === -1)
+    ? filteredStories
+    : filteredStories.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const renderPagination = () => {
+    if (filteredStories.length <= pageSize || gridPageSize === -1) return null;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-black/5 dark:border-white/10 text-xs">
+        <span className="text-neutral-500 dark:text-neutral-400 font-medium">
+          {language === 'ar'
+            ? `عرض ${(safePage - 1) * pageSize + 1} - ${Math.min(safePage * pageSize, filteredStories.length)} من أصل ${filteredStories.length} قصة`
+            : `Showing ${(safePage - 1) * pageSize + 1} - ${Math.min(safePage * pageSize, filteredStories.length)} of ${filteredStories.length} stories`}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            disabled={safePage <= 1}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            className="px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1C1C1E] hover:bg-neutral-50 dark:hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none font-semibold cursor-pointer active:scale-95 transition-colors"
+          >
+            {language === 'ar' ? 'السابق' : 'Prev'}
+          </button>
+          <span className="px-2.5 py-1 text-xs font-bold text-neutral-800 dark:text-neutral-200 bg-neutral-100 dark:bg-white/10 rounded-lg">
+            {safePage} / {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={safePage >= totalPages}
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            className="px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#1C1C1E] hover:bg-neutral-50 dark:hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none font-semibold cursor-pointer active:scale-95 transition-colors"
+          >
+            {language === 'ar' ? 'التالي' : 'Next'}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const availableYears = useMemo(() => {
     let storiesToScan = activeStories;
     if (viewMode === 'folders' && selectedFolderId) {
@@ -455,24 +512,21 @@ function ContentManager() {
     <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden bg-[#F5F5F7] dark:bg-[#121214] text-neutral-900 dark:text-neutral-100">
       
       {/* Toast Notification - Apple Pill */}
-      <AnimatePresence>
-        {toastNotification && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/90 dark:bg-[#1C1C1E]/95 backdrop-blur-xl text-white border border-white/10 px-4 py-2 text-xs font-semibold shadow-xl rounded-full flex items-center gap-2"
-          >
-            <span>{toastNotification.message}</span>
-            <button onClick={() => setToastNotification(null)} className="text-neutral-400 hover:text-white cursor-pointer">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {toastNotification && (
+        <div
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/90 dark:bg-[#1C1C1E]/95 backdrop-blur-xl text-white border border-white/10 px-4 py-2 text-xs font-semibold shadow-xl rounded-full flex items-center gap-2"
+        >
+          <span>{toastNotification.message}</span>
+          <button onClick={() => setToastNotification(null)} className="text-neutral-400 hover:text-white cursor-pointer">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Desktop Left/Right Hierarchy Panel - Apple macOS Finder Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-e border-black/5 dark:border-white/10 shrink-0 select-none">
+      <aside className={`hidden md:flex flex-col bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-e border-black/5 dark:border-white/10 shrink-0 select-none transition-[width,opacity] duration-150 ${
+        isContentFolderSidebarCollapsed ? 'w-0 overflow-hidden border-none opacity-0 pointer-events-none' : 'w-64 lg:w-72 opacity-100'
+      }`}>
         
         {/* Panel Header */}
         <div className="p-3 border-b border-black/5 dark:border-white/10 space-y-2.5">
@@ -484,13 +538,22 @@ function ContentManager() {
               <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F] inline-block"></span>
               <span className="ms-1">{language === 'ar' ? 'فهرس المجلدات' : 'Folder Index'}</span>
             </h2>
-            <button
-              onClick={() => openAddFolder()}
-              className="p-1.5 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-800 dark:text-neutral-200 rounded-xl transition-all border border-black/5 dark:border-white/10 active:scale-95 cursor-pointer"
-              title={t('createFolder', language)}
-            >
-              <FolderPlus className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => openAddFolder()}
+                className="p-1.5 bg-neutral-100 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 text-neutral-800 dark:text-neutral-200 rounded-xl transition-colors border border-black/5 dark:border-white/10 active:scale-95 cursor-pointer"
+                title={t('createFolder', language)}
+              >
+                <FolderPlus className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={toggleContentFolderSidebar}
+                className="p-1.5 hover:bg-neutral-200/60 dark:hover:bg-white/10 text-neutral-500 hover:text-black dark:hover:text-white rounded-xl transition-colors cursor-pointer"
+                title={language === 'ar' ? 'طي فهرس المجلدات' : 'Collapse Folders'}
+              >
+                <PanelLeftClose className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* Apple Segmented Tabs */}
@@ -616,6 +679,15 @@ function ContentManager() {
           
           {/* Breadcrumbs / View Title */}
           <div className="flex items-center gap-2 text-xs font-semibold overflow-x-auto min-w-0">
+            {/* Desktop Folder Sidebar Toggle Button */}
+            <button
+              onClick={toggleContentFolderSidebar}
+              className="hidden md:flex items-center justify-center p-1.5 border border-black/5 dark:border-white/10 bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white rounded-xl cursor-pointer transition-colors"
+              title={isContentFolderSidebarCollapsed ? (language === 'ar' ? 'إظهار شجرة المجلدات' : 'Show Folders') : (language === 'ar' ? 'طي شجرة المجلدات' : 'Hide Folders')}
+            >
+              {isContentFolderSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4 text-blue-500" /> : <PanelLeftClose className="w-4 h-4" />}
+            </button>
+
             {/* Mobile Drawer Trigger */}
             <button
               onClick={() => setIsMobileFolderDrawerOpen(true)}
@@ -767,26 +839,84 @@ function ContentManager() {
             )}
           </div>
 
-          {/* Layout Toggle: Apple Segmented Pill */}
-          <div className="flex items-center gap-0.5 bg-neutral-200/60 dark:bg-black/40 p-0.5 rounded-xl">
-            <button
-              onClick={() => setDisplayLayout('grid')}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                displayLayout === 'grid' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white'
-              }`}
-              title="عرض شبكة"
-            >
-              <Grid3X3 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setDisplayLayout('table')}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                displayLayout === 'table' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white'
-              }`}
-              title="عرض جدول / قائمة"
-            >
-              <List className="w-3.5 h-3.5" />
-            </button>
+          {/* Layout & Grid Controls: Density, Items Count & Mode */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Items Per Page Selector */}
+            <div className="flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400">
+              <span className="text-[11px] font-medium">{language === 'ar' ? 'العناصر:' : 'Show:'}</span>
+              <select
+                value={gridPageSize || 12}
+                onChange={(e) => setGridPageSize(Number(e.target.value))}
+                className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-xl px-2 py-1 text-xs font-semibold text-neutral-800 dark:text-neutral-200 focus:outline-none shadow-2xs cursor-pointer"
+                title={language === 'ar' ? 'عدد العناصر لكل صفحة' : 'Items per page'}
+              >
+                <option value={6}>6</option>
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+                <option value={48}>48</option>
+                <option value={-1}>{language === 'ar' ? 'الكل' : 'All'}</option>
+              </select>
+            </div>
+
+            {/* Grid Columns Density Selector (Visible in Grid Mode) */}
+            {displayLayout === 'grid' && (
+              <div className="flex items-center gap-0.5 bg-neutral-200/60 dark:bg-black/40 p-0.5 rounded-xl text-[10px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setGridColumns(2)}
+                  className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                    (gridColumns || 3) === 2 ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                  }`}
+                  title={language === 'ar' ? 'عمودان (عرض عريض ومفصل)' : '2 Columns'}
+                >
+                  2
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGridColumns(3)}
+                  className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                    (gridColumns || 3) === 3 ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                  }`}
+                  title={language === 'ar' ? '3 أعمدة (متوسط قياسي)' : '3 Columns'}
+                >
+                  3
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGridColumns(4)}
+                  className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                    (gridColumns || 3) === 4 ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                  }`}
+                  title={language === 'ar' ? '4 أعمدة (مدمج سريع)' : '4 Columns'}
+                >
+                  4
+                </button>
+              </div>
+            )}
+
+            {/* Layout Toggle: Grid vs Table */}
+            <div className="flex items-center gap-0.5 bg-neutral-200/60 dark:bg-black/40 p-0.5 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setDisplayLayout('grid')}
+                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                  displayLayout === 'grid' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+                }`}
+                title="عرض شبكة"
+              >
+                <Grid3X3 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisplayLayout('table')}
+                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                  displayLayout === 'table' ? 'bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-xs' : 'text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+                }`}
+                title="عرض جدول / قائمة"
+              >
+                <List className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1114,9 +1244,10 @@ function ContentManager() {
 
               {/* Stories Render */}
               <StoryContentSection
-                stories={filteredStories}
+                stories={paginatedStories}
                 folderMap={folderMap}
                 displayLayout={displayLayout}
+                gridColumns={gridColumns || 3}
                 language={language}
                 emptyMessage={t('noStoriesInFolder', language)}
                 emptySubText={t('startWritingInFolder', language)}
@@ -1126,6 +1257,9 @@ function ContentManager() {
                 onDelete={(id) => setItemToDelete({ id, type: 'story' })}
                 onFloatStory={setFloatingStory}
               />
+
+              {/* Pagination Controls */}
+              {renderPagination()}
             </div>
           )}
 
@@ -1158,9 +1292,10 @@ function ContentManager() {
 
               {/* Stories Render */}
               <StoryContentSection
-                stories={filteredStories}
+                stories={paginatedStories}
                 folderMap={folderMap}
                 displayLayout={displayLayout}
+                gridColumns={gridColumns || 3}
                 language={language}
                 emptyMessage={viewMode === 'favorites' ? t('noFavoritesYet', language) : t('noStoriesYet', language)}
                 emptySubText={viewMode === 'favorites' ? t('noFavoritesSub', language) : t('noStoriesSub', language)}
@@ -1170,6 +1305,9 @@ function ContentManager() {
                 onDelete={(id) => setItemToDelete({ id, type: 'story' })}
                 onFloatStory={setFloatingStory}
               />
+
+              {/* Pagination Controls */}
+              {renderPagination()}
             </div>
           )}
 
@@ -1434,6 +1572,7 @@ interface StorySectionProps {
   stories: Story[];
   folderMap: Map<string, FolderType>;
   displayLayout: 'grid' | 'table';
+  gridColumns?: number;
   language: 'ar' | 'en';
   emptyMessage: string;
   emptySubText: string;
@@ -1448,6 +1587,7 @@ function StoryContentSection({
   stories,
   folderMap,
   displayLayout,
+  gridColumns = 3,
   language,
   emptyMessage,
   emptySubText,
@@ -1543,8 +1683,11 @@ function StoryContentSection({
                   <td className="p-3 text-neutral-500 dark:text-neutral-400 font-medium text-[11px] whitespace-nowrap">
                     {story.targetDate || '---'}
                   </td>
-                  <td className="p-3 text-neutral-500 dark:text-neutral-400 font-medium text-[11px]">
-                    {wordCount}
+                  <td className="p-3 text-neutral-500 dark:text-neutral-400 font-medium text-[11px] whitespace-nowrap">
+                    <span>{wordCount}</span>
+                    <span className="block text-[10px] text-neutral-400 dark:text-neutral-500">
+                      ⏱️ {Math.max(1, Math.ceil(wordCount / 180))} {language === 'ar' ? 'د' : 'min'}
+                    </span>
                   </td>
                   <td className="p-3 text-left whitespace-nowrap">
                     {/* Dedicated action buttons - NO DUPLICATE EYE BUTTON */}
@@ -1583,13 +1726,20 @@ function StoryContentSection({
     );
   }
 
-  // 2. Grid View - Apple Notes Card Style
+  // 2. Grid View - Dynamic Columns & High Contrast
+  const gridColsClass = gridColumns === 2
+    ? 'grid-cols-1 sm:grid-cols-2'
+    : gridColumns === 4
+    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+    <div className={`grid ${gridColsClass} gap-3.5`}>
       {stories.map((story) => {
         const folder = story.folderId ? folderMap.get(story.folderId) : null;
         const wordCount = story.content ? story.content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length : 0;
         const statusText = story.status === 'published' ? t('published', language) : story.status === 'ready' ? t('readyToPublish', language) : t('draft', language);
+        const readingTimeMin = Math.max(1, Math.ceil(wordCount / 180));
 
         const statusColor = story.status === 'published'
           ? 'text-emerald-700 dark:text-emerald-400 font-semibold'
@@ -1600,7 +1750,7 @@ function StoryContentSection({
         return (
           <div
             key={story.id}
-            className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 hover:border-black/15 dark:hover:border-white/20 rounded-2xl p-4 flex flex-col justify-between space-y-3 transition-all shadow-2xs hover:shadow-xs group"
+            className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 hover:border-black/15 dark:hover:border-white/20 rounded-2xl p-4 flex flex-col justify-between space-y-3 transition-colors shadow-2xs hover:shadow-xs group"
           >
             <div className="space-y-2.5">
               {/* Card Meta Row - Clean unboxed text */}
@@ -1650,11 +1800,24 @@ function StoryContentSection({
               />
             </div>
 
-            {/* Card Footer: Metadata on right + Dedicated Actions on left - NO DUPLICATE EYE BUTTON */}
+            {/* Card Footer: Metadata with Reading Time on right + Dedicated Actions on left */}
             <div className="pt-2.5 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-[11px] text-neutral-400 dark:text-neutral-500 font-medium">
-              <span>{wordCount} {t('words', language)}</span>
+              <div className="flex items-center gap-1.5 truncate">
+                <span>{wordCount} {t('words', language)}</span>
+                <span className="opacity-30">·</span>
+                <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                  ⏱️ {readingTimeMin} {language === 'ar' ? 'د' : 'min'}
+                </span>
+              </div>
               
               <div className="flex items-center gap-1">
+                <Link
+                  href={`/reader?storyId=${story.id}`}
+                  className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl transition-colors cursor-pointer"
+                  title={t('openInReader', language)}
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                </Link>
                 {onFloatStory && (
                   <button
                     onClick={() => onFloatStory(story)}

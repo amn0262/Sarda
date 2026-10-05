@@ -1,20 +1,65 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&family=Readex+Pro:wght@300;400;500;600;700&family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro Arabic", "SF Pro", "Geeza Pro", "Helvetica Neue", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans Arabic", "Readex Pro", "Tajawal", "Cairo", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Arabic", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --font-serif: "New York", -apple-system-ui-serif, ui-serif, Georgia, serif;
   --font-mono: "SF Mono", Monaco, Menlo, Consolas, ui-monospace, monospace;
 }
 
 :root {
-  --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro Arabic", "SF Pro", "Geeza Pro", "Helvetica Neue", Arial, system-ui, sans-serif;
-  font-family: var(--font-apple);
+  --font-sarda: "IBM Plex Sans Arabic", "Readex Pro", "Tajawal", "Cairo", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Arabic", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-sarda);
+  font-size: 14.5px;
+}
+
+/* Font Family Selection */
+html[data-font-family="ibm-plex"] {
+  --font-sarda: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html[data-font-family="readex"] {
+  --font-sarda: "Readex Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html[data-font-family="cairo"] {
+  --font-sarda: "Cairo", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html[data-font-family="tajawal"] {
+  --font-sarda: "Tajawal", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html[data-font-family="system"] {
+  --font-sarda: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Arabic", "Segoe UI", Roboto, sans-serif;
+}
+
+/* Responsive Font Scaling */
+html[data-font-size="compact"] {
+  font-size: 13px;
+}
+
+html[data-font-size="normal"] {
+  font-size: 14.5px;
+}
+
+html[data-font-size="large"] {
+  font-size: 16px;
+}
+
+html[data-font-size="extralarge"] {
+  font-size: 17.5px;
+}
+
+/* Fast performance: snappy zero-delay transitions */
+*, ::before, ::after {
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
 }
 
 body {
-  font-family: var(--font-apple);
+  font-family: var(--font-sarda);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

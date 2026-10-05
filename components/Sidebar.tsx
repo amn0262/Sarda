@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderOpen, CalendarDays, Info, PenTool, Settings, ChevronRight, ChevronLeft, Search } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, CalendarDays, Info, PenTool, Settings, ChevronRight, ChevronLeft, Search, BookOpen } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useStore } from '@/lib/store';
 import { useState } from 'react';
 
 const navItems = [
   { name: { ar: 'الرئيسية', en: 'Dashboard' }, href: '/', icon: LayoutDashboard },
+  { name: { ar: 'قسم القراءة', en: 'Reader' }, href: '/reader', icon: BookOpen },
   { name: { ar: 'إدارة المحتوى', en: 'Content' }, href: '/content', icon: FolderOpen },
   { name: { ar: 'جدول النشر', en: 'Schedule' }, href: '/schedule', icon: CalendarDays },
   { name: { ar: 'الإعدادات', en: 'Settings' }, href: '/settings', icon: Settings },
@@ -17,9 +18,9 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { language, isFocusMode } = useStore();
+  const { language, isFocusMode, isSidebarCollapsed, toggleSidebarCollapsed } = useStore();
   const currentLang = language === 'en' ? 'en' : 'ar';
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const isCollapsed = Boolean(isSidebarCollapsed);
 
   if (isFocusMode) return null;
 
@@ -35,7 +36,7 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  'flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all text-xs flex-1',
+                  'flex flex-col items-center justify-center py-1.5 px-2 rounded-xl text-xs flex-1 transition-colors',
                   isActive
                     ? 'bg-white/20 text-white font-bold shadow-xs'
                     : 'text-neutral-400 hover:text-white hover:bg-white/10'
@@ -52,15 +53,15 @@ export default function Sidebar() {
       {/* Desktop Sidebar (Apple macOS Window Sidebar Style) */}
       <aside
         className={clsx(
-          "hidden md:flex flex-col bg-neutral-950/95 backdrop-blur-2xl text-white border-e border-white/10 shrink-0 z-40 shadow-2xl transition-all duration-300 relative order-first",
+          "hidden md:flex flex-col bg-neutral-950/95 backdrop-blur-2xl text-white border-e border-white/10 shrink-0 z-40 shadow-2xl transition-[width] duration-150 relative order-first",
           isCollapsed ? "w-16" : "w-60"
         )}
       >
         {/* Apple macOS Collapse Button */}
         <button 
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute rtl:-left-3.5 ltr:-right-3.5 top-6 bg-neutral-800/90 hover:bg-neutral-700 border border-white/15 text-neutral-300 hover:text-white p-1 rounded-full z-50 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
-          title={isCollapsed ? 'توسيع' : 'طي'}
+          onClick={toggleSidebarCollapsed}
+          className="absolute rtl:-left-3.5 ltr:-right-3.5 top-6 bg-neutral-800 hover:bg-neutral-700 border border-white/15 text-neutral-300 hover:text-white p-1 rounded-full z-50 shadow-md flex items-center justify-center cursor-pointer active:scale-95"
+          title={isCollapsed ? (language === 'ar' ? 'توسيع القائمة' : 'Expand Sidebar') : (language === 'ar' ? 'طي القائمة' : 'Collapse Sidebar')}
         >
           {isCollapsed ? (language === 'ar' ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />) 
                        : (language === 'ar' ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />)}

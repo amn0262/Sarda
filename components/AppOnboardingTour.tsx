@@ -2,7 +2,6 @@
 
 import { useStore } from '@/lib/store';
 import { t } from '@/lib/i18n';
-import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, 
   LayoutDashboard, 
@@ -115,16 +114,10 @@ export default function AppOnboardingTour() {
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md select-none">
-        <motion.div
-          key={tourStep}
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ duration: 0.2 }}
-          className="relative w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 border border-black/10 dark:border-white/10 my-auto text-neutral-900 dark:text-white"
-        >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md select-none">
+      <div
+        className="relative w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 border border-black/10 dark:border-white/10 my-auto text-neutral-900 dark:text-white"
+      >
           {/* Close button */}
           <button
             type="button"
@@ -221,8 +214,7 @@ export default function AppOnboardingTour() {
               </button>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
-    </AnimatePresence>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useStore } from '@/lib/store';
 import { t } from '@/lib/i18n';
-import { motion, AnimatePresence } from 'motion/react';
 import { Youtube, Instagram, Facebook, Heart, CheckCircle2, ExternalLink, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useSyncExternalStore } from 'react';
@@ -54,14 +53,10 @@ export default function SupportGateModal() {
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md overflow-y-auto select-none">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-auto"
-        >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md overflow-y-auto select-none">
+      <div
+        className="relative w-full max-w-md bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10 my-auto"
+      >
           {/* Header Banner - macOS Dialog Top */}
           <div className="bg-neutral-900 dark:bg-black/90 p-5 text-white text-center relative border-b border-black/10 dark:border-white/10">
             {/* Window Traffic Lights */}
@@ -190,8 +185,7 @@ export default function SupportGateModal() {
             </div>
 
           </div>
-        </motion.div>
+        </div>
       </div>
-    </AnimatePresence>
   );
 }

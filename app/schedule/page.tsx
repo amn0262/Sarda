@@ -11,7 +11,6 @@ import {
 import { format, isBefore, isToday, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
 import Link from 'next/link';
-import { motion } from 'motion/react';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import StoryReaderModal from '@/components/StoryReaderModal';
 

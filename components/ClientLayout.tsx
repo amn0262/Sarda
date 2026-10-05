@@ -7,7 +7,7 @@ import AppOnboardingTour from '@/components/AppOnboardingTour';
 import FloatingStoryWindow from '@/components/FloatingStoryWindow';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { language, theme } = useStore();
+  const { language, theme, fontSizePreference, fontFamilyPreference } = useStore();
 
   useEffect(() => {
     try {
@@ -18,6 +18,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       console.warn('Error setting document direction/lang', e);
     }
   }, [language]);
+
+  useEffect(() => {
+    try {
+      document.documentElement.setAttribute('data-font-size', fontSizePreference || 'normal');
+    } catch (e) {
+      console.warn('Error setting font size attribute', e);
+    }
+  }, [fontSizePreference]);
+
+  useEffect(() => {
+    try {
+      document.documentElement.setAttribute('data-font-family', fontFamilyPreference || 'ibm-plex');
+    } catch (e) {
+      console.warn('Error setting font family attribute', e);
+    }
+  }, [fontFamilyPreference]);
 
   useEffect(() => {
     try {

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '@/lib/store';
 import { 
   X, 
@@ -178,14 +177,10 @@ export default function ExportBackupModal({
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-5 text-neutral-900 dark:text-neutral-100 overflow-hidden relative"
-        >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+      <div
+        className="bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-5 text-neutral-900 dark:text-neutral-100 overflow-hidden relative"
+      >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-3">
             <div className="flex items-center gap-3">
@@ -342,8 +337,7 @@ export default function ExportBackupModal({
               {language === 'ar' ? 'إلغاء' : 'Cancel'}
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </AnimatePresence>
   );
 }
