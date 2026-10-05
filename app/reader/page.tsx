@@ -27,9 +27,11 @@ import {
   RotateCcw,
   Sparkles,
   Layers,
-  ChevronDown
+  ChevronDown,
+  Share2
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import ReaderPdfShareModal from '@/components/ReaderPdfShareModal';
 
 // Split HTML story content into balanced, readable pages (~280-320 words or by paragraph blocks)
 function splitContentIntoPages(htmlContent: string): string[] {
@@ -177,23 +179,43 @@ function ReaderContent() {
     }
   }, [currentPage, selectedStoryId]);
 
-  // Fullscreen state
+  // Fullscreen state & robust handlers
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen?.().catch(() => {});
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen?.().catch(() => {});
-      setIsFullscreen(false);
+  const exitFullscreen = useCallback(() => {
+    if (typeof document !== 'undefined' && document.fullscreenElement) {
+      try {
+        document.exitFullscreen().catch(() => {});
+      } catch {
+        // ignore
+      }
     }
+    setIsFullscreen(false);
   }, []);
+
+  const enterFullscreen = useCallback(() => {
+    if (containerRef.current?.requestFullscreen) {
+      containerRef.current.requestFullscreen().catch(() => {
+        // Fallback to pure CSS fullscreen if iframe denies native fullscreen
+      });
+    }
+    setIsFullscreen(true);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (isFullscreen) {
+      exitFullscreen();
+    } else {
+      enterFullscreen();
+    }
+  }, [isFullscreen, exitFullscreen, enterFullscreen]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      if (!document.fullscreenElement) {
+        setIsFullscreen(false);
+      }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -206,6 +228,9 @@ function ReaderContent() {
 
   // Bookmarks modal / drawer
   const [isBookmarksDrawerOpen, setIsBookmarksDrawerOpen] = useState(false);
+
+  // PDF Share & Export Modal
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
   // Settings dropdown / popover
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -268,6 +293,8 @@ function ReaderContent() {
         }
       } else if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) {
         toggleFullscreen();
+      } else if (e.key === 'Escape' && isFullscreen) {
+        exitFullscreen();
       } else if (e.key.toLowerCase() === 'b' && !e.ctrlKey && !e.metaKey) {
         handleToggleBookmark();
       }
@@ -275,7 +302,7 @@ function ReaderContent() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage, totalPages, language, toggleFullscreen, handleToggleBookmark]);
+  }, [currentPage, totalPages, language, toggleFullscreen, exitFullscreen, isFullscreen, handleToggleBookmark]);
 
   // Story selector filtered list
   const filteredLibraryStories = useMemo(() => {
@@ -372,12 +399,12 @@ function ReaderContent() {
           ) : (
             <button
               type="button"
-              onClick={toggleFullscreen}
-              className={clsx('p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer', themeConfig.buttonBg)}
+              onClick={exitFullscreen}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 shadow-2xs active:scale-95"
               title={t('exitFullscreen', language)}
             >
               <Minimize2 className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('exitFullscreen', language)}</span>
+              <span>{t('exitFullscreen', language)}</span>
             </button>
           )}
 
@@ -451,6 +478,21 @@ function ReaderContent() {
               </span>
             )}
           </button>
+
+          {/* Share / Save as PDF Button */}
+          {currentStory && (
+            <button
+              type="button"
+              onClick={() => setIsPdfModalOpen(true)}
+              className={clsx('p-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5', themeConfig.buttonBg)}
+              title={t('sharePdf', language)}
+            >
+              <Share2 className="w-4 h-4 text-blue-500" />
+              <span className="hidden sm:inline text-xs font-bold">
+                {language === 'ar' ? 'مشاركة PDF' : 'Share PDF'}
+              </span>
+            </button>
+          )}
 
           {/* Reader Display Ergonomics Settings Dropdown */}
           <div className="relative">
@@ -692,25 +734,13 @@ function ReaderContent() {
             <span className="hidden sm:inline">{t('prevPage', language)}</span>
           </button>
 
-          {/* Center: Interactive Page Slider & Direct Jump */}
-          <div className="flex items-center gap-3 max-w-xs sm:max-w-md w-full justify-center">
-            <span className="text-xs font-bold font-mono opacity-80 min-w-[28px] text-center">
-              {currentPage}
-            </span>
-
-            <input
-              type="range"
-              min={1}
-              max={totalPages}
-              value={currentPage}
-              onChange={(e) => setCurrentPage(Number(e.target.value))}
-              className="w-32 sm:w-56 accent-blue-600 cursor-pointer"
-              title={language === 'ar' ? 'التنقل السريع بين الصفحات' : 'Jump across pages'}
-            />
-
-            <span className="text-xs font-bold font-mono opacity-80 min-w-[28px] text-center">
-              {totalPages}
-            </span>
+          {/* Center: Clean Page Number Indicator (Slider removed) */}
+          <div className="flex items-center justify-center">
+            <div className="px-4 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-xs font-bold font-mono">
+              <span className="text-blue-600 dark:text-blue-400 font-extrabold">{currentPage}</span>
+              <span className="opacity-30 mx-2">/</span>
+              <span className="opacity-70">{totalPages}</span>
+            </div>
           </div>
 
           {/* Next Page Button */}
@@ -973,6 +1003,19 @@ function ReaderContent() {
           {/* Click outside to close */}
           <div className="flex-1" onClick={() => setIsBookmarksDrawerOpen(false)} />
         </div>
+      )}
+
+      {/* PDF Export & Share Options Modal */}
+      {currentStory && (
+        <ReaderPdfShareModal
+          isOpen={isPdfModalOpen}
+          onClose={() => setIsPdfModalOpen(false)}
+          story={currentStory}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          currentPageContent={pages[currentPage - 1] || ''}
+          folderName={currentStory?.folderId ? folderMap.get(currentStory.folderId)?.name : undefined}
+        />
       )}
     </div>
   );
